@@ -29,6 +29,15 @@
         .search-result-item:hover { background: #d1fae5; }
         .selected-person { background: #dcfce7; padding: 0.5rem; border-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
         .selected-person .remove { cursor: pointer; color: #ef4444; font-size: 1.1rem; }
+        
+        /* Jenjang Info Box */
+        .jenjang-info-box { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid #10b981; border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 1rem; }
+        .jenjang-row { display: flex; gap: 1rem; margin-bottom: 0.5rem; }
+        .jenjang-item { flex: 1; text-align: center; }
+        .jenjang-label { display: block; font-size: 0.7rem; color: #065f46; margin-bottom: 0.25rem; }
+        .jenjang-value { display: block; font-weight: 600; font-size: 0.9rem; color: #047857; }
+        .jenjang-mismatch { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 0.375rem; padding: 0.5rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #92400e; }
+        .jenjang-mismatch .btn { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
     </style>
 </head>
 <body>
@@ -166,8 +175,26 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Tanggal Lahir</label>
-                                    <input type="date" class="form-control" id="editTanggalLahir" onchange="showUmur()">
+                                    <input type="date" class="form-control" id="editTanggalLahir" onchange="showUmurJenjang()">
                                     <small class="form-text" id="editUmurInfo"></small>
+                                </div>
+                            </div>
+                            
+                            <!-- Jenjang Info Box -->
+                            <div class="jenjang-info-box" id="jenjangInfoBox" style="display:none;">
+                                <div class="jenjang-row">
+                                    <div class="jenjang-item">
+                                        <span class="jenjang-label">📚 Jenjang Seharusnya</span>
+                                        <span class="jenjang-value" id="jenjangSeharusnya">-</span>
+                                    </div>
+                                    <div class="jenjang-item">
+                                        <span class="jenjang-label">📋 Jenjang Terdaftar</span>
+                                        <span class="jenjang-value" id="jenjangTerdaftar">-</span>
+                                    </div>
+                                </div>
+                                <div class="jenjang-mismatch" id="jenjangMismatch" style="display:none;">
+                                    <span>⚠️ Jenjang tidak sesuai umur!</span>
+                                    <button type="button" class="btn btn-sm btn-warning" onclick="updateJenjangOtomatis()">🔄 Update Jenjang</button>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -703,7 +730,7 @@
                 $('editTanggalLahir').value = jamaah.tanggal_lahir || '';
                 $('editPhone').value = jamaah.phone || '';
                 $('editAlamat').value = jamaah.alamat_lengkap || '';
-                showUmur();
+                showUmurJenjang();
                 
                 // Tab 2: Orang Tua
                 $('editAyahId').value = jamaah.ayah_id || '';
@@ -771,6 +798,77 @@
         function showUmur() {
             var tgl = $('editTanggalLahir').value;
             $('editUmurInfo').innerHTML = tgl ? '<strong>Umur: ' + hitungUmur(tgl) + ' tahun</strong>' : '';
+        }
+        
+        // ========== JENJANG OTOMATIS ==========
+        function getJenjangByUmur(umur) {
+            // Cari jenjang yang sesuai umur dari allJenjang
+            for (const j of allJenjang) {
+                const mulai = j.usia_mulai || 0;
+                const sampai = j.usia_sampai || 999;
+                if (umur >= mulai && umur <= sampai) {
+                    return j;
+                }
+            }
+            return null;
+        }
+        
+        function showUmurJenjang() {
+            var tgl = $('editTanggalLahir').value;
+            if (!tgl) {
+                $('editUmurInfo').innerHTML = '';
+                $('jenjangInfoBox').style.display = 'none';
+                return;
+            }
+            
+            var umur = hitungUmur(tgl);
+            $('editUmurInfo').innerHTML = '<strong>Umur: ' + umur + ' tahun</strong>';
+            
+            // Hitung jenjang seharusnya
+            var jenjangSeharusnya = getJenjangByUmur(umur);
+            var jenjangTerdaftar = currentEditData?.enrollment?.jenjang;
+            
+            $('jenjangInfoBox').style.display = 'block';
+            $('jenjangSeharusnya').textContent = jenjangSeharusnya ? jenjangSeharusnya.nama : 'Tidak diketahui';
+            $('jenjangTerdaftar').textContent = jenjangTerdaftar?.nama || 'Belum terdaftar';
+            
+            // Cek mismatch
+            var isMismatch = jenjangSeharusnya && jenjangTerdaftar && 
+                             jenjangSeharusnya.id !== jenjangTerdaftar.id;
+            
+            $('jenjangMismatch').style.display = isMismatch ? 'flex' : 'none';
+            
+            // Simpan untuk update
+            window.jenjangSeharusnyaId = jenjangSeharusnya?.id;
+        }
+        
+        async function updateJenjangOtomatis() {
+            if (!window.jenjangSeharusnyaId || !currentEditData?.enrollment?.id) {
+                showToast('Data jenjang tidak valid', 'error');
+                return;
+            }
+            
+            try {
+                var result = await db.from('enrollment')
+                    .update({ jenjang_id: window.jenjangSeharusnyaId })
+                    .eq('id', currentEditData.enrollment.id);
+                
+                if (result.error) throw result.error;
+                
+                // Update local data
+                var jenjangBaru = allJenjang.find(j => j.id === window.jenjangSeharusnyaId);
+                currentEditData.enrollment.jenjang_id = window.jenjangSeharusnyaId;
+                currentEditData.enrollment.jenjang = jenjangBaru;
+                
+                // Update display
+                $('jenjangTerdaftar').textContent = jenjangBaru?.nama || '-';
+                $('currentJenjangName').textContent = jenjangBaru?.nama || '-';
+                $('jenjangMismatch').style.display = 'none';
+                
+                showToast('Jenjang berhasil diupdate!', 'success');
+            } catch (error) {
+                showToast('Gagal update jenjang: ' + error.message, 'error');
+            }
         }
         
         // ========== SAVE DATA ==========
