@@ -277,6 +277,7 @@
                 console.log('User tidak punya wilayah, akan tampilkan semua data');
             }
             
+            await loadStatusJamaah(); // Load status dari tabel
             await loadFilters();
             await loadJamaah();
             
@@ -285,6 +286,49 @@
             
             if (getUrlParam('action') === 'add') showAddModal();
         });
+        
+        // Variabel global untuk status
+        var allStatus = [];
+        
+        // Load status dari tabel status_jamaah
+        async function loadStatusJamaah() {
+            try {
+                const { data, error } = await db
+                    .from('status_jamaah')
+                    .select('*')
+                    .eq('is_aktif', true)
+                    .order('urutan');
+                
+                if (error) throw error;
+                allStatus = data || [];
+                
+                // Populate filter status
+                const filterStatus = $('filterStatus');
+                filterStatus.innerHTML = '<option value="">Semua Status</option>' +
+                    allStatus.map(s => {
+                        const selected = s.kode === 'aktif' ? 'selected' : '';
+                        return `<option value="${s.kode}" ${selected}>${s.icon || ''} ${s.nama}</option>`;
+                    }).join('');
+                
+                // Populate form status
+                const formStatus = $('formStatus');
+                formStatus.innerHTML = allStatus.map(s => {
+                    const selected = s.kode === 'aktif' ? 'selected' : '';
+                    return `<option value="${s.id}" data-kode="${s.kode}" ${selected}>${s.nama}</option>`;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading status:', error);
+                // Fallback ke hardcoded jika tabel belum ada
+                allStatus = [
+                    { id: 1, kode: 'aktif', nama: 'Aktif' },
+                    { id: 2, kode: 'nonaktif', nama: 'Nonaktif' },
+                    { id: 3, kode: 'pindah', nama: 'Pindah' },
+                    { id: 4, kode: 'lulus', nama: 'Lulus' },
+                    { id: 5, kode: 'menikah', nama: 'Menikah' }
+                ];
+            }
+        }
         
         function updateUserUI() {
             if (currentUserData) {
@@ -387,18 +431,21 @@
         
         // Handler saat status berubah
         function onStatusChange() {
-            const status = $('formStatus').value;
+            const selectStatus = $('formStatus');
+            const selectedOption = selectStatus.options[selectStatus.selectedIndex];
+            const statusKode = selectedOption?.dataset?.kode || selectedOption?.value;
+            
             const pindahKeGroup = $('pindahKeGroup');
             const enrollmentFields = $('enrollmentFields');
             const formKelompok = $('formKelompok');
             const formJenjang = $('formJenjang');
             
-            if (status === 'pindah') {
+            if (statusKode === 'pindah') {
                 // Tampilkan pilihan pindah ke mana
                 pindahKeGroup.style.display = 'block';
                 onPindahKeChange(); // Update enrollment fields
-            } else if (status === 'menikah' || status === 'lulus') {
-                // Menikah/Lulus: tidak perlu enrollment baru
+            } else if (statusKode === 'menikah' || statusKode === 'lulus' || statusKode === 'meninggal') {
+                // Menikah/Lulus/Meninggal: tidak perlu enrollment baru
                 pindahKeGroup.style.display = 'none';
                 enrollmentFields.style.display = 'none';
                 formKelompok.removeAttribute('required');
@@ -478,15 +525,15 @@
         async function loadJamaah() {
             try {
                 const search = $('searchInput').value.trim().toLowerCase();
-                const status = $('filterStatus').value || 'aktif';
+                const statusKode = $('filterStatus').value || 'aktif';
                 const desaId = $('filterDesa').value;
                 const kelompokId = $('filterKelompok').value;
                 
-                // Call RPC function
+                // Call RPC function dengan status_kode
                 const result = await db.rpc('get_jamaah_by_wilayah', {
                     p_wilayah_id: null,
                     p_jenjang_id: null,
-                    p_status: status || null
+                    p_status_kode: statusKode || null
                 });
                 
                 if (result.error) throw result.error;
@@ -630,7 +677,7 @@
             $('santriId').value = '';
             $('umurInfo').textContent = '';
             $('jenjangInfo').textContent = 'Akan otomatis dipilih berdasarkan umur';
-            $('formStatus').value = 'aktif';
+            $('formStatus').value = allStatus.find(s => s.kode === 'aktif')?.id || '1';
             $('pindahKeGroup').style.display = 'none';
             $('enrollmentFields').style.display = 'block';
             
@@ -643,8 +690,12 @@
         
         async function editJamaah(id) {
             try {
-                // Get jamaah with enrollment
-                const { data: jamaah, error } = await db.from('jamaah').select('*').eq('id', id).single();
+                // Get jamaah with status
+                const { data: jamaah, error } = await db
+                    .from('jamaah')
+                    .select('*, status:status_id(id, kode, nama)')
+                    .eq('id', id)
+                    .single();
                 if (error) throw error;
                 
                 // Get active enrollment
@@ -666,7 +717,9 @@
                 form.querySelector('[name="jenis_kelamin"]').value = jamaah.jenis_kelamin || '';
                 form.querySelector('[name="phone"]').value = jamaah.phone || '';
                 form.querySelector('[name="alamat"]').value = jamaah.alamat_lengkap || '';
-                $('formStatus').value = jamaah.status_aktif || 'aktif';
+                
+                // Set status menggunakan status_id
+                $('formStatus').value = jamaah.status_id || '1';
                 
                 // Set enrollment data
                 if (enrollment && enrollment.wilayah) {
@@ -694,7 +747,10 @@
         
         async function saveJamaah() {
             const form = $('santriForm');
-            const status = $('formStatus').value;
+            const selectStatus = $('formStatus');
+            const selectedOption = selectStatus.options[selectStatus.selectedIndex];
+            const statusId = parseInt(selectStatus.value);
+            const statusKode = selectedOption?.dataset?.kode || '';
             const pindahKe = $('pindahKe')?.value;
             
             // Validasi field dasar (nama, jenis kelamin)
@@ -711,8 +767,8 @@
             }
             
             // Validasi enrollment hanya jika status aktif/nonaktif atau pindah kelompok
-            const needsEnrollment = (status === 'aktif' || status === 'nonaktif') || 
-                                    (status === 'pindah' && pindahKe === 'pindah_kelompok');
+            const needsEnrollment = (statusKode === 'aktif' || statusKode === 'nonaktif') || 
+                                    (statusKode === 'pindah' && pindahKe === 'pindah_kelompok');
             
             if (needsEnrollment) {
                 const wilayahId = $('formKelompok').value;
@@ -742,7 +798,7 @@
                     jenis_kelamin: formData.jenis_kelamin,
                     phone: formData.phone,
                     alamat_lengkap: formData.alamat,
-                    status_aktif: formData.status || 'aktif'
+                    status_id: statusId  // Menggunakan status_id (foreign key ke tabel status_jamaah)
                 };
                 
                 let jamaahId = formData.id;
@@ -753,13 +809,13 @@
                     if (error) throw error;
                     
                     // Handle enrollment berdasarkan status
-                    if (status === 'pindah' && pindahKe === 'keluar') {
+                    if (statusKode === 'pindah' && pindahKe === 'keluar') {
                         // Pindah keluar: nonaktifkan enrollment lama
                         await db.from('enrollment').update({
                             status: 'nonaktif'
                         }).eq('jamaah_id', jamaahId).eq('status', 'aktif');
                         
-                    } else if (status === 'menikah') {
+                    } else if (statusKode === 'menikah') {
                         // Menikah: nonaktifkan enrollment lama, buat enrollment baru dengan jenjang Dewasa
                         
                         // Ambil wilayah dari enrollment lama
@@ -792,13 +848,13 @@
                             });
                         }
                         
-                    } else if (status === 'lulus') {
-                        // Lulus: nonaktifkan enrollment
+                    } else if (statusKode === 'lulus' || statusKode === 'meninggal') {
+                        // Lulus/Meninggal: nonaktifkan enrollment
                         await db.from('enrollment').update({
                             status: 'nonaktif'
                         }).eq('jamaah_id', jamaahId).eq('status', 'aktif');
                         
-                    } else if (status === 'pindah' && pindahKe === 'pindah_kelompok') {
+                    } else if (statusKode === 'pindah' && pindahKe === 'pindah_kelompok') {
                         // Pindah kelompok: nonaktifkan enrollment lama, buat baru
                         await db.from('enrollment').update({
                             status: 'nonaktif'
@@ -815,7 +871,10 @@
                         });
                         
                         // Set jamaah status kembali aktif
-                        await db.from('jamaah').update({ status_aktif: 'aktif' }).eq('id', jamaahId);
+                        const statusAktif = allStatus.find(s => s.kode === 'aktif');
+                        if (statusAktif) {
+                            await db.from('jamaah').update({ status_id: statusAktif.id }).eq('id', jamaahId);
+                        }
                         
                     } else {
                         // Update enrollment biasa

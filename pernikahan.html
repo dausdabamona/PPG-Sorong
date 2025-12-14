@@ -700,9 +700,18 @@
                         .insert(relasiData);
                     if (error) throw error;
                     
+                    // Cari status_id untuk 'menikah'
+                    const { data: statusMenikah } = await db
+                        .from('status_jamaah')
+                        .select('id')
+                        .eq('kode', 'menikah')
+                        .single();
+                    
+                    const statusMenikahId = statusMenikah?.id;
+                    
                     // Update status jamaah istri menjadi menikah
                     await db.from('jamaah').update({
-                        status_aktif: 'menikah',
+                        status_id: statusMenikahId,
                         pasangan_id: suamiId,
                         tanggal_menikah: formData.tanggal_menikah
                     }).eq('id', istriId);
@@ -744,13 +753,13 @@
                     // Cek apakah suami sudah status menikah, jika belum update
                     const { data: suamiData } = await db
                         .from('jamaah')
-                        .select('status_aktif')
+                        .select('status_id, status:status_id(kode)')
                         .eq('id', suamiId)
                         .single();
                     
-                    if (suamiData?.status_aktif !== 'menikah') {
+                    if (suamiData?.status?.kode !== 'menikah') {
                         await db.from('jamaah').update({
-                            status_aktif: 'menikah',
+                            status_id: statusMenikahId,
                             tanggal_menikah: formData.tanggal_menikah
                         }).eq('id', suamiId);
                         
@@ -817,10 +826,19 @@
                 
                 if (error) throw error;
                 
+                // Cari status_id untuk 'aktif'
+                const { data: statusAktif } = await db
+                    .from('status_jamaah')
+                    .select('id')
+                    .eq('kode', 'aktif')
+                    .single();
+                
+                const statusAktifId = statusAktif?.id;
+                
                 // Reset status istri jika tidak punya pasangan lain
                 if (relasi) {
                     await db.from('jamaah').update({
-                        status_aktif: 'aktif',
+                        status_id: statusAktifId,
                         pasangan_id: null,
                         tanggal_menikah: null
                     }).eq('id', relasi.relasi_dengan_jamaah_id);
@@ -835,7 +853,7 @@
                     
                     if (count === 0) {
                         await db.from('jamaah').update({
-                            status_aktif: 'aktif',
+                            status_id: statusAktifId,
                             tanggal_menikah: null
                         }).eq('id', relasi.jamaah_id);
                     }
