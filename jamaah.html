@@ -300,8 +300,8 @@
                 const { data: wilayah } = await db.from('wilayah').select('*').eq('is_aktif', true).order('nama');
                 allWilayah = wilayah || [];
                 
-                // Cek apakah admin
-                const isAdmin = userRoles.some(r => r.role?.kode === 'admin');
+                // Cek apakah admin (case-insensitive)
+                const isAdmin = userRoles.some(r => r.role?.kode?.toLowerCase() === 'admin');
                 
                 // Get wilayah user untuk menentukan filter yang ditampilkan
                 const userWilayah = userWilayahId ? allWilayah.find(w => w.id === userWilayahId) : null;
@@ -807,8 +807,8 @@
         }
         
         async function deleteJamaah(id) {
-            // Cek apakah user adalah admin
-            const isAdmin = userRoles.some(r => r.role?.kode === 'admin');
+            // Cek apakah user adalah admin (case-insensitive)
+            const isAdmin = userRoles.some(r => r.role?.kode?.toLowerCase() === 'admin');
             if (!isAdmin) {
                 showToast('Hanya Admin yang dapat menghapus data jamaah', 'error');
                 return;
