@@ -304,38 +304,61 @@
                             <button type="button" class="btn btn-primary w-100" onclick="saveOrangTua()">💾 Simpan Orang Tua</button>
                         </div>
                         
-                        <!-- Tab 3: Pindah Kelompok -->
+                        <!-- Tab 3: Edit Kelompok -->
                         <div class="tab-content" id="tabKelompok">
                             <div class="current-info">
-                                <strong>Kelompok:</strong> <span id="currentKelompokName">-</span><br>
+                                <strong>Kelompok Saat Ini:</strong> <span id="currentKelompokName">-</span><br>
                                 <strong>Jenjang:</strong> <span id="currentJenjangName">-</span>
                             </div>
                             
-                            <div class="info-box">
-                                ℹ️ Pindah kelompok akan menutup enrollment lama dan membuat baru.
+                            <!-- Mode Edit Langsung -->
+                            <div class="info-box" style="background:#dcfce7;border-color:#22c55e;">
+                                ⚡ <strong>Edit Cepat:</strong> Langsung ganti kelompok tanpa proses pindah.
                             </div>
                             
                             <div class="form-group">
-                                <label class="form-label">Daerah Tujuan</label>
-                                <select class="form-control" id="pindahDaerah" onchange="loadKelompokTujuan()">
+                                <label class="form-label">Daerah</label>
+                                <select class="form-control" id="editDaerah" onchange="loadKelompokEdit()">
                                     <option value="">Pilih Daerah</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Kelompok Tujuan *</label>
-                                <select class="form-control" id="pindahKelompok">
+                                <label class="form-label">Kelompok Baru *</label>
+                                <select class="form-control" id="editKelompok">
                                     <option value="">Pilih Kelompok</option>
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Tanggal Pindah</label>
-                                <input type="date" class="form-control" id="pindahTanggal">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Keterangan</label>
-                                <textarea class="form-control" id="pindahKeterangan" rows="2" placeholder="Alasan pindah..."></textarea>
-                            </div>
-                            <button type="button" class="btn btn-primary w-100" onclick="savePindahKelompok()">🏠 Pindah Kelompok</button>
+                            <button type="button" class="btn btn-success w-100 mb-md" onclick="saveEditKelompok()">✅ Simpan Kelompok</button>
+                            
+                            <hr style="margin:1rem 0;border:none;border-top:1px dashed #d1d5db;">
+                            
+                            <!-- Mode Pindah Formal -->
+                            <details style="background:#f8fafc;padding:0.75rem;border-radius:0.5rem;">
+                                <summary style="cursor:pointer;font-weight:500;font-size:0.85rem;color:#475569;">📋 Pindah Formal (dengan catatan)</summary>
+                                <div style="margin-top:0.75rem;">
+                                    <div class="form-group">
+                                        <label class="form-label">Daerah Tujuan</label>
+                                        <select class="form-control" id="pindahDaerah" onchange="loadKelompokTujuan()">
+                                            <option value="">Pilih Daerah</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Kelompok Tujuan *</label>
+                                        <select class="form-control" id="pindahKelompok">
+                                            <option value="">Pilih Kelompok</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Tanggal Pindah</label>
+                                        <input type="date" class="form-control" id="pindahTanggal">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Keterangan</label>
+                                        <textarea class="form-control" id="pindahKeterangan" rows="2" placeholder="Alasan pindah..."></textarea>
+                                    </div>
+                                    <button type="button" class="btn btn-primary w-100" onclick="savePindahKelompok()">🏠 Pindah Kelompok</button>
+                                </div>
+                            </details>
                         </div>
                         
                         <!-- Tab 4: Status -->
@@ -862,6 +885,9 @@
                 $('currentKelompokName').textContent = enrollment && enrollment.wilayah ? enrollment.wilayah.nama : 'Belum terdaftar';
                 $('currentJenjangName').textContent = enrollment && enrollment.jenjang ? enrollment.jenjang.nama : '-';
                 
+                // Populate dropdown daerah untuk edit cepat
+                populateEditDaerah(enrollment);
+                
                 // Tab 4: Status
                 $('currentStatus').textContent = jamaah.status_aktif || 'aktif';
                 $('newStatus').value = '';
@@ -1021,7 +1047,110 @@
             }
         }
         
-        // ========== PINDAH KELOMPOK ==========
+        // ========== EDIT KELOMPOK LANGSUNG ==========
+        async function populateEditDaerah(enrollment) {
+            // Populate daerah dropdown untuk edit cepat
+            var editDaerahSelect = $('editDaerah');
+            var pindahDaerahSelect = $('pindahDaerah');
+            
+            // Load daerah list
+            var result = await db.from('wilayah')
+                .select('id, nama')
+                .eq('tipe', 'daerah')
+                .order('nama');
+            
+            var daerahList = result.data || [];
+            
+            var options = '<option value="">Pilih Daerah</option>';
+            for (var i = 0; i < daerahList.length; i++) {
+                options += '<option value="' + daerahList[i].id + '">' + daerahList[i].nama + '</option>';
+            }
+            
+            editDaerahSelect.innerHTML = options;
+            pindahDaerahSelect.innerHTML = options;
+            
+            // Jika ada enrollment, cari daerah dari kelompok
+            if (enrollment && enrollment.wilayah_id) {
+                var kelompokResult = await db.from('wilayah')
+                    .select('parent_id')
+                    .eq('id', enrollment.wilayah_id)
+                    .single();
+                
+                if (kelompokResult.data && kelompokResult.data.parent_id) {
+                    editDaerahSelect.value = kelompokResult.data.parent_id;
+                    pindahDaerahSelect.value = kelompokResult.data.parent_id;
+                    
+                    // Load kelompok untuk daerah ini
+                    await loadKelompokEdit();
+                    await loadKelompokTujuan();
+                }
+            }
+        }
+        
+        async function loadKelompokEdit() {
+            var daerahId = $('editDaerah').value;
+            var kelompokSelect = $('editKelompok');
+            kelompokSelect.innerHTML = '<option value="">Pilih Kelompok</option>';
+            
+            if (!daerahId) return;
+            
+            var result = await db.from('wilayah')
+                .select('id, nama')
+                .eq('parent_id', daerahId)
+                .eq('tipe', 'kelompok')
+                .order('nama');
+            
+            if (result.data) {
+                for (var i = 0; i < result.data.length; i++) {
+                    var w = result.data[i];
+                    var selected = w.id == $('editCurrentKelompokId').value ? ' selected' : '';
+                    kelompokSelect.innerHTML += '<option value="' + w.id + '"' + selected + '>' + w.nama + '</option>';
+                }
+            }
+        }
+        
+        async function saveEditKelompok() {
+            var enrollmentId = $('editEnrollmentId').value;
+            var kelompokBaru = $('editKelompok').value;
+            var kelompokLama = $('editCurrentKelompokId').value;
+            
+            if (!kelompokBaru) {
+                showToast('Pilih kelompok!', 'error');
+                return;
+            }
+            
+            if (kelompokBaru == kelompokLama) {
+                showToast('Kelompok sama dengan sebelumnya!', 'warning');
+                return;
+            }
+            
+            if (!enrollmentId) {
+                showToast('Data enrollment tidak ditemukan!', 'error');
+                return;
+            }
+            
+            try {
+                // Update enrollment langsung (edit cepat)
+                var result = await db.from('enrollment')
+                    .update({ wilayah_id: parseInt(kelompokBaru) })
+                    .eq('id', enrollmentId);
+                
+                if (result.error) throw result.error;
+                
+                // Update display
+                var kelompokData = await db.from('wilayah').select('nama').eq('id', kelompokBaru).single();
+                $('currentKelompokName').textContent = kelompokData.data?.nama || '-';
+                $('editCurrentKelompokId').value = kelompokBaru;
+                
+                showToast('Kelompok berhasil diubah!', 'success');
+                loadGenerus();
+                
+            } catch (error) {
+                showToast('Gagal: ' + error.message, 'error');
+            }
+        }
+        
+        // ========== PINDAH KELOMPOK (FORMAL) ==========
         async function savePindahKelompok() {
             var jamaahId = $('editId').value;
             var enrollmentId = $('editEnrollmentId').value;
