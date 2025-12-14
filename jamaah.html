@@ -13,6 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/mobile-grid.css">
     <link rel="stylesheet" href="css/mobile-menu.css">
 </head>
 <body>
@@ -627,7 +628,12 @@
             const container = $('jamaahContainer');
             
             if (!data.length) {
-                container.innerHTML = '<div class="card"><div class="card-body text-center text-muted py-4">Tidak ada data</div></div>';
+                container.innerHTML = `
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon">👥</div>
+                        <div class="mobile-empty-title">Tidak ada data jamaah</div>
+                        <div class="mobile-empty-subtitle">Tambahkan jamaah baru untuk memulai</div>
+                    </div>`;
                 return;
             }
             
@@ -665,49 +671,47 @@
                     'Caberawit': '#10b981',
                     'Praremaja': '#3b82f6',
                     'Remaja': '#8b5cf6',
+                    'Pra Nikah': '#ec4899',
                     'Pranikah': '#ec4899',
                     'Dewasa': '#6b7280'
                 };
                 const bgColor = badgeColors[jenjang] || '#059669';
                 
-                html += `<div class="card mb-sm">`;
-                html += `<div class="card-header" style="background:${bgColor}20;padding:10px 12px;border-left:4px solid ${bgColor};">`;
-                html += `<div style="display:flex;justify-content:space-between;align-items:center;">`;
-                html += `<strong style="color:${bgColor};">📚 ${jenjang}</strong>`;
-                html += `<span class="badge" style="background:${bgColor};color:white;">${members.length} jamaah</span>`;
-                html += `</div>`;
-                html += `</div>`;
-                html += `<div class="card-body" style="padding:0;">`;
-                html += `<div class="table-responsive">`;
-                html += `<table class="table" style="margin:0;">`;
-                html += `<thead><tr>`;
-                html += `<th width="35">NO</th>`;
-                html += `<th>NAMA</th>`;
-                html += `<th width="40">L/P</th>`;
-                html += `<th>KELOMPOK</th>`;
-                html += `<th width="70">AKSI</th>`;
-                html += `</tr></thead>`;
-                html += `<tbody>`;
-                
-                for (let i = 0; i < members.length; i++) {
-                    const j = members[i];
-                    html += `<tr>`;
-                    html += `<td>${i + 1}</td>`;
-                    html += `<td><strong>${j.nama}</strong>`;
-                    if (j.nama_panggilan) html += `<br><small class="text-muted">${j.nama_panggilan}</small>`;
-                    html += `</td>`;
-                    html += `<td>${j.jenis_kelamin || '-'}</td>`;
-                    html += `<td><small>${j.kelompok_nama || '-'}</small></td>`;
-                    html += `<td>`;
-                    html += `<div class="btn-group">`;
-                    html += `<button class="btn btn-sm btn-outline" onclick="editJamaah(${j.jamaah_id})" title="Edit">✏️</button>`;
-                    html += `<button class="btn btn-sm btn-danger" onclick="deleteJamaah(${j.jamaah_id})" title="Hapus">🗑️</button>`;
-                    html += `</div>`;
-                    html += `</td>`;
-                    html += `</tr>`;
-                }
-                
-                html += `</tbody></table></div></div></div>`;
+                html += `
+                    <div class="mobile-accordion open" style="margin-bottom:0.75rem;">
+                        <div class="mobile-accordion-header" onclick="this.parentElement.classList.toggle('open')" style="background:${bgColor}15;border-left:4px solid ${bgColor};">
+                            <div class="mobile-accordion-title">
+                                <span style="color:${bgColor};">📚 ${jenjang}</span>
+                                <span style="background:${bgColor};color:white;padding:0.125rem 0.5rem;border-radius:10px;font-size:0.7rem;margin-left:0.5rem;">${members.length}</span>
+                            </div>
+                            <span class="mobile-accordion-arrow">▼</span>
+                        </div>
+                        <div class="mobile-accordion-body">
+                            <div class="mobile-accordion-content" style="padding-top:0.5rem;">
+                                <div class="mobile-data-list">
+                                    ${members.map((j, idx) => `
+                                        <div class="mobile-data-item" onclick="editJamaah(${j.jamaah_id})">
+                                            <div class="mobile-data-avatar ${j.jenis_kelamin === 'P' ? 'female' : ''}">
+                                                ${(j.nama || '?').charAt(0).toUpperCase()}
+                                            </div>
+                                            <div class="mobile-data-content">
+                                                <div class="mobile-data-title">${j.nama}</div>
+                                                <div class="mobile-data-subtitle">
+                                                    ${j.jenis_kelamin === 'L' ? '👦' : '👧'} ${j.jenis_kelamin || '-'} • ${j.kelompok_nama || '-'}
+                                                    ${j.nama_panggilan ? ' • ' + j.nama_panggilan : ''}
+                                                </div>
+                                            </div>
+                                            <div style="display:flex;gap:0.25rem;">
+                                                <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); editJamaah(${j.jamaah_id})" style="padding:0.375rem 0.5rem;">✏️</button>
+                                                <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteJamaah(${j.jamaah_id})" style="padding:0.375rem 0.5rem;">🗑️</button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
             
             container.innerHTML = html;
