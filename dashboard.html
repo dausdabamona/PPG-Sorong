@@ -165,6 +165,19 @@
     <script src="js/sidebar.js"></script>
     
     <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('SW registered:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('SW registration failed:', error);
+                    });
+            });
+        }
+        
         document.addEventListener('DOMContentLoaded', async () => {
             if (!await requireAuth()) return;
             updateSidebarUserInfo();
@@ -173,8 +186,19 @@
         });
         
         function toggleSidebar() {
-            $('sidebar').classList.toggle('collapsed');
-            $('sidebarOverlay').classList.toggle('show');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (window.innerWidth <= 768) {
+                // Mobile: toggle show class
+                sidebar.classList.toggle('show');
+                if (overlay) {
+                    overlay.classList.toggle('show');
+                }
+            } else {
+                // Desktop: toggle collapsed class
+                sidebar.classList.toggle('collapsed');
+            }
         }
         
         async function loadDashboardData() {
