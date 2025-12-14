@@ -542,7 +542,7 @@
                 const search = $('searchInput').value.toLowerCase();
                 
                 // Query jamaah dengan enrollment aktif
-                // Menggunakan left join dan filter manual untuk lebih fleksibel
+                // Menggunakan INNER JOIN enrollment dan JOIN ke status_jamaah
                 let query = db
                     .from('jamaah')
                     .select(`
@@ -552,8 +552,9 @@
                         jenis_kelamin,
                         tanggal_lahir,
                         phone,
-                        status_aktif,
-                        enrollment(
+                        status_id,
+                        status:status_id(id, kode, nama),
+                        enrollment!inner(
                             id,
                             status,
                             wilayah_id,
@@ -562,6 +563,7 @@
                             jenjang:jenjang_id(id, nama)
                         )
                     `)
+                    .eq('enrollment.status', 'aktif')
                     .order('nama');
                 
                 const { data, error } = await query;
@@ -573,23 +575,20 @@
                 
                 console.log('Raw data loaded:', data?.length || 0, 'jamaah');
                 
-                // Filter: hanya yang punya enrollment aktif dan bukan menikah
+                // Filter: hanya yang BUKAN menikah (berdasarkan status_jamaah.kode)
                 let filteredData = (data || []).filter(j => {
-                    // Cek status_aktif bukan 'menikah'
-                    if (j.status_aktif === 'menikah') return false;
-                    
-                    // Cek ada enrollment dengan status 'aktif'
-                    const activeEnrollment = j.enrollment?.find(e => e.status === 'aktif');
-                    return !!activeEnrollment;
+                    // Cek status bukan 'menikah' - menggunakan kode dari tabel status_jamaah
+                    const statusKode = j.status?.kode;
+                    if (statusKode === 'menikah') return false;
+                    return true;
                 });
                 
-                console.log('After filter:', filteredData.length, 'generus');
-                
-                if (error) throw error;
+                console.log('After filter (exclude menikah):', filteredData.length, 'generus');
                 
                 // Transform data
                 let allData = filteredData.map(j => {
-                    const enrollment = j.enrollment?.find(e => e.status === 'aktif');
+                    // Karena pakai !inner, enrollment pasti ada dan sudah difilter status='aktif'
+                    const enrollment = Array.isArray(j.enrollment) ? j.enrollment[0] : j.enrollment;
                     return {
                         id: j.id,
                         nama: j.nama,
