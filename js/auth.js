@@ -192,7 +192,7 @@ function isAdmin() {
 
 // Cek apakah mubaligh/pengajar
 function isMubaligh() {
-    const mubalighRoles = ['mubaligh', 'mubaligh_daerah', 'mubaligh_desa', 'imam_kelompok', 'wakil_kelompok', 'pakar_pendidik'];
+    const mubalighRoles = ['mubaligh', 'mubaligh_daerah', 'mubaligh_desa', 'imam_kelompok', 'wakil_kelompok', 'pakar_pendidik', 'asisten_mubaligh', 'mubaligh_kelompok', 'ki_kelompok', 'pjp'];
     return userRoles.some(ur => mubalighRoles.includes(ur.role?.kode?.toLowerCase()));
 }
 
