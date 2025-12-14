@@ -639,10 +639,23 @@
                 return;
             }
             
-            // Group by jenjang
+            // Hitung jenjang berdasarkan umur untuk setiap generus
+            const dataWithComputedJenjang = data.map(j => {
+                const umur = j.tanggal_lahir ? hitungUmur(j.tanggal_lahir) : null;
+                const jenjangComputed = umur !== null ? getJenjangByUmur(umur) : null;
+                return {
+                    ...j,
+                    umur: umur,
+                    jenjang_computed: jenjangComputed,
+                    jenjang_computed_nama: jenjangComputed?.nama || 'Tanpa Jenjang',
+                    is_mismatch: jenjangComputed && j.jenjang_id && jenjangComputed.id !== j.jenjang_id
+                };
+            });
+            
+            // Group by jenjang COMPUTED (dari umur)
             const groups = {};
-            for (const j of data) {
-                const jenjang = j.jenjang_nama || 'Tanpa Jenjang';
+            for (const j of dataWithComputedJenjang) {
+                const jenjang = j.jenjang_computed_nama;
                 if (!groups[jenjang]) {
                     groups[jenjang] = [];
                 }
@@ -659,15 +672,28 @@
                 return indexA - indexB;
             });
             
+            // Hitung total mismatch
+            const totalMismatch = dataWithComputedJenjang.filter(j => j.is_mismatch).length;
+            
             let html = '';
+            
+            // Info mismatch jika ada
+            if (totalMismatch > 0) {
+                html += `<div class="alert alert-warning mb-sm" style="background:#fef3c7;border:1px solid #f59e0b;border-radius:0.5rem;padding:0.75rem;font-size:0.85rem;">
+                    ⚠️ <strong>${totalMismatch} generus</strong> jenjangnya tidak sesuai dengan umur (ditandai 🔶)
+                </div>`;
+            }
             
             for (const jenjang of sortedJenjang) {
                 const members = groups[jenjang];
+                const mismatchCount = members.filter(m => m.is_mismatch).length;
+                
                 html += `
                     <div class="card mb-sm">
                         <div class="card-header" style="background:#f0fdf4;">
                             <span style="font-weight:600;color:#059669;">📚 ${jenjang}</span>
                             <span class="badge badge-primary">${members.length} generus</span>
+                            ${mismatchCount > 0 ? `<span class="badge" style="background:#fef3c7;color:#92400e;">${mismatchCount} perlu update</span>` : ''}
                         </div>
                         <div class="card-body" style="padding:0;">
                             <div class="table-responsive">
@@ -683,11 +709,12 @@
                                     </thead>
                                     <tbody>
                                         ${members.map((g, idx) => `
-                                            <tr>
+                                            <tr${g.is_mismatch ? ' style="background:#fffbeb;"' : ''}>
                                                 <td>${idx + 1}</td>
                                                 <td>
-                                                    <strong>${g.nama}</strong>
-                                                    ${g.tanggal_lahir ? '<br><small class="text-muted">' + hitungUmur(g.tanggal_lahir) + ' tahun</small>' : ''}
+                                                    <strong>${g.nama}</strong> ${g.is_mismatch ? '🔶' : ''}
+                                                    ${g.umur !== null ? '<br><small class="text-muted">' + g.umur + ' tahun</small>' : ''}
+                                                    ${g.is_mismatch ? '<br><small style="color:#b45309;">Terdaftar: ' + (g.jenjang_nama || '-') + '</small>' : ''}
                                                 </td>
                                                 <td>${g.jenis_kelamin === 'L' ? '👦' : '👧'}</td>
                                                 <td>${g.kelompok_nama || '-'}</td>
