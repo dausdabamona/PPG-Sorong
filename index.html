@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#059669">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PPG Sorong">
@@ -351,13 +352,14 @@
             <div class="auth-body">
                 <div class="error-message" id="errorMessage"></div>
                 
-                <form id="loginForm" onsubmit="handleLogin(event)">
+                <!-- PENTING: method="POST" dan action="#" untuk mencegah form submit ke URL -->
+                <form id="loginForm" method="POST" action="#" autocomplete="off">
                     <div class="form-group">
                         <label class="form-label" for="email">Email</label>
                         <div class="input-icon-wrapper">
                             <span class="input-icon">📧</span>
-                            <input type="email" class="form-control" id="email" name="email" 
-                                   placeholder="Masukkan email" required autocomplete="email">
+                            <input type="email" class="form-control" id="email" 
+                                   placeholder="Masukkan email" required autocomplete="username">
                         </div>
                     </div>
                     
@@ -365,7 +367,7 @@
                         <label class="form-label" for="password">Password</label>
                         <div class="input-icon-wrapper">
                             <span class="input-icon">🔒</span>
-                            <input type="password" class="form-control" id="password" name="password" 
+                            <input type="password" class="form-control" id="password" 
                                    placeholder="Masukkan password" required autocomplete="current-password">
                             <button type="button" class="password-toggle" onclick="togglePassword()">👁️</button>
                         </div>
@@ -407,17 +409,46 @@
     <script>
         const $ = id => document.getElementById(id);
         
-        // Check if already logged in
-        (async function() {
+        // ============================================================
+        // CLEAR URL PARAMS - Hapus email/password dari URL jika ada
+        // ============================================================
+        (function clearUrlParams() {
+            if (window.location.search) {
+                // Ganti URL tanpa query params
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        })();
+        
+        // ============================================================
+        // CHECK SESSION - Redirect jika sudah login
+        // ============================================================
+        (async function initPage() {
             try {
+                // Clear any stale tokens jika ada error sebelumnya
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('error') === 'session_expired') {
+                    if (typeof clearAuthData === 'function') {
+                        clearAuthData();
+                    }
+                    showError('Sesi telah berakhir. Silakan login kembali.');
+                }
+                
                 const isLoggedIn = await checkSession();
                 if (isLoggedIn) {
                     window.location.href = 'dashboard.html';
                 }
             } catch (e) {
-                console.log('Not logged in');
+                console.log('Not logged in or session error:', e);
+                // Clear stale data
+                if (typeof clearAuthData === 'function') {
+                    clearAuthData();
+                }
             }
         })();
+        
+        // ============================================================
+        // FORM HANDLERS
+        // ============================================================
         
         function togglePassword() {
             const pwd = $('password');
@@ -431,47 +462,118 @@
             }
         }
         
-        async function handleLogin(event) {
-            event.preventDefault();
-            
-            const email = $('email').value.trim();
-            const password = $('password').value;
+        function showError(message) {
+            const errorMessage = $('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+        }
+        
+        function hideError() {
+            $('errorMessage').classList.remove('show');
+        }
+        
+        function setLoading(loading) {
             const btnLogin = $('btnLogin');
             const btnText = $('btnText');
             const btnSpinner = $('btnSpinner');
-            const errorMessage = $('errorMessage');
             
-            // Reset error
-            errorMessage.classList.remove('show');
+            btnLogin.disabled = loading;
+            btnText.textContent = loading ? 'Memproses...' : 'Masuk';
+            btnSpinner.style.display = loading ? 'block' : 'none';
+        }
+        
+        // ============================================================
+        // LOGIN HANDLER
+        // ============================================================
+        
+        async function handleLogin(event) {
+            // PENTING: Hentikan form submission ke URL
+            event.preventDefault();
+            event.stopPropagation();
             
-            // Loading state
-            btnLogin.disabled = true;
-            btnText.textContent = 'Memproses...';
-            btnSpinner.style.display = 'block';
+            const email = $('email').value.trim();
+            const password = $('password').value;
+            
+            // Validasi
+            if (!email || !password) {
+                showError('Email dan password harus diisi');
+                return false;
+            }
+            
+            // Reset error & set loading
+            hideError();
+            setLoading(true);
             
             try {
                 const result = await login(email, password);
                 
                 if (result.success) {
-                    btnText.textContent = 'Berhasil! Mengalihkan...';
+                    $('btnText').textContent = 'Berhasil! Mengalihkan...';
+                    
+                    // Clear form untuk keamanan
+                    $('email').value = '';
+                    $('password').value = '';
+                    
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
                     }, 500);
                 } else {
-                    errorMessage.textContent = result.error || 'Email atau password salah';
-                    errorMessage.classList.add('show');
-                    btnLogin.disabled = false;
-                    btnText.textContent = 'Masuk';
-                    btnSpinner.style.display = 'none';
+                    // Handle specific errors
+                    let errorMsg = result.error || 'Email atau password salah';
+                    
+                    if (errorMsg.includes('Invalid login credentials')) {
+                        errorMsg = 'Email atau password salah';
+                    } else if (errorMsg.includes('Email not confirmed')) {
+                        errorMsg = 'Email belum dikonfirmasi. Cek inbox email Anda.';
+                    } else if (errorMsg.includes('JWT')) {
+                        errorMsg = 'Sesi tidak valid. Silakan coba lagi.';
+                        // Clear stale tokens
+                        if (typeof clearAuthData === 'function') {
+                            clearAuthData();
+                        }
+                    }
+                    
+                    showError(errorMsg);
+                    setLoading(false);
                 }
             } catch (error) {
-                errorMessage.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
-                errorMessage.classList.add('show');
-                btnLogin.disabled = false;
-                btnText.textContent = 'Masuk';
-                btnSpinner.style.display = 'none';
+                console.error('Login error:', error);
+                showError('Terjadi kesalahan. Silakan coba lagi.');
+                setLoading(false);
+                
+                // Clear stale tokens if needed
+                if (error.message && error.message.includes('JWT')) {
+                    if (typeof clearAuthData === 'function') {
+                        clearAuthData();
+                    }
+                }
             }
+            
+            return false; // Mencegah form submit
         }
+        
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+        
+        // Attach form submit handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = $('loginForm');
+            
+            // Remove any existing handlers and add new one
+            form.onsubmit = handleLogin;
+            
+            // Also listen for submit event
+            form.addEventListener('submit', handleLogin, { capture: true });
+            
+            // Prevent form from submitting via Enter key bypassing handler
+            form.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleLogin(e);
+                }
+            });
+        });
     </script>
 </body>
 </html>
