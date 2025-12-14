@@ -84,46 +84,40 @@
                     <button class="btn btn-primary" id="btnTambah" onclick="showAddModal()" style="display:none;">➕ Tambah Jamaah</button>
                 </div>
                 
-                <!-- Filters: Status → Daerah → Kelompok → Jenjang -->
-                <div class="card mb-lg">
+                <!-- Filters -->
+                <div class="card mb-sm">
                     <div class="card-body">
-                        <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;">
-                            <div class="search-box">
-                                <span class="search-icon">🔍</span>
-                                <input type="text" class="form-control" id="searchInput" placeholder="Cari nama..." onkeyup="debounceSearch()">
-                            </div>
-                            <div>
-                                <label class="form-label">Status</label>
-                                <select class="form-control" id="filterStatus" onchange="loadJamaah()">
-                                    <option value="aktif">Aktif</option>
-                                    <option value="nonaktif">Nonaktif</option>
-                                    <option value="lulus">Lulus</option>
-                                    <option value="pindah">Pindah</option>
-                                    <option value="menikah">Menikah</option>
-                                    <option value="">Semua</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="form-label">Daerah</label>
-                                <select class="form-control" id="filterDaerah" onchange="onFilterDaerahChange()">
-                                    <option value="">Semua Daerah</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="form-label">Kelompok</label>
-                                <select class="form-control" id="filterKelompok" onchange="loadJamaah()">
-                                    <option value="">Semua Kelompok</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="form-label">Jenjang</label>
-                                <select class="form-control" id="filterJenjang" onchange="loadJamaah()">
-                                    <option value="">Semua Jenjang</option>
-                                </select>
-                            </div>
+                        <!-- Row 1: Search + Status -->
+                        <div class="filter-grid">
+                            <input type="text" class="form-control" id="searchInput" placeholder="🔍 Cari nama..." onkeyup="debounceSearch()">
+                            <select class="form-control" id="filterStatus" onchange="loadJamaah()">
+                                <option value="aktif">Aktif</option>
+                                <option value="">Semua Status</option>
+                                <option value="nonaktif">Nonaktif</option>
+                                <option value="pindah">Pindah</option>
+                                <option value="meninggal">Meninggal</option>
+                            </select>
                         </div>
-                        <div style="margin-top:0.75rem;">
-                            <small class="text-muted" id="infoTotal">Total: 0 santri</small>
+                        <!-- Row 2: Daerah + Desa -->
+                        <div class="filter-grid" style="margin-top:8px;">
+                            <select class="form-control" id="filterDaerah" onchange="onFilterDaerahChange()">
+                                <option value="">Semua Daerah</option>
+                            </select>
+                            <select class="form-control" id="filterDesa" onchange="onFilterDesaChange()">
+                                <option value="">Semua Desa</option>
+                            </select>
+                        </div>
+                        <!-- Row 3: Kelompok + Jenjang -->
+                        <div class="filter-grid" style="margin-top:8px;">
+                            <select class="form-control" id="filterKelompok" onchange="loadJamaah()">
+                                <option value="">Semua Kelompok</option>
+                            </select>
+                            <select class="form-control" id="filterJenjang" onchange="loadJamaah()">
+                                <option value="">Semua Jenjang</option>
+                            </select>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <small class="text-muted" id="infoTotal">Total: 0 jamaah</small>
                         </div>
                     </div>
                 </div>
@@ -346,7 +340,7 @@
                 allWilayah = wilayah || [];
                 
                 // Cek apakah admin
-                const isAdmin = userRoles.some(r => r.role?.kode === 'admin');
+                const isAdmin = userRoles.some(r => r.role?.kode?.toLowerCase() === 'admin');
                 
                 // Get wilayah user untuk menentukan filter yang ditampilkan
                 const userWilayah = userWilayahId ? allWilayah.find(w => w.id === userWilayahId) : null;
@@ -356,13 +350,10 @@
                 let daerahList = allWilayah.filter(w => w.tingkat === 'daerah');
                 
                 if (!isAdmin && userTingkat === 'daerah') {
-                    // User level daerah: hanya tampilkan daerahnya
                     daerahList = daerahList.filter(d => d.id === userWilayahId);
                 } else if (!isAdmin && userTingkat === 'desa') {
-                    // User level desa: tampilkan parent daerahnya
                     daerahList = daerahList.filter(d => d.id === userWilayah.parent_id);
                 } else if (!isAdmin && userTingkat === 'kelompok') {
-                    // User level kelompok: cari parent desa lalu parent daerah
                     const desaUser = allWilayah.find(w => w.id === userWilayah.parent_id);
                     if (desaUser) {
                         daerahList = daerahList.filter(d => d.id === desaUser.parent_id);
@@ -370,14 +361,14 @@
                 }
                 
                 $('filterDaerah').innerHTML = '<option value="">Semua Daerah</option>' + 
-                    daerahList.map(d => `<option value="${d.id}">${d.nama}</option>`).join('');
+                    daerahList.map(d => '<option value="' + d.id + '">' + d.nama + '</option>').join('');
                 
-                // Form daerah (hidden, auto-set ke daerah pertama)
-                if (daerahList.length > 0) {
-                    $('formDaerah').value = daerahList[0].id;
-                }
+                // Populate filter desa (initially all desa)
+                let desaList = allWilayah.filter(w => w.tingkat === 'desa');
+                $('filterDesa').innerHTML = '<option value="">Semua Desa</option>' + 
+                    desaList.map(d => '<option value="' + d.id + '">' + d.nama + '</option>').join('');
                 
-                // Populate filter kelompok berdasarkan tingkat user
+                // Populate filter kelompok
                 let kelompokList = allWilayah.filter(w => w.tingkat === 'kelompok');
                 
                 if (!isAdmin && userTingkat === 'kelompok') {
@@ -385,22 +376,20 @@
                 } else if (!isAdmin && userTingkat === 'desa') {
                     kelompokList = kelompokList.filter(k => k.parent_id === userWilayahId);
                 } else if (!isAdmin && userTingkat === 'daerah') {
-                    // Get semua desa di daerah ini
                     const desaIds = allWilayah.filter(w => w.tingkat === 'desa' && w.parent_id === userWilayahId).map(d => d.id);
                     kelompokList = kelompokList.filter(k => desaIds.includes(k.parent_id));
                 }
                 
                 $('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' + 
-                    kelompokList.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
+                    kelompokList.map(k => '<option value="' + k.id + '">' + k.nama + '</option>').join('');
                 
                 // Form kelompok (untuk tambah/edit santri)
                 $('formKelompok').innerHTML = '<option value="">-- Pilih Kelompok --</option>' + 
-                    kelompokList.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
+                    kelompokList.map(k => '<option value="' + k.id + '">' + k.nama + '</option>').join('');
                 
-                // Auto-select jika hanya 1 kelompok
-                if (kelompokList.length === 1) {
-                    $('filterKelompok').value = kelompokList[0].id;
-                    $('formKelompok').value = kelompokList[0].id;
+                // Form daerah (hidden, auto-set ke daerah pertama)
+                if (daerahList.length > 0) {
+                    $('formDaerah').value = daerahList[0].id;
                 }
                 
                 // Load jenjang
@@ -408,12 +397,12 @@
                 allJenjang = jenjang || [];
                 
                 $('filterJenjang').innerHTML = '<option value="">Semua Jenjang</option>' + 
-                    allJenjang.map(j => `<option value="${j.id}">${j.nama}</option>`).join('');
+                    allJenjang.map(j => '<option value="' + j.id + '">' + j.nama + '</option>').join('');
                 
                 $('formJenjang').innerHTML = '<option value="">-- Pilih --</option>' + 
-                    allJenjang.map(j => {
-                        const usiaText = (j.usia_mulai && j.usia_sampai) ? ` (${j.usia_mulai}-${j.usia_sampai} th)` : '';
-                        return `<option value="${j.id}">${j.nama}${usiaText}</option>`;
+                    allJenjang.map(function(j) {
+                        var usiaText = (j.usia_mulai && j.usia_sampai) ? ' (' + j.usia_mulai + '-' + j.usia_sampai + ' th)' : '';
+                        return '<option value="' + j.id + '">' + j.nama + usiaText + '</option>';
                     }).join('');
                     
             } catch (error) {
@@ -421,20 +410,55 @@
             }
         }
         
-        // Filter daerah berubah -> update kelompok
+        // Filter daerah berubah -> update desa dan kelompok
         function onFilterDaerahChange() {
-            const daerahId = $('filterDaerah').value;
+            var daerahId = $('filterDaerah').value;
             
-            let kelompokList;
+            // Update desa list
+            var desaList;
             if (daerahId) {
-                // Get kelompok dalam daerah ini (langsung dari parent_id karena struktur 2 level)
-                kelompokList = allWilayah.filter(w => w.tingkat === 'kelompok' && w.parent_id == daerahId);
+                desaList = allWilayah.filter(function(w) { return w.tingkat === 'desa' && w.parent_id == daerahId; });
             } else {
-                kelompokList = allWilayah.filter(w => w.tingkat === 'kelompok');
+                desaList = allWilayah.filter(function(w) { return w.tingkat === 'desa'; });
+            }
+            
+            $('filterDesa').innerHTML = '<option value="">Semua Desa</option>' + 
+                desaList.map(function(d) { return '<option value="' + d.id + '">' + d.nama + '</option>'; }).join('');
+            
+            // Update kelompok list
+            var kelompokList;
+            if (daerahId) {
+                var desaIds = desaList.map(function(d) { return d.id; });
+                kelompokList = allWilayah.filter(function(w) { return w.tingkat === 'kelompok' && desaIds.includes(w.parent_id); });
+            } else {
+                kelompokList = allWilayah.filter(function(w) { return w.tingkat === 'kelompok'; });
             }
             
             $('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' + 
-                kelompokList.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
+                kelompokList.map(function(k) { return '<option value="' + k.id + '">' + k.nama + '</option>'; }).join('');
+            
+            loadJamaah();
+        }
+        
+        // Filter desa berubah -> update kelompok
+        function onFilterDesaChange() {
+            var desaId = $('filterDesa').value;
+            var daerahId = $('filterDaerah').value;
+            
+            var kelompokList;
+            if (desaId) {
+                // Filter kelompok by desa
+                kelompokList = allWilayah.filter(function(w) { return w.tingkat === 'kelompok' && w.parent_id == desaId; });
+            } else if (daerahId) {
+                // Filter kelompok by daerah (all desa in daerah)
+                var desaIds = allWilayah.filter(function(w) { return w.tingkat === 'desa' && w.parent_id == daerahId; }).map(function(d) { return d.id; });
+                kelompokList = allWilayah.filter(function(w) { return w.tingkat === 'kelompok' && desaIds.includes(w.parent_id); });
+            } else {
+                kelompokList = allWilayah.filter(function(w) { return w.tingkat === 'kelompok'; });
+            }
+            
+            $('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' + 
+                kelompokList.map(function(k) { return '<option value="' + k.id + '">' + k.nama + '</option>'; }).join('');
             
             loadJamaah();
         }
