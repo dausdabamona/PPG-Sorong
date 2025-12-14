@@ -10,10 +10,8 @@
     <link rel="apple-touch-icon" href="images/icon-192x192.svg">
     <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
     <title>Dashboard - PPG Sorong</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/mobile-grid.css">
     <link rel="stylesheet" href="css/pwa-enhanced.css">
     <link rel="stylesheet" href="css/mobile-menu.css">
     <style>
@@ -22,166 +20,159 @@
             --faqih: #7c3aed;
             --akhlaq: #059669;
         }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Inter', sans-serif; }
         
-        /* Welcome Banner */
-        .welcome-banner {
-            background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
-            border-radius: 20px;
-            padding: 2rem;
-            color: white;
-            margin-bottom: 1.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .welcome-banner::before {
-            content: '📖';
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 6rem;
-            opacity: 0.15;
-        }
-        .welcome-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
-        .welcome-subtitle { opacity: 0.9; font-size: 0.95rem; margin-bottom: 1rem; }
-        .welcome-date { 
-            display: inline-flex; 
-            align-items: center; 
-            gap: 0.5rem;
-            background: rgba(255,255,255,0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.875rem;
-        }
-        
-        /* Stats Grid - Enhanced */
-        .stats-grid-main {
+        /* Page Content - Grid Layout Optimal */
+        .page-content {
+            padding: 1rem;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: 1fr;
+            grid-template-rows: auto;
             gap: 1rem;
-            margin-bottom: 1.5rem;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
         }
-        .stat-card-main {
+        
+        /* Welcome Banner - Compact */
+        .welcome-banner {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .welcome-left { flex: 1; min-width: 200px; }
+        .welcome-title { font-size: 1.1rem; font-weight: 600; }
+        .welcome-subtitle { font-size: 0.75rem; opacity: 0.9; }
+        .welcome-date { 
+            background: rgba(255,255,255,0.2);
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+        
+        /* Stats Grid - 4 columns on desktop, 2 on mobile */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+        .stat-card {
             background: white;
-            border-radius: 16px;
-            padding: 1.25rem;
+            border-radius: 10px;
+            padding: 0.875rem;
             border: 1px solid var(--gray-200);
             display: flex;
             align-items: center;
-            gap: 1rem;
-            transition: all 0.2s;
+            gap: 0.75rem;
         }
-        .stat-card-main:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-        .stat-icon-main {
-            width: 56px;
-            height: 56px;
-            border-radius: 14px;
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.25rem;
+            flex-shrink: 0;
         }
-        .stat-icon-main.primary { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); }
-        .stat-icon-main.info { background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); }
-        .stat-icon-main.warning { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
-        .stat-icon-main.purple { background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); }
-        .stat-value-main { font-size: 1.75rem; font-weight: 700; color: var(--gray-800); }
-        .stat-label-main { font-size: 0.8rem; color: var(--gray-500); }
+        .stat-icon.primary { background: #dcfce7; }
+        .stat-icon.info { background: #dbeafe; }
+        .stat-icon.warning { background: #fef3c7; }
+        .stat-icon.purple { background: #f3e8ff; }
+        .stat-value { font-size: 1.25rem; font-weight: 700; color: var(--gray-800); line-height: 1; }
+        .stat-label { font-size: 0.7rem; color: var(--gray-500); }
         
-        /* Tri Sukses Overview */
-        .trisukses-overview {
+        /* Main Grid - 2 column layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            flex: 1;
+            min-height: 0;
+        }
+        
+        /* Tri Sukses - Horizontal */
+        .trisukses-row {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            gap: 0.75rem;
+            grid-column: 1 / -1;
         }
-        .trisukses-card-mini {
+        .trisukses-card {
             background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
+            border-radius: 10px;
+            padding: 0.875rem;
             text-align: center;
             border: 1px solid var(--gray-200);
+            text-decoration: none;
             position: relative;
             overflow: hidden;
         }
-        .trisukses-card-mini::before {
+        .trisukses-card::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0;
-            height: 4px;
+            height: 3px;
         }
-        .trisukses-card-mini.alim::before { background: var(--alim); }
-        .trisukses-card-mini.faqih::before { background: var(--faqih); }
-        .trisukses-card-mini.akhlaq::before { background: var(--akhlaq); }
-        .trisukses-card-mini:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
-        .trisukses-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-        .trisukses-name { font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem; }
-        .trisukses-desc { font-size: 0.75rem; color: var(--gray-500); }
+        .trisukses-card.alim::before { background: var(--alim); }
+        .trisukses-card.faqih::before { background: var(--faqih); }
+        .trisukses-card.akhlaq::before { background: var(--akhlaq); }
+        .trisukses-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
+        .trisukses-name { font-weight: 600; font-size: 0.875rem; color: var(--gray-800); }
+        .trisukses-desc { font-size: 0.65rem; color: var(--gray-500); }
         
-        /* Content Grid */
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 1.5rem;
-        }
-        
-        /* Card Enhancements */
+        /* Card Modern - Compact */
         .card-modern {
             background: white;
-            border-radius: 16px;
+            border-radius: 10px;
             border: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
             overflow: hidden;
         }
         .card-modern .card-header {
-            padding: 1.25rem;
+            padding: 0.75rem 1rem;
             border-bottom: 1px solid var(--gray-100);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
         .card-modern .card-title {
-            font-size: 1rem;
+            font-size: 0.875rem;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
         .card-modern .card-body {
-            padding: 1.25rem;
+            padding: 0.75rem 1rem;
+            overflow-y: auto;
+            flex: 1;
         }
         
-        /* List Item */
-        .list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.875rem 0;
-            border-bottom: 1px solid var(--gray-100);
-        }
-        .list-item:last-child { border-bottom: none; }
-        .list-item-content { flex: 1; }
-        .list-item-title { font-weight: 500; font-size: 0.95rem; }
-        .list-item-subtitle { font-size: 0.8rem; color: var(--gray-500); margin-top: 0.125rem; }
-        
-        /* Quick Actions */
+        /* Quick Actions - 2x2 Grid Compact */
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
         .quick-action-btn {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.5rem;
-            padding: 1.25rem;
+            gap: 0.25rem;
+            padding: 0.75rem;
             background: var(--gray-50);
             border: 1px solid var(--gray-200);
-            border-radius: 12px;
+            border-radius: 8px;
             text-decoration: none;
             color: var(--gray-700);
             transition: all 0.2s;
@@ -190,70 +181,63 @@
             background: var(--primary);
             color: white;
             border-color: var(--primary);
-            transform: translateY(-2px);
         }
-        .quick-action-icon { font-size: 1.5rem; }
-        .quick-action-text { font-size: 0.8rem; font-weight: 500; }
+        .quick-action-icon { font-size: 1.25rem; }
+        .quick-action-text { font-size: 0.7rem; font-weight: 500; text-align: center; }
         
-        /* Jenjang Bar */
-        .jenjang-bar {
+        /* Jenjang List - Compact */
+        .jenjang-item {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 0;
+            padding: 0.5rem 0;
             border-bottom: 1px solid var(--gray-100);
         }
-        .jenjang-bar:last-child { border-bottom: none; }
-        .jenjang-name { flex: 1; font-weight: 500; font-size: 0.9rem; }
-        .jenjang-count { 
-            background: var(--primary); 
-            color: white; 
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
+        .jenjang-item:last-child { border-bottom: none; }
+        .jenjang-name { font-size: 0.8rem; font-weight: 500; }
+        .jenjang-count {
+            background: var(--gray-100);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
             font-weight: 600;
         }
-        .jenjang-progress {
-            width: 100px;
-            height: 6px;
-            background: var(--gray-200);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        .jenjang-progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary) 0%, #10b981 100%);
-            border-radius: 3px;
-        }
         
-        /* Activity Timeline */
-        .timeline-item {
-            display: flex;
-            gap: 1rem;
-            padding: 0.75rem 0;
+        /* List Item Compact */
+        .list-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--gray-100);
         }
-        .timeline-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-        .timeline-icon.success { background: #dcfce7; }
-        .timeline-icon.info { background: #e0f2fe; }
-        .timeline-icon.warning { background: #fef3c7; }
-        .timeline-content { flex: 1; }
-        .timeline-title { font-weight: 500; font-size: 0.9rem; }
-        .timeline-time { font-size: 0.75rem; color: var(--gray-500); }
+        .list-item:last-child { border-bottom: none; }
+        .list-item-title { font-weight: 500; font-size: 0.8rem; }
+        .list-item-subtitle { font-size: 0.7rem; color: var(--gray-500); }
         
+        /* Mobile Responsive */
         @media (max-width: 768px) {
-            .trisukses-overview { grid-template-columns: 1fr; }
-            .content-grid { grid-template-columns: 1fr; }
-            .quick-actions { grid-template-columns: 1fr; }
-            .welcome-banner::before { display: none; }
+            .page-content {
+                height: auto;
+                min-height: calc(100vh - 60px);
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .trisukses-row {
+                grid-column: 1;
+            }
+            .welcome-banner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .page-content { padding: 0.75rem; gap: 0.75rem; }
+            .stat-card { padding: 0.625rem; gap: 0.5rem; }
+            .stat-icon { width: 36px; height: 36px; font-size: 1rem; }
+            .stat-value { font-size: 1.1rem; }
         }
     </style>
 </head>
@@ -272,15 +256,17 @@
             <nav class="sidebar-nav">
                 <div class="nav-section">MENU UTAMA</div>
                 <a href="dashboard.html" class="nav-item active"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
-                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
                 <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
                 <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
-                <a href="penilaian.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian</span></a>
+                <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
                 <div class="nav-section">LAPORAN</div>
                 <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
                 <div class="nav-section">PENGATURAN</div>
                 <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
                 <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="pernikahan.html" class="nav-item" id="menuPernikahan" style="display:none;"><span class="nav-icon">💒</span><span class="nav-text">Data Pernikahan</span></a>
                 <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
             </nav>
             <div class="sidebar-footer">
@@ -312,82 +298,80 @@
                         </div>
                     </div>
                     <button class="btn-logout-mobile" onclick="logout()">🚪</button>
-                    <button class="btn btn-outline btn-sm" onclick="logout()">Keluar</button>
                 </div>
             </header>
             
             <div class="page-content">
-                <!-- Welcome Banner -->
+                <!-- Welcome Banner - Compact -->
                 <div class="welcome-banner">
-                    <div class="welcome-title">Assalamu'alaikum, <span id="welcomeName">...</span>! 👋</div>
-                    <div class="welcome-subtitle">Selamat datang di Sistem Pembinaan Generasi Penerus Sorong</div>
-                    <div class="welcome-date">
-                        <span>📅</span>
-                        <span id="currentDate">-</span>
+                    <div class="welcome-left">
+                        <div class="welcome-title">Assalamu'alaikum, <span id="welcomeName">...</span>! 👋</div>
+                        <div class="welcome-subtitle">Sistem Pembinaan Generasi Penerus Sorong</div>
+                    </div>
+                    <div class="welcome-date">📅 <span id="currentDate">-</span></div>
+                </div>
+                
+                <!-- Stats Grid - 4 columns -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">👥</div>
+                        <div>
+                            <div class="stat-value" id="totalSantri">-</div>
+                            <div class="stat-label">Total Generus</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon info">📖</div>
+                        <div>
+                            <div class="stat-value" id="totalPengajian">-</div>
+                            <div class="stat-label">Pengajian Bulan Ini</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">🗺️</div>
+                        <div>
+                            <div class="stat-value" id="totalKelompok">-</div>
+                            <div class="stat-label">Kelompok</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">📚</div>
+                        <div>
+                            <div class="stat-value" id="totalMateri">-</div>
+                            <div class="stat-label">Materi</div>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Stats Grid -->
-                <div class="stats-grid-main">
-                    <div class="stat-card-main">
-                        <div class="stat-icon-main primary">👥</div>
-                        <div>
-                            <div class="stat-value-main" id="totalSantri">-</div>
-                            <div class="stat-label-main">Total Generus Aktif</div>
-                        </div>
-                    </div>
-                    <div class="stat-card-main">
-                        <div class="stat-icon-main info">📖</div>
-                        <div>
-                            <div class="stat-value-main" id="totalPengajian">-</div>
-                            <div class="stat-label-main">Pengajian Bulan Ini</div>
-                        </div>
-                    </div>
-                    <div class="stat-card-main">
-                        <div class="stat-icon-main warning">🗺️</div>
-                        <div>
-                            <div class="stat-value-main" id="totalKelompok">-</div>
-                            <div class="stat-label-main">Kelompok Pengajian</div>
-                        </div>
-                    </div>
-                    <div class="stat-card-main">
-                        <div class="stat-icon-main purple">📚</div>
-                        <div>
-                            <div class="stat-value-main" id="totalMateri">-</div>
-                            <div class="stat-label-main">Materi Kurikulum</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Tri Sukses Overview -->
-                <div class="trisukses-overview">
-                    <a href="kurikulum.html" class="trisukses-card-mini alim" style="text-decoration:none;">
+                <!-- Tri Sukses Row -->
+                <div class="trisukses-row">
+                    <a href="kurikulum.html" class="trisukses-card alim">
                         <div class="trisukses-icon">📖</div>
                         <div class="trisukses-name">ALIM</div>
                         <div class="trisukses-desc">Bacaan • Hafalan • Makna</div>
                     </a>
-                    <a href="kurikulum.html" class="trisukses-card-mini faqih" style="text-decoration:none;">
+                    <a href="kurikulum.html" class="trisukses-card faqih">
                         <div class="trisukses-icon">🕌</div>
                         <div class="trisukses-name">FAQIH</div>
-                        <div class="trisukses-desc">Pemahaman • Praktek • 4 Tali</div>
+                        <div class="trisukses-desc">Pemahaman • Praktek</div>
                     </a>
-                    <a href="kurikulum.html" class="trisukses-card-mini akhlaq" style="text-decoration:none;">
+                    <a href="kurikulum.html" class="trisukses-card akhlaq">
                         <div class="trisukses-icon">💎</div>
                         <div class="trisukses-name">AKHLAQ</div>
-                        <div class="trisukses-desc">6 Thobiat • Tatakrama • Mandiri</div>
+                        <div class="trisukses-desc">6 Thobiat • Tatakrama</div>
                     </a>
                 </div>
                 
-                <!-- Content Grid -->
-                <div class="content-grid">
-                    <!-- Santri per Jenjang -->
+                <!-- Main Grid - 2 columns -->
+                <div class="main-grid">
+                    <!-- Generus per Jenjang -->
                     <div class="card-modern">
                         <div class="card-header">
                             <h3 class="card-title">📊 Generus per Jenjang</h3>
-                            <a href="jamaah.html" class="btn btn-sm btn-outline">Lihat Semua</a>
+                            <a href="generus.html" class="btn btn-sm btn-outline">Lihat</a>
                         </div>
                         <div class="card-body" id="jenjangStats">
-                            <p class="text-muted">Memuat data...</p>
+                            <p class="text-muted text-sm">Memuat...</p>
                         </div>
                     </div>
                     
@@ -406,7 +390,7 @@
                                     <span class="quick-action-icon">📝</span>
                                     <span class="quick-action-text">Input Penilaian</span>
                                 </a>
-                                <a href="jamaah.html?action=add" class="quick-action-btn">
+                                <a href="generus.html" class="quick-action-btn">
                                     <span class="quick-action-icon">➕</span>
                                     <span class="quick-action-text">Tambah Generus</span>
                                 </a>
@@ -422,10 +406,10 @@
                     <div class="card-modern">
                         <div class="card-header">
                             <h3 class="card-title">📖 Pengajian Terbaru</h3>
-                            <a href="pengajian.html" class="btn btn-sm btn-outline">Lihat Semua</a>
+                            <a href="pengajian.html" class="btn btn-sm btn-outline">Lihat</a>
                         </div>
                         <div class="card-body" id="recentPengajian">
-                            <p class="text-muted">Memuat data...</p>
+                            <p class="text-muted text-sm">Memuat...</p>
                         </div>
                     </div>
                     
@@ -435,7 +419,7 @@
                             <h3 class="card-title">🕐 Aktivitas Terbaru</h3>
                         </div>
                         <div class="card-body" id="recentActivity">
-                            <p class="text-muted">Memuat data...</p>
+                            <p class="text-muted text-sm">Memuat...</p>
                         </div>
                     </div>
                 </div>
@@ -448,244 +432,221 @@
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/sidebar.js"></script>
-    
     <script>
-        let currentUserData = null;
+        var db;
         
-        function toggleSidebar() {
-            const sidebar = $('sidebar');
-            const overlay = $('sidebarOverlay');
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('show');
-                overlay.classList.toggle('show');
-            } else {
-                sidebar.classList.toggle('collapsed');
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                var user = await checkAuth();
+                if (!user) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                updateUserDisplay(user);
+                setCurrentDate();
+                await loadDashboardData();
+                
+            } catch (error) {
+                console.error('Init error:', error);
+            }
+        });
+        
+        function updateUserDisplay(user) {
+            var name = user.user_metadata?.nama || user.email?.split('@')[0] || 'User';
+            var initial = name.charAt(0).toUpperCase();
+            var role = user.user_metadata?.role || 'user';
+            
+            $('userName').textContent = name;
+            $('userRole').textContent = role;
+            $('userAvatar').textContent = initial;
+            $('welcomeName').textContent = name.split(' ')[0];
+            $('sidebarUserName').textContent = name;
+            $('sidebarUserRole').textContent = role;
+            $('sidebarUserAvatar').textContent = initial;
+            
+            // Show pernikahan menu for admin
+            if (role === 'admin') {
+                var menuPernikahan = document.getElementById('menuPernikahan');
+                if (menuPernikahan) menuPernikahan.style.display = 'flex';
             }
         }
         
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (!await requireAuth()) return;
-            
-            // Set current date
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        function setCurrentDate() {
+            var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             $('currentDate').textContent = new Date().toLocaleDateString('id-ID', options);
-            
-            // Get user info
-            try {
-                const { data: { user } } = await db.auth.getUser();
-                if (user) {
-                    const { data: userData } = await db.from('users').select('nama').eq('auth_id', user.id).single();
-                    const firstName = (userData?.nama || user.email).split(' ')[0];
-                    $('welcomeName').textContent = firstName;
-                    $('userName').textContent = userData?.nama || user.email;
-                    $('sidebarUserName').textContent = userData?.nama || user.email;
-                    
-                    const initials = (userData?.nama || 'U').substring(0, 2).toUpperCase();
-                    $('userAvatar').textContent = initials;
-                    $('sidebarUserAvatar').textContent = initials;
-                }
-            } catch (e) {
-                console.error('Error getting user:', e);
-            }
-            
-            await loadDashboardData();
-        });
+        }
         
         async function loadDashboardData() {
+            await Promise.all([
+                loadStats(),
+                loadJenjangStats(),
+                loadRecentPengajian(),
+                loadRecentActivity()
+            ]);
+        }
+        
+        async function loadStats() {
             try {
-                // Get active status ID
-                const { data: statusAktif } = await db.from('status_jamaah').select('id').eq('kode', 'aktif').single();
+                // Total generus aktif (yang belum menikah)
+                var { count: totalGenerus } = await db
+                    .from('enrollment')
+                    .select('*, jamaah!inner(status:status_id(kode))', { count: 'exact', head: true })
+                    .eq('status', 'aktif')
+                    .neq('jamaah.status.kode', 'menikah');
                 
-                // Total Jamaah Aktif
-                let jamaahQuery = db.from('jamaah').select('*', { count: 'exact', head: true });
-                if (statusAktif) jamaahQuery = jamaahQuery.eq('status_id', statusAktif.id);
-                const { count: jamaahCount } = await jamaahQuery;
-                $('totalSantri').textContent = formatAngka(jamaahCount || 0);
+                $('totalSantri').textContent = totalGenerus || 0;
                 
                 // Pengajian bulan ini
-                const startOfMonth = new Date();
+                var startOfMonth = new Date();
                 startOfMonth.setDate(1);
-                const { count: pengajianCount } = await db.from('pengajian')
+                startOfMonth.setHours(0,0,0,0);
+                
+                var { count: totalPengajian } = await db
+                    .from('pengajian')
                     .select('*', { count: 'exact', head: true })
                     .gte('tanggal', startOfMonth.toISOString().split('T')[0]);
-                $('totalPengajian').textContent = formatAngka(pengajianCount || 0);
                 
-                // Total Kelompok
-                const { count: kelompokCount } = await db.from('wilayah')
+                $('totalPengajian').textContent = totalPengajian || 0;
+                
+                // Total kelompok
+                var { count: totalKelompok } = await db
+                    .from('wilayah')
                     .select('*', { count: 'exact', head: true })
-                    .eq('tingkat', 'kelompok');
-                $('totalKelompok').textContent = formatAngka(kelompokCount || 0);
+                    .eq('tingkat', 'kelompok')
+                    .eq('is_aktif', true);
                 
-                // Total Materi
-                const { count: materiCount } = await db.from('materi_item')
-                    .select('*', { count: 'exact', head: true });
-                $('totalMateri').textContent = formatAngka(materiCount || 0);
+                $('totalKelompok').textContent = totalKelompok || 0;
                 
-                await Promise.all([
-                    loadJenjangStats(),
-                    loadRecentPengajian(),
-                    loadRecentActivity()
-                ]);
+                // Total materi kurikulum
+                var { count: totalMateri } = await db
+                    .from('target_materi')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('is_aktif', true);
+                
+                $('totalMateri').textContent = totalMateri || 0;
+                
             } catch (error) {
-                console.error('Error loading dashboard:', error);
+                console.error('Error loading stats:', error);
             }
         }
         
         async function loadJenjangStats() {
             try {
-                const { data: jenjangData } = await db.from('jenjang')
-                    .select('id, kode, nama')
+                // Get jenjang data
+                var { data: jenjangList } = await db
+                    .from('jenjang')
+                    .select('id, nama, kode')
                     .eq('is_aktif', true)
                     .order('urutan');
                 
-                if (!jenjangData || jenjangData.length === 0) {
-                    $('jenjangStats').innerHTML = '<p class="text-muted">Belum ada data jenjang</p>';
+                if (!jenjangList || !jenjangList.length) {
+                    $('jenjangStats').innerHTML = '<p class="text-muted text-sm">Belum ada data jenjang</p>';
                     return;
                 }
                 
-                // Get total for progress bar calculation
-                let totalAll = 0;
-                const counts = [];
+                // Count per jenjang
+                var { data: enrollments } = await db
+                    .from('enrollment')
+                    .select('jenjang_id, jamaah!inner(status:status_id(kode))')
+                    .eq('status', 'aktif')
+                    .neq('jamaah.status.kode', 'menikah');
                 
-                for (const jenjang of jenjangData) {
-                    const { count } = await db.from('enrollment')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('jenjang_id', jenjang.id)
-                        .eq('status', 'aktif');
-                    counts.push({ jenjang, count: count || 0 });
-                    totalAll += (count || 0);
-                }
-                
-                let html = '';
-                counts.forEach(({ jenjang, count }) => {
-                    const percentage = totalAll > 0 ? Math.round((count / totalAll) * 100) : 0;
-                    html += `
-                        <div class="jenjang-bar">
-                            <span class="jenjang-name">${jenjang.nama}</span>
-                            <div class="jenjang-progress">
-                                <div class="jenjang-progress-bar" style="width: ${percentage}%"></div>
-                            </div>
-                            <span class="jenjang-count">${count}</span>
-                        </div>
-                    `;
+                var counts = {};
+                (enrollments || []).forEach(e => {
+                    counts[e.jenjang_id] = (counts[e.jenjang_id] || 0) + 1;
                 });
                 
-                $('jenjangStats').innerHTML = html || '<p class="text-muted">Belum ada data</p>';
+                var colors = {
+                    'PAUD': '#f59e0b',
+                    'Caberawit': '#10b981',
+                    'Praremaja': '#3b82f6',
+                    'Remaja': '#8b5cf6',
+                    'Pra Nikah': '#ec4899',
+                    'Pranikah': '#ec4899'
+                };
+                
+                var html = jenjangList.map(j => `
+                    <div class="jenjang-item">
+                        <span class="jenjang-name" style="color:${colors[j.nama] || '#059669'}">${j.nama}</span>
+                        <span class="jenjang-count" style="background:${colors[j.nama] || '#059669'}20;color:${colors[j.nama] || '#059669'}">${counts[j.id] || 0}</span>
+                    </div>
+                `).join('');
+                
+                $('jenjangStats').innerHTML = html || '<p class="text-muted text-sm">Tidak ada data</p>';
+                
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error loading jenjang stats:', error);
+                $('jenjangStats').innerHTML = '<p class="text-muted text-sm">Gagal memuat data</p>';
             }
         }
         
         async function loadRecentPengajian() {
             try {
-                const { data } = await db.from('pengajian')
-                    .select('*, wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)')
+                var { data } = await db
+                    .from('pengajian')
+                    .select('id, tanggal, wilayah:wilayah_id(nama)')
                     .order('tanggal', { ascending: false })
                     .limit(5);
                 
-                if (!data || data.length === 0) {
-                    $('recentPengajian').innerHTML = '<p class="text-muted text-center">Belum ada pengajian</p>';
+                if (!data || !data.length) {
+                    $('recentPengajian').innerHTML = '<p class="text-muted text-sm">Belum ada pengajian</p>';
                     return;
                 }
                 
-                $('recentPengajian').innerHTML = data.map(p => `
+                var html = data.map(p => `
                     <div class="list-item">
-                        <div class="list-item-content">
-                            <div class="list-item-title">${p.wilayah?.nama || '-'}</div>
-                            <div class="list-item-subtitle">${formatTanggal(p.tanggal)}</div>
-                        </div>
-                        <span class="badge badge-primary">${p.jenjang?.nama || '-'}</span>
+                        <div class="list-item-title">${p.wilayah?.nama || '-'}</div>
+                        <div class="list-item-subtitle">${formatDate(p.tanggal)}</div>
                     </div>
                 `).join('');
+                
+                $('recentPengajian').innerHTML = html;
+                
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error loading pengajian:', error);
+                $('recentPengajian').innerHTML = '<p class="text-muted text-sm">Gagal memuat</p>';
             }
         }
         
         async function loadRecentActivity() {
             try {
-                // Get recent penilaian akhlaq
-                const { data: penilaian } = await db.from('penilaian_akhlaq')
-                    .select('*, jamaah:jamaah_id(nama), karakter:karakter_id(nama)')
+                // Get recent jamaah additions
+                var { data } = await db
+                    .from('jamaah')
+                    .select('nama, created_at')
                     .order('created_at', { ascending: false })
-                    .limit(3);
+                    .limit(5);
                 
-                // Get recent progress
-                const { data: progress } = await db.from('progress_jamaah')
-                    .select('*, jamaah:jamaah_id(nama), materi_item:materi_item_id(nama)')
-                    .eq('status', 'selesai')
-                    .order('tanggal_selesai', { ascending: false })
-                    .limit(2);
-                
-                let activities = [];
-                
-                (penilaian || []).forEach(p => {
-                    activities.push({
-                        type: 'penilaian',
-                        title: `Penilaian ${p.karakter?.nama || 'Akhlaq'}`,
-                        subtitle: p.jamaah?.nama || '-',
-                        time: p.created_at,
-                        icon: '📝',
-                        iconClass: 'info'
-                    });
-                });
-                
-                (progress || []).forEach(p => {
-                    activities.push({
-                        type: 'progress',
-                        title: `Selesai: ${p.materi_item?.nama || '-'}`,
-                        subtitle: p.jamaah?.nama || '-',
-                        time: p.tanggal_selesai,
-                        icon: '✅',
-                        iconClass: 'success'
-                    });
-                });
-                
-                // Sort by time
-                activities.sort((a, b) => new Date(b.time) - new Date(a.time));
-                activities = activities.slice(0, 5);
-                
-                if (activities.length === 0) {
-                    $('recentActivity').innerHTML = '<p class="text-muted text-center">Belum ada aktivitas</p>';
+                if (!data || !data.length) {
+                    $('recentActivity').innerHTML = '<p class="text-muted text-sm">Belum ada aktivitas</p>';
                     return;
                 }
                 
-                $('recentActivity').innerHTML = activities.map(a => `
-                    <div class="timeline-item">
-                        <div class="timeline-icon ${a.iconClass}">${a.icon}</div>
-                        <div class="timeline-content">
-                            <div class="timeline-title">${a.title}</div>
-                            <div class="timeline-time">${a.subtitle} • ${formatTimeAgo(a.time)}</div>
-                        </div>
+                var html = data.map(j => `
+                    <div class="list-item">
+                        <div class="list-item-title">➕ ${j.nama}</div>
+                        <div class="list-item-subtitle">${formatDate(j.created_at)}</div>
                     </div>
                 `).join('');
+                
+                $('recentActivity').innerHTML = html;
+                
             } catch (error) {
-                console.error('Error:', error);
-                $('recentActivity').innerHTML = '<p class="text-muted text-center">Gagal memuat aktivitas</p>';
+                console.error('Error loading activity:', error);
+                $('recentActivity').innerHTML = '<p class="text-muted text-sm">Gagal memuat</p>';
             }
         }
         
-        function formatTimeAgo(dateStr) {
+        function formatDate(dateStr) {
             if (!dateStr) return '-';
-            const date = new Date(dateStr);
-            const now = new Date();
-            const diff = Math.floor((now - date) / 1000);
-            
-            if (diff < 60) return 'Baru saja';
-            if (diff < 3600) return Math.floor(diff / 60) + ' menit lalu';
-            if (diff < 86400) return Math.floor(diff / 3600) + ' jam lalu';
-            if (diff < 604800) return Math.floor(diff / 86400) + ' hari lalu';
-            return formatTanggal(dateStr);
+            var d = new Date(dateStr);
+            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
         }
         
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('SW registered'))
-                .catch(err => console.log('SW failed:', err));
-        }
+        function $(id) { return document.getElementById(id); }
     </script>
-    
-    <script src="js/mobile-menu.js"></script>
 </body>
 </html>
