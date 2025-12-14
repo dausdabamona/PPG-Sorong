@@ -576,24 +576,48 @@
         // ==================== BIDANG / TRI SUKSES ====================
         function renderBidangGrid() {
             const grid = $('bidangGrid');
-            const triSukses = allBidang.filter(b => ['ALIM', 'FAQIH', 'AKHLAQ'].includes(b.kode));
+            // Handle variasi nama: AKHLAK atau AKHLAQ
+            const triSukses = allBidang.filter(b => 
+                ['ALIM', 'FAQIH', 'AKHLAQ', 'AKHLAK'].includes(b.kode.toUpperCase())
+            );
             
-            grid.innerHTML = triSukses.map(b => {
+            // Deduplicate - ambil yang unique berdasarkan kode (case insensitive)
+            const seen = {};
+            const uniqueBidang = triSukses.filter(b => {
+                const kodeUpper = b.kode.toUpperCase().replace('AKHLAK', 'AKHLAQ');
+                if (seen[kodeUpper]) return false;
+                seen[kodeUpper] = true;
+                return true;
+            });
+            
+            if (uniqueBidang.length === 0) {
+                grid.innerHTML = '<p class="text-muted text-center">Belum ada data bidang (ALIM/FAQIH/AKHLAQ)</p>';
+                return;
+            }
+            
+            grid.innerHTML = uniqueBidang.map(b => {
                 const kategoriCount = allKategori.filter(k => k.bidang_id === b.id).length;
-                const materiCount = allMateri.filter(m => m.kategori?.bidang?.kode === b.kode).length;
-                const cssClass = b.kode.toLowerCase();
-                const icons = { ALIM: '📖', FAQIH: '🕌', AKHLAQ: '💎' };
+                const materiCount = allMateri.filter(m => {
+                    const bidangKode = m.kategori?.bidang?.kode?.toUpperCase();
+                    return bidangKode === b.kode.toUpperCase() || 
+                           (bidangKode === 'AKHLAK' && b.kode.toUpperCase() === 'AKHLAQ') ||
+                           (bidangKode === 'AKHLAQ' && b.kode.toUpperCase() === 'AKHLAK');
+                }).length;
+                const kodeUpper = b.kode.toUpperCase();
+                const cssClass = kodeUpper.replace('AKHLAK', 'AKHLAQ').toLowerCase();
+                const icons = { ALIM: '📖', FAQIH: '🕌', AKHLAQ: '💎', AKHLAK: '💎' };
                 const subtitles = { 
                     ALIM: 'Keilmuan - Bacaan, Hafalan, Makna', 
                     FAQIH: 'Pemahaman & Praktek Ibadah', 
-                    AKHLAQ: 'Perilaku & Karakter Mulia' 
+                    AKHLAQ: 'Perilaku & Karakter Mulia',
+                    AKHLAK: 'Perilaku & Karakter Mulia'
                 };
                 
                 return `
                 <div class="bidang-card ${cssClass}" onclick="filterByBidang('${b.kode}')">
-                    <div class="bidang-icon">${icons[b.kode] || '📚'}</div>
+                    <div class="bidang-icon">${icons[kodeUpper] || '📚'}</div>
                     <div class="bidang-title">${b.nama}</div>
-                    <div class="bidang-subtitle">${subtitles[b.kode] || ''}</div>
+                    <div class="bidang-subtitle">${subtitles[kodeUpper] || ''}</div>
                     <div class="bidang-stats">
                         <div class="bidang-stat">
                             <div class="bidang-stat-value">${kategoriCount}</div>
@@ -610,25 +634,44 @@
         
         function renderStrukturKurikulum() {
             const container = $('strukturKurikulum');
-            const triSukses = allBidang.filter(b => ['ALIM', 'FAQIH', 'AKHLAQ'].includes(b.kode));
+            // Handle variasi AKHLAK/AKHLAQ
+            const triSukses = allBidang.filter(b => 
+                ['ALIM', 'FAQIH', 'AKHLAQ', 'AKHLAK'].includes(b.kode.toUpperCase())
+            );
+            
+            // Deduplicate
+            const seen = {};
+            const uniqueBidang = triSukses.filter(b => {
+                const kodeUpper = b.kode.toUpperCase().replace('AKHLAK', 'AKHLAQ');
+                if (seen[kodeUpper]) return false;
+                seen[kodeUpper] = true;
+                return true;
+            });
+            
+            if (uniqueBidang.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">Belum ada data struktur kurikulum</p>';
+                return;
+            }
             
             let html = '';
-            triSukses.forEach(bidang => {
+            uniqueBidang.forEach(bidang => {
                 const kategoriBidang = allKategori.filter(k => k.bidang_id === bidang.id);
-                const cssClass = bidang.kode.toLowerCase();
+                const kodeUpper = bidang.kode.toUpperCase();
+                const cssClass = kodeUpper.replace('AKHLAK', 'AKHLAQ').toLowerCase();
+                const icons = { ALIM: '📖', FAQIH: '🕌', AKHLAQ: '💎', AKHLAK: '💎' };
                 
                 html += `
                 <div class="materi-section">
                     <div class="materi-header" onclick="toggleSection(this)">
                         <div class="materi-header-left">
-                            <span class="materi-header-icon">${bidang.kode === 'ALIM' ? '📖' : bidang.kode === 'FAQIH' ? '🕌' : '💎'}</span>
+                            <span class="materi-header-icon">${icons[kodeUpper] || '📚'}</span>
                             <span class="materi-header-title">${bidang.nama}</span>
                             <span class="materi-header-count">${kategoriBidang.length} kategori</span>
                         </div>
                         <span class="materi-header-arrow">▼</span>
                     </div>
                     <div class="materi-body">
-                        ${kategoriBidang.map(k => {
+                        ${kategoriBidang.length > 0 ? kategoriBidang.map(k => {
                             const materiKategori = allMateri.filter(m => m.kategori_id === k.id);
                             return `
                             <div class="materi-item">
@@ -638,12 +681,12 @@
                                 </div>
                                 <span class="badge badge-secondary">${materiKategori.length} materi</span>
                             </div>`;
-                        }).join('')}
+                        }).join('') : '<p class="text-muted text-center py-2">Belum ada kategori</p>'}
                     </div>
                 </div>`;
             });
             
-            container.innerHTML = html;
+            container.innerHTML = html || '<p class="text-muted text-center">Tidak ada data</p>';
         }
         
         function toggleSection(header) {
@@ -656,11 +699,16 @@
             const grid = $('thobiatGrid');
             const icons = ['🎯', '🤝', '💪', '🕊️', '🤜🤛', '🤲'];
             
+            if (allThobiat.length === 0) {
+                grid.innerHTML = '<p class="text-muted text-center">Belum ada data 6 Thobiat Luhur</p>';
+                return;
+            }
+            
             grid.innerHTML = allThobiat.map((t, i) => `
                 <div class="karakter-card">
                     <div class="karakter-header">
                         <span style="font-size:2rem;">${icons[i] || '💎'}</span>
-                        <span class="karakter-badge thobiat">#${t.urutan} Thobiat</span>
+                        <span class="karakter-badge thobiat">#${t.urutan || (i+1)} Thobiat</span>
                     </div>
                     <div class="karakter-title">${t.nama}</div>
                     <div class="karakter-desc">${t.pengertian || '-'}</div>
@@ -681,11 +729,16 @@
             const grid = $('taliGrid');
             const icons = ['🙏', '💪', '✨', '🤲'];
             
+            if (allTali.length === 0) {
+                grid.innerHTML = '<p class="text-muted text-center">Belum ada data 4 Tali Keimanan</p>';
+                return;
+            }
+            
             grid.innerHTML = allTali.map((t, i) => `
                 <div class="karakter-card">
                     <div class="karakter-header">
                         <span style="font-size:2rem;">${icons[i] || '🔗'}</span>
-                        <span class="karakter-badge tali">#${t.urutan} Tali</span>
+                        <span class="karakter-badge tali">#${t.urutan || (i+1)} Tali</span>
                     </div>
                     <div class="karakter-title">${t.nama}</div>
                     <div class="karakter-desc">${t.pengertian || '-'}</div>
@@ -704,16 +757,23 @@
         // ==================== TARGET JENJANG ====================
         function renderJenjangSelector() {
             const selector = $('jenjangSelector');
-            selector.innerHTML = allJenjang.filter(j => j.is_aktif).map((j, i) => `
+            
+            // Tampilkan semua jenjang, tidak hanya yang is_aktif
+            const jenjangList = allJenjang.length > 0 ? allJenjang : [];
+            
+            if (jenjangList.length === 0) {
+                selector.innerHTML = '<p class="text-muted">Belum ada data jenjang</p>';
+                return;
+            }
+            
+            selector.innerHTML = jenjangList.map((j, i) => `
                 <button class="jenjang-btn ${i === 0 ? 'active' : ''}" onclick="selectJenjang(${j.id}, this)">
                     ${j.nama}
                 </button>
             `).join('');
             
-            if (allJenjang.length > 0) {
-                selectedJenjang = allJenjang[0].id;
-                renderTargetTable();
-            }
+            selectedJenjang = jenjangList[0].id;
+            renderTargetTable();
         }
         
         function selectJenjang(id, btn) {

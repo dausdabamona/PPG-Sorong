@@ -103,9 +103,14 @@
             </header>
             
             <div class="page-content">
-                <div class="page-header">
-                    <h2 class="page-title">Daftar Generus</h2>
-                    <p class="text-muted text-xs">Jamaah yang belum menikah</p>
+                <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;">
+                    <div>
+                        <h2 class="page-title">Daftar Generus</h2>
+                        <p class="text-muted text-xs">Jamaah yang belum menikah</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddModal()">
+                        ➕ Tambah Generus
+                    </button>
                 </div>
                 
                 <!-- Filters -->
@@ -131,6 +136,64 @@
                 <!-- Data Grouped by Jenjang -->
                 <div id="generusContainer">
                     <div class="card"><div class="card-body text-center text-muted py-4">Memuat...</div></div>
+                </div>
+                
+                <!-- Floating Action Button untuk Mobile -->
+                <button class="mobile-fab" onclick="showAddModal()" title="Tambah Generus">➕</button>
+            </div>
+            
+            <!-- Modal Tambah Generus -->
+            <div class="modal" id="addModal">
+                <div class="modal-content" style="max-height:92vh;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">➕ Tambah Generus Baru</h3>
+                        <button class="modal-close" onclick="closeAddModal()">&times;</button>
+                    </div>
+                    <div class="modal-body" style="overflow-y:auto;">
+                        <form id="addForm" onsubmit="saveNewGenerus(event)">
+                            <div class="form-group">
+                                <label class="form-label required">Nama Lengkap</label>
+                                <input type="text" class="form-control" id="addNama" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nama Panggilan</label>
+                                <input type="text" class="form-control" id="addNamaPanggilan">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label required">Jenis Kelamin</label>
+                                    <select class="form-control" id="addJenisKelamin" required>
+                                        <option value="">Pilih</option>
+                                        <option value="L">Laki-laki</option>
+                                        <option value="P">Perempuan</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Tanggal Lahir</label>
+                                    <input type="date" class="form-control" id="addTanggalLahir" onchange="showAddUmurInfo()">
+                                </div>
+                            </div>
+                            <div id="addUmurInfo" style="margin-bottom:1rem;padding:0.5rem;background:#f0fdf4;border-radius:8px;font-size:0.85rem;display:none;"></div>
+                            <div class="form-group">
+                                <label class="form-label">No. HP</label>
+                                <input type="tel" class="form-control" id="addPhone" placeholder="08xxxxxxxxxx">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label required">Kelompok</label>
+                                <select class="form-control" id="addKelompok" required>
+                                    <option value="">Pilih Kelompok</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Alamat</label>
+                                <textarea class="form-control" id="addAlamat" rows="2"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Batal</button>
+                        <button type="submit" form="addForm" class="btn btn-primary" id="btnSaveAdd">💾 Simpan</button>
+                    </div>
                 </div>
             </div>
             
@@ -1446,6 +1509,161 @@
                 if ($('searchIbuResults')) $('searchIbuResults').classList.remove('show');
             }
         });
+        
+        // ========== FUNGSI TAMBAH GENERUS BARU ==========
+        function showAddModal() {
+            // Reset form
+            $('addNama').value = '';
+            $('addNamaPanggilan').value = '';
+            $('addJenisKelamin').value = '';
+            $('addTanggalLahir').value = '';
+            $('addPhone').value = '';
+            $('addAlamat').value = '';
+            $('addUmurInfo').style.display = 'none';
+            
+            // Populate kelompok dropdown
+            $('addKelompok').innerHTML = '<option value="">Pilih Kelompok</option>' +
+                allKelompok.map(k => '<option value="' + k.id + '">' + k.nama + '</option>').join('');
+            
+            // Show modal
+            $('addModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+            
+            // Focus ke nama
+            setTimeout(() => $('addNama').focus(), 300);
+        }
+        
+        function closeAddModal() {
+            $('addModal').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        
+        function showAddUmurInfo() {
+            const tglLahir = $('addTanggalLahir').value;
+            if (!tglLahir) {
+                $('addUmurInfo').style.display = 'none';
+                return;
+            }
+            
+            const umur = hitungUmur(tglLahir);
+            const jenjang = getJenjangByUmur(umur);
+            
+            $('addUmurInfo').innerHTML = '📅 Umur: <strong>' + umur + ' tahun</strong>' +
+                (jenjang ? ' → Jenjang: <strong>' + jenjang.nama + '</strong>' : '');
+            $('addUmurInfo').style.display = 'block';
+        }
+        
+        async function saveNewGenerus(event) {
+            event.preventDefault();
+            
+            const nama = $('addNama').value.trim();
+            const namaPanggilan = $('addNamaPanggilan').value.trim();
+            const jenisKelamin = $('addJenisKelamin').value;
+            const tanggalLahir = $('addTanggalLahir').value;
+            const phone = $('addPhone').value.trim();
+            const kelompokId = $('addKelompok').value;
+            const alamat = $('addAlamat').value.trim();
+            
+            // Validasi
+            if (!nama) {
+                showToast('Nama harus diisi!', 'error');
+                return;
+            }
+            if (!jenisKelamin) {
+                showToast('Jenis kelamin harus dipilih!', 'error');
+                return;
+            }
+            if (!kelompokId) {
+                showToast('Kelompok harus dipilih!', 'error');
+                return;
+            }
+            
+            const btnSave = $('btnSaveAdd');
+            btnSave.disabled = true;
+            btnSave.innerHTML = '⏳ Menyimpan...';
+            
+            try {
+                // Hitung jenjang berdasarkan umur
+                let jenjangId = null;
+                if (tanggalLahir) {
+                    const umur = hitungUmur(tanggalLahir);
+                    const jenjang = getJenjangByUmur(umur);
+                    if (jenjang) jenjangId = jenjang.id;
+                }
+                
+                // Cari status_id untuk 'belum_menikah' atau default
+                let statusId = null;
+                try {
+                    const { data: statusBelumNikah } = await db
+                        .from('status_jamaah')
+                        .select('id')
+                        .or('kode.eq.belum_menikah,kode.eq.lajang')
+                        .limit(1)
+                        .single();
+                    if (statusBelumNikah) statusId = statusBelumNikah.id;
+                } catch (e) {
+                    console.log('Status belum menikah tidak ditemukan, lanjut tanpa status');
+                }
+                
+                // Cari tahun ajaran aktif
+                let tahunAjaranId = null;
+                try {
+                    const { data: taAktif } = await db
+                        .from('tahun_ajaran')
+                        .select('id')
+                        .eq('is_aktif', true)
+                        .single();
+                    if (taAktif) tahunAjaranId = taAktif.id;
+                } catch (e) {
+                    console.log('Tahun ajaran aktif tidak ditemukan');
+                }
+                
+                // 1. Insert jamaah baru
+                const jamaahData = {
+                    nama: nama,
+                    nama_panggilan: namaPanggilan || null,
+                    jenis_kelamin: jenisKelamin,
+                    tanggal_lahir: tanggalLahir || null,
+                    phone: phone || null,
+                    alamat_lengkap: alamat || null,
+                    status_id: statusId
+                };
+                
+                const { data: newJamaah, error: insertError } = await db
+                    .from('jamaah')
+                    .insert(jamaahData)
+                    .select()
+                    .single();
+                
+                if (insertError) throw insertError;
+                
+                // 2. Insert enrollment
+                const enrollmentData = {
+                    jamaah_id: newJamaah.id,
+                    wilayah_id: parseInt(kelompokId),
+                    jenjang_id: jenjangId,
+                    tahun_ajaran_id: tahunAjaranId,
+                    status: 'aktif'
+                };
+                
+                const { error: enrollError } = await db
+                    .from('enrollment')
+                    .insert(enrollmentData);
+                
+                if (enrollError) throw enrollError;
+                
+                showToast('✅ Generus berhasil ditambahkan!', 'success');
+                closeAddModal();
+                loadGenerus(); // Refresh data
+                
+            } catch (error) {
+                console.error('Error saving generus:', error);
+                showToast('Gagal menyimpan: ' + error.message, 'error');
+            } finally {
+                btnSave.disabled = false;
+                btnSave.innerHTML = '💾 Simpan';
+            }
+        }
     </script>
     
     <!-- Bottom Navigation -->
