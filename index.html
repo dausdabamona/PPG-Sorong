@@ -572,6 +572,17 @@
                     handleLogin(e);
                 }
             });
+            
+            // Register Service Worker for PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('SW registration failed:', error);
+                    });
+            }
         });
     </script>
 </body>

@@ -21,7 +21,7 @@ html {
     }
     
     .main-content {
-        padding-bottom: 80px !important; /* Space for bottom nav */
+        padding-bottom: 1rem !important; /* No more bottom nav */
     }
     
     .page-content {
@@ -34,6 +34,11 @@ html {
     
     .page-title {
         font-size: 1.25rem !important;
+    }
+    
+    /* Hide bottom nav */
+    .bottom-nav {
+        display: none !important;
     }
 }
 
@@ -454,7 +459,7 @@ html {
 
 .mobile-fab {
     position: fixed;
-    bottom: 80px;
+    bottom: 1.5rem;
     right: 1rem;
     width: 56px;
     height: 56px;
