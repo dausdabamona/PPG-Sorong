@@ -464,10 +464,11 @@
         async function loadJenjang() {
             try {
                 const { data } = await db.from('jenjang')
-                    .select('id, nama, kode, urutan')
+                    .select('id, nama, kode, urutan, usia_mulai, usia_sampai')
                     .eq('is_aktif', true)
                     .order('urutan');
                 allJenjang = data || [];
+                console.log('Jenjang loaded:', allJenjang);
             } catch (error) {
                 console.error('Error loading jenjang:', error);
             }
@@ -804,12 +805,37 @@
         function getJenjangByUmur(umur) {
             // Cari jenjang yang sesuai umur dari allJenjang
             for (const j of allJenjang) {
-                const mulai = j.usia_mulai || 0;
-                const sampai = j.usia_sampai || 999;
+                // Skip jika tidak ada data usia
+                if (j.usia_mulai === null && j.usia_sampai === null) continue;
+                
+                const mulai = j.usia_mulai ?? 0;
+                const sampai = j.usia_sampai ?? 999;
                 if (umur >= mulai && umur <= sampai) {
                     return j;
                 }
             }
+            
+            // Fallback: cari berdasarkan nama jenjang jika tidak ada data usia
+            // Ini adalah mapping default berdasarkan standar umum
+            const fallbackMapping = [
+                { nama: 'PAUD', min: 3, max: 6 },
+                { nama: 'Caberawit', min: 7, max: 9 },
+                { nama: 'Pra Remaja', min: 10, max: 12 },
+                { nama: 'Remaja', min: 13, max: 15 },
+                { nama: 'Pra Nikah', min: 16, max: 99 }
+            ];
+            
+            for (const map of fallbackMapping) {
+                if (umur >= map.min && umur <= map.max) {
+                    // Cari jenjang dengan nama yang cocok
+                    const found = allJenjang.find(j => 
+                        j.nama.toLowerCase().includes(map.nama.toLowerCase()) ||
+                        j.kode?.toLowerCase().includes(map.nama.toLowerCase().replace(' ', '_'))
+                    );
+                    if (found) return found;
+                }
+            }
+            
             return null;
         }
         
