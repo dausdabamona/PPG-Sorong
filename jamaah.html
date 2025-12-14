@@ -95,7 +95,7 @@
                                 <option value="">Semua Status</option>
                                 <option value="nonaktif">Nonaktif</option>
                                 <option value="pindah">Pindah</option>
-                                <option value="meninggal">Meninggal</option>
+                                <option value="menikah">Menikah</option>
                             </select>
                         </div>
                         <!-- Row 2: Desa + Kelompok -->
@@ -188,22 +188,6 @@
                                 <option value="keluar">Keluar Sorong</option>
                                 <option value="pindah_kelompok">Pindah Kelompok (dalam Sorong)</option>
                             </select>
-                        </div>
-                    </div>
-                    <!-- Field Pasangan Menikah -->
-                    <div id="menikahFields" style="display:none;">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label required">Menikah Dengan</label>
-                                <select class="form-control" name="pasangan_id" id="formPasangan">
-                                    <option value="">-- Pilih Pasangan --</option>
-                                </select>
-                                <small class="form-text" id="pasanganInfo"></small>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Tanggal Menikah</label>
-                                <input type="date" class="form-control" name="tanggal_menikah" id="formTanggalMenikah">
-                            </div>
                         </div>
                     </div>
                     <div id="enrollmentFields">
@@ -402,138 +386,29 @@
         }
         
         // Handler saat status berubah
-        async function onStatusChange() {
+        function onStatusChange() {
             const status = $('formStatus').value;
             const pindahKeGroup = $('pindahKeGroup');
-            const menikahFields = $('menikahFields');
             const enrollmentFields = $('enrollmentFields');
             const formKelompok = $('formKelompok');
             const formJenjang = $('formJenjang');
-            
-            // Reset semua
-            pindahKeGroup.style.display = 'none';
-            menikahFields.style.display = 'none';
             
             if (status === 'pindah') {
                 // Tampilkan pilihan pindah ke mana
                 pindahKeGroup.style.display = 'block';
                 onPindahKeChange(); // Update enrollment fields
-            } else if (status === 'menikah') {
-                // Menikah: tampilkan pilihan pasangan
-                menikahFields.style.display = 'block';
-                enrollmentFields.style.display = 'none';
-                formKelompok.removeAttribute('required');
-                formJenjang.removeAttribute('required');
-                
-                // Load calon pasangan
-                loadCalonPasangan();
-            } else if (status === 'lulus') {
-                // Lulus: tidak perlu enrollment baru
+            } else if (status === 'menikah' || status === 'lulus') {
+                // Menikah/Lulus: tidak perlu enrollment baru
+                pindahKeGroup.style.display = 'none';
                 enrollmentFields.style.display = 'none';
                 formKelompok.removeAttribute('required');
                 formJenjang.removeAttribute('required');
             } else {
                 // Aktif/Nonaktif: perlu enrollment
+                pindahKeGroup.style.display = 'none';
                 enrollmentFields.style.display = 'block';
                 formKelompok.setAttribute('required', 'required');
                 formJenjang.setAttribute('required', 'required');
-            }
-        }
-        
-        // Load calon pasangan berdasarkan jenis kelamin (optimized)
-        async function loadCalonPasangan() {
-            const formPasangan = $('formPasangan');
-            const pasanganInfo = $('pasanganInfo');
-            const jenisKelamin = document.querySelector('[name="jenis_kelamin"]').value;
-            const currentJamaahId = $('santriId').value;
-            
-            formPasangan.innerHTML = '<option value="">-- Memuat data... --</option>';
-            pasanganInfo.textContent = '';
-            
-            if (!jenisKelamin) {
-                formPasangan.innerHTML = '<option value="">-- Pilih jenis kelamin dulu --</option>';
-                pasanganInfo.innerHTML = '<span class="text-warning">⚠️ Pilih jenis kelamin terlebih dahulu</span>';
-                return;
-            }
-            
-            try {
-                // Tentukan jenis kelamin pasangan yang dicari
-                const targetGender = jenisKelamin === 'L' ? 'P' : 'L';
-                
-                let filteredCalon = [];
-                
-                if (jenisKelamin === 'P') {
-                    // Jamaah adalah PEREMPUAN → cari LAKI-LAKI
-                    // Ambil semua laki-laki beserta jumlah istrinya dalam 1 query
-                    const { data: lakiLaki, error } = await db
-                        .from('jamaah')
-                        .select('id, nama, nama_panggilan')
-                        .eq('jenis_kelamin', 'L')
-                        .order('nama');
-                    
-                    if (error) throw error;
-                    
-                    // Ambil semua perempuan yang sudah punya pasangan (untuk hitung istri)
-                    const { data: semuaIstri } = await db
-                        .from('jamaah')
-                        .select('pasangan_id')
-                        .eq('jenis_kelamin', 'P')
-                        .not('pasangan_id', 'is', null);
-                    
-                    // Hitung jumlah istri per laki-laki
-                    const jumlahIstriMap = {};
-                    (semuaIstri || []).forEach(istri => {
-                        jumlahIstriMap[istri.pasangan_id] = (jumlahIstriMap[istri.pasangan_id] || 0) + 1;
-                    });
-                    
-                    // Filter laki-laki yang belum punya 4 istri
-                    filteredCalon = (lakiLaki || [])
-                        .filter(l => l.id != currentJamaahId)
-                        .map(l => {
-                            const jumlahIstri = jumlahIstriMap[l.id] || 0;
-                            return {
-                                ...l,
-                                jumlahIstri,
-                                label: jumlahIstri > 0 ? `${l.nama} (${jumlahIstri} istri)` : l.nama
-                            };
-                        })
-                        .filter(l => l.jumlahIstri < 4);
-                    
-                    pasanganInfo.innerHTML = '<span class="text-muted">Menampilkan laki-laki yang belum memiliki 4 istri</span>';
-                    
-                } else {
-                    // Jamaah adalah LAKI-LAKI → cari PEREMPUAN yang belum menikah
-                    const { data: perempuan, error } = await db
-                        .from('jamaah')
-                        .select('id, nama, nama_panggilan, pasangan_id')
-                        .eq('jenis_kelamin', 'P')
-                        .is('pasangan_id', null)
-                        .order('nama');
-                    
-                    if (error) throw error;
-                    
-                    filteredCalon = (perempuan || [])
-                        .filter(p => p.id != currentJamaahId)
-                        .map(p => ({
-                            ...p,
-                            label: p.nama
-                        }));
-                    
-                    pasanganInfo.innerHTML = '<span class="text-muted">Menampilkan perempuan yang belum menikah</span>';
-                }
-                
-                if (filteredCalon.length === 0) {
-                    formPasangan.innerHTML = '<option value="">-- Tidak ada calon pasangan --</option>';
-                    pasanganInfo.innerHTML = '<span class="text-warning">⚠️ Tidak ada calon pasangan yang tersedia</span>';
-                } else {
-                    formPasangan.innerHTML = '<option value="">-- Pilih Pasangan --</option>' +
-                        filteredCalon.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
-                }
-                
-            } catch (error) {
-                console.error('Error loading calon pasangan:', error);
-                formPasangan.innerHTML = '<option value="">-- Error memuat data --</option>';
-                pasanganInfo.innerHTML = `<span class="text-danger">Error: ${error.message}</span>`;
             }
         }
         
@@ -757,9 +632,7 @@
             $('jenjangInfo').textContent = 'Akan otomatis dipilih berdasarkan umur';
             $('formStatus').value = 'aktif';
             $('pindahKeGroup').style.display = 'none';
-            $('menikahFields').style.display = 'none';
             $('enrollmentFields').style.display = 'block';
-            $('pasanganInfo').textContent = '';
             
             // Reset required attributes
             $('formKelompok').setAttribute('required', 'required');
@@ -802,13 +675,7 @@
                 }
                 
                 // Handle status display
-                await onStatusChange();
-                
-                // Set data pasangan jika sudah menikah
-                if (jamaah.status_aktif === 'menikah' && jamaah.pasangan_id) {
-                    $('formPasangan').value = jamaah.pasangan_id;
-                    $('formTanggalMenikah').value = jamaah.tanggal_menikah || '';
-                }
+                onStatusChange();
                 
                 if (jamaah.tanggal_lahir) {
                     const umur = hitungUmur(jamaah.tanggal_lahir);
@@ -871,84 +738,8 @@
                             status: 'nonaktif'
                         }).eq('jamaah_id', jamaahId).eq('status', 'aktif');
                         
-                    } else if (status === 'menikah') {
-                        // Menikah: nonaktifkan enrollment lama
-                        await db.from('enrollment').update({
-                            status: 'nonaktif'
-                        }).eq('jamaah_id', jamaahId).eq('status', 'aktif');
-                        
-                        // Update pasangan_id dan tanggal_menikah
-                        const pasanganId = formData.pasangan_id || null;
-                        const tanggalMenikah = formData.tanggal_menikah || null;
-                        
-                        await db.from('jamaah').update({
-                            pasangan_id: pasanganId,
-                            tanggal_menikah: tanggalMenikah
-                        }).eq('id', jamaahId);
-                        
-                        // Cari jenjang Dewasa
-                        const jenjangDewasa = allJenjang.find(j => j.nama.toLowerCase() === 'dewasa');
-                        const { data: ta } = await db.from('tahun_ajaran').select('id').eq('is_aktif', true).single();
-                        
-                        // Buat enrollment baru dengan jenjang Dewasa
-                        if (jenjangDewasa) {
-                            // Ambil kelompok terakhir dari enrollment yang baru dinonaktifkan
-                            const { data: lastEnrollment } = await db.from('enrollment')
-                                .select('wilayah_id')
-                                .eq('jamaah_id', jamaahId)
-                                .order('created_at', { ascending: false })
-                                .limit(1)
-                                .single();
-                            
-                            await db.from('enrollment').insert({
-                                jamaah_id: jamaahId,
-                                wilayah_id: lastEnrollment?.wilayah_id || null,
-                                jenjang_id: jenjangDewasa.id,
-                                tahun_ajaran_id: ta?.id,
-                                status: 'aktif',
-                                created_by: currentUserData?.id
-                            });
-                        }
-                        
-                        // Jika jamaah ini laki-laki, update pasangan perempuannya
-                        if (pasanganId) {
-                            const jenisKelamin = formData.jenis_kelamin;
-                            if (jenisKelamin === 'L') {
-                                // Jamaah laki-laki: set pasangan_id perempuan ke jamaah ini
-                                await db.from('jamaah').update({
-                                    pasangan_id: jamaahId,
-                                    tanggal_menikah: tanggalMenikah,
-                                    status_aktif: 'menikah'
-                                }).eq('id', pasanganId);
-                                
-                                // Nonaktifkan enrollment pasangan
-                                await db.from('enrollment').update({
-                                    status: 'nonaktif'
-                                }).eq('jamaah_id', pasanganId).eq('status', 'aktif');
-                                
-                                // Buat enrollment baru untuk pasangan dengan jenjang Dewasa
-                                if (jenjangDewasa) {
-                                    const { data: pasanganEnrollment } = await db.from('enrollment')
-                                        .select('wilayah_id')
-                                        .eq('jamaah_id', pasanganId)
-                                        .order('created_at', { ascending: false })
-                                        .limit(1)
-                                        .single();
-                                    
-                                    await db.from('enrollment').insert({
-                                        jamaah_id: pasanganId,
-                                        wilayah_id: pasanganEnrollment?.wilayah_id || null,
-                                        jenjang_id: jenjangDewasa.id,
-                                        tahun_ajaran_id: ta?.id,
-                                        status: 'aktif',
-                                        created_by: currentUserData?.id
-                                    });
-                                }
-                            }
-                        }
-                        
-                    } else if (status === 'lulus') {
-                        // Lulus: nonaktifkan enrollment
+                    } else if (status === 'menikah' || status === 'lulus') {
+                        // Menikah/Lulus: nonaktifkan enrollment
                         await db.from('enrollment').update({
                             status: 'nonaktif'
                         }).eq('jamaah_id', jamaahId).eq('status', 'aktif');
