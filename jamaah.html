@@ -211,7 +211,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="hideModal('santriModal')">Batal</button>
-                <button class="btn btn-primary" onclick="saveSantri()" id="btnSave">Simpan</button>
+                <button class="btn btn-primary" onclick="saveJamaah()" id="btnSave">Simpan</button>
             </div>
         </div>
     </div>
@@ -697,14 +697,35 @@
             const status = $('formStatus').value;
             const pindahKe = $('pindahKe')?.value;
             
-            // Validasi form - skip enrollment validation jika pindah keluar/menikah/lulus
-            const skipEnrollment = (status === 'pindah' && pindahKe === 'keluar') || 
-                                   status === 'menikah' || 
-                                   status === 'lulus';
+            // Validasi field dasar (nama, jenis kelamin)
+            const nama = form.querySelector('[name="nama"]').value.trim();
+            const jenisKelamin = form.querySelector('[name="jenis_kelamin"]').value;
             
-            if (!skipEnrollment && !form.checkValidity()) {
-                form.reportValidity();
+            if (!nama) {
+                showToast('Nama lengkap harus diisi', 'error');
                 return;
+            }
+            if (!jenisKelamin) {
+                showToast('Jenis kelamin harus dipilih', 'error');
+                return;
+            }
+            
+            // Validasi enrollment hanya jika status aktif/nonaktif atau pindah kelompok
+            const needsEnrollment = (status === 'aktif' || status === 'nonaktif') || 
+                                    (status === 'pindah' && pindahKe === 'pindah_kelompok');
+            
+            if (needsEnrollment) {
+                const wilayahId = $('formKelompok').value;
+                const jenjangId = $('formJenjang').value;
+                
+                if (!wilayahId) {
+                    showToast('Kelompok harus dipilih', 'error');
+                    return;
+                }
+                if (!jenjangId) {
+                    showToast('Jenjang harus dipilih', 'error');
+                    return;
+                }
             }
             
             const btn = $('btnSave');
@@ -738,8 +759,41 @@
                             status: 'nonaktif'
                         }).eq('jamaah_id', jamaahId).eq('status', 'aktif');
                         
-                    } else if (status === 'menikah' || status === 'lulus') {
-                        // Menikah/Lulus: nonaktifkan enrollment
+                    } else if (status === 'menikah') {
+                        // Menikah: nonaktifkan enrollment lama, buat enrollment baru dengan jenjang Dewasa
+                        
+                        // Ambil wilayah dari enrollment lama
+                        const { data: oldEnrollment } = await db.from('enrollment')
+                            .select('wilayah_id, tahun_ajaran_id')
+                            .eq('jamaah_id', jamaahId)
+                            .eq('status', 'aktif')
+                            .single();
+                        
+                        // Nonaktifkan enrollment lama
+                        await db.from('enrollment').update({
+                            status: 'nonaktif'
+                        }).eq('jamaah_id', jamaahId).eq('status', 'aktif');
+                        
+                        // Cari jenjang Dewasa
+                        const { data: jenjangDewasa } = await db.from('jenjang')
+                            .select('id')
+                            .ilike('nama', '%dewasa%')
+                            .single();
+                        
+                        // Buat enrollment baru dengan jenjang Dewasa
+                        if (jenjangDewasa && oldEnrollment) {
+                            await db.from('enrollment').insert({
+                                jamaah_id: jamaahId,
+                                wilayah_id: oldEnrollment.wilayah_id,
+                                jenjang_id: jenjangDewasa.id,
+                                tahun_ajaran_id: oldEnrollment.tahun_ajaran_id,
+                                status: 'aktif',
+                                created_by: currentUserData?.id
+                            });
+                        }
+                        
+                    } else if (status === 'lulus') {
+                        // Lulus: nonaktifkan enrollment
                         await db.from('enrollment').update({
                             status: 'nonaktif'
                         }).eq('jamaah_id', jamaahId).eq('status', 'aktif');
