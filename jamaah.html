@@ -529,16 +529,65 @@
                 const desaId = $('filterDesa').value;
                 const kelompokId = $('filterKelompok').value;
                 
-                // Call RPC function dengan status_kode
-                const result = await db.rpc('get_jamaah_by_wilayah', {
-                    p_wilayah_id: null,
-                    p_jenjang_id: null,
-                    p_status_kode: statusKode || null
+                // Query langsung dengan JOIN ke status_jamaah
+                let query = db
+                    .from('jamaah')
+                    .select(`
+                        id,
+                        nama,
+                        nama_panggilan,
+                        jenis_kelamin,
+                        tanggal_lahir,
+                        phone,
+                        alamat_lengkap,
+                        status_id,
+                        status:status_id(id, kode, nama, icon, warna),
+                        enrollment!inner(
+                            id,
+                            status,
+                            wilayah_id,
+                            jenjang_id,
+                            wilayah:wilayah_id(id, nama, parent_id),
+                            jenjang:jenjang_id(id, nama)
+                        )
+                    `)
+                    .eq('enrollment.status', 'aktif')
+                    .order('nama');
+                
+                // Filter by status
+                if (statusKode) {
+                    // Cari status_id dari kode
+                    const statusObj = allStatus.find(s => s.kode === statusKode);
+                    if (statusObj) {
+                        query = query.eq('status_id', statusObj.id);
+                    }
+                }
+                
+                const { data, error } = await query;
+                
+                if (error) throw error;
+                
+                // Transform data
+                let allData = (data || []).map(j => {
+                    const enrollment = j.enrollment?.[0];
+                    return {
+                        jamaah_id: j.id,
+                        nama: j.nama,
+                        nama_panggilan: j.nama_panggilan,
+                        jenis_kelamin: j.jenis_kelamin,
+                        tanggal_lahir: j.tanggal_lahir,
+                        phone: j.phone,
+                        alamat_lengkap: j.alamat_lengkap,
+                        status_id: j.status_id,
+                        status_kode: j.status?.kode,
+                        status_nama: j.status?.nama,
+                        kelompok_id: enrollment?.wilayah_id,
+                        kelompok_nama: enrollment?.wilayah?.nama,
+                        kelompok_parent_id: enrollment?.wilayah?.parent_id,
+                        jenjang_id: enrollment?.jenjang_id,
+                        jenjang_nama: enrollment?.jenjang?.nama
+                    };
                 });
-                
-                if (result.error) throw result.error;
-                
-                let allData = result.data || [];
                 
                 // Filter by kelompok (jika dipilih)
                 if (kelompokId) {
