@@ -476,7 +476,7 @@
         let allTahunAjaran = [];
         let selectedJenjang = null;
         
-        // $ dan $$ sudah didefinisikan di utils.js, tidak perlu deklarasi ulang
+        // $ dan $$ sudah didefinisikan di utils.js
         
         function toggleSidebar() {
             $('sidebar').classList.toggle('collapsed');
@@ -485,22 +485,20 @@
         
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('🚀 Kurikulum page loading...');
-            
             if (!await requireAuth()) {
                 console.log('❌ Auth failed');
                 return;
             }
-            
-            console.log('✅ Auth passed, loading data...');
+            console.log('✅ Auth passed');
             await loadAllData();
         });
         
         async function loadAllData() {
             try {
-                console.log('📊 Starting to load all kurikulum data...');
+                console.log('📊 Loading kurikulum data...');
                 
-                // Load all data in parallel with individual error handling
-                const results = await Promise.allSettled([
+                // Load all data in parallel
+                const [bidang, kategori, materi, jenjang, target, thobiat, tali, ta] = await Promise.all([
                     db.from('bidang').select('*').order('urutan'),
                     db.from('kategori_materi').select('*, bidang:bidang_id(kode, nama)').eq('is_aktif', true).order('urutan'),
                     db.from('materi_item').select('*, kategori:kategori_id(kode, nama, bidang:bidang_id(kode))').order('nomor'),
@@ -511,41 +509,26 @@
                     db.from('tahun_ajaran').select('*').order('kode', { ascending: false })
                 ]);
                 
-                const tableNames = ['bidang', 'kategori_materi', 'materi_item', 'jenjang', 'target_jenjang', 'nilai_karakter', 'tali_keimanan', 'tahun_ajaran'];
+                // Log errors if any
+                if (bidang.error) console.error('❌ bidang:', bidang.error);
+                if (kategori.error) console.error('❌ kategori:', kategori.error);
+                if (materi.error) console.error('❌ materi:', materi.error);
+                if (jenjang.error) console.error('❌ jenjang:', jenjang.error);
+                if (target.error) console.error('❌ target:', target.error);
+                if (thobiat.error) console.error('❌ thobiat:', thobiat.error);
+                if (tali.error) console.error('❌ tali:', tali.error);
+                if (ta.error) console.error('❌ tahun_ajaran:', ta.error);
                 
-                // Process results with logging
-                results.forEach((result, index) => {
-                    const tableName = tableNames[index];
-                    if (result.status === 'fulfilled') {
-                        if (result.value.error) {
-                            console.error(`❌ Error loading ${tableName}:`, result.value.error);
-                        } else {
-                            console.log(`✅ ${tableName}: ${result.value.data?.length || 0} rows`);
-                        }
-                    } else {
-                        console.error(`❌ Failed to load ${tableName}:`, result.reason);
-                    }
-                });
+                allBidang = bidang.data || [];
+                allKategori = kategori.data || [];
+                allMateri = materi.data || [];
+                allJenjang = jenjang.data || [];
+                allTarget = target.data || [];
+                allThobiat = thobiat.data || [];
+                allTali = tali.data || [];
+                allTahunAjaran = ta.data || [];
                 
-                // Extract data safely
-                const getData = (index) => {
-                    const result = results[index];
-                    if (result.status === 'fulfilled' && !result.value.error) {
-                        return result.value.data || [];
-                    }
-                    return [];
-                };
-                
-                allBidang = getData(0);
-                allKategori = getData(1);
-                allMateri = getData(2);
-                allJenjang = getData(3);
-                allTarget = getData(4);
-                allThobiat = getData(5);
-                allTali = getData(6);
-                allTahunAjaran = getData(7);
-                
-                console.log('📋 Data summary:', {
+                console.log('📋 Data loaded:', {
                     bidang: allBidang.length,
                     kategori: allKategori.length,
                     materi: allMateri.length,
@@ -573,11 +556,9 @@
                 renderTahunAjaranTable();
                 populateFilters();
                 
-                console.log('✅ All rendering complete');
-                
             } catch (error) {
-                console.error('❌ Error loading data:', error);
-                showToast('Gagal memuat data: ' + error.message, 'error');
+                console.error('Error loading data:', error);
+                showToast('Gagal memuat data', 'error');
             }
         }
         
