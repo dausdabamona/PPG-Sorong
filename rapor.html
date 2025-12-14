@@ -4,36 +4,180 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#059669">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
-    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
     <title>Rapor - PPG Sorong</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .rapor-container { max-width: 800px; margin: 0 auto; }
-        .rapor-header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--gray-300); }
+        :root { --alim: #0891b2; --faqih: #7c3aed; --akhlaq: #059669; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        .rapor-container { max-width: 900px; margin: 0 auto; }
+        
+        .rapor-header { 
+            text-align: center; 
+            padding: 2rem; 
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            margin-bottom: 0;
+        }
         .rapor-logo { font-size: 3rem; margin-bottom: 0.5rem; }
-        .rapor-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.25rem; }
-        .rapor-subtitle { color: var(--gray-600); }
-        .rapor-info { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
-        .rapor-info-item { display: flex; gap: 0.5rem; }
-        .rapor-info-label { font-weight: 500; min-width: 120px; }
-        .rapor-section { margin-bottom: 1.5rem; }
-        .rapor-section-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--gray-200); }
-        .nilai-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-        .nilai-card { background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); text-align: center; }
-        .nilai-card-label { font-size: 0.875rem; color: var(--gray-600); margin-bottom: 0.25rem; }
-        .nilai-card-value { font-size: 1.5rem; font-weight: bold; }
-        .nilai-alim { color: var(--primary); }
-        .nilai-akhlak { color: var(--success); }
-        .nilai-mandiri { color: var(--warning); }
+        .rapor-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .rapor-subtitle { opacity: 0.9; }
+        
+        .rapor-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border: 1px solid var(--gray-200);
+            border-top: none;
+        }
+        .rapor-info-group { }
+        .rapor-info-item { 
+            display: flex; 
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--gray-200);
+        }
+        .rapor-info-item:last-child { border-bottom: none; }
+        .rapor-info-label { font-weight: 500; color: var(--gray-600); min-width: 140px; }
+        .rapor-info-value { font-weight: 600; }
+        
+        /* Tri Sukses Cards */
+        .trisukses-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            padding: 1.5rem;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-top: none;
+        }
+        .trisukses-card {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .trisukses-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+        }
+        .trisukses-card.alim { background: linear-gradient(180deg, #ecfeff 0%, white 100%); }
+        .trisukses-card.alim::before { background: var(--alim); }
+        .trisukses-card.faqih { background: linear-gradient(180deg, #f5f3ff 0%, white 100%); }
+        .trisukses-card.faqih::before { background: var(--faqih); }
+        .trisukses-card.akhlaq { background: linear-gradient(180deg, #ecfdf5 0%, white 100%); }
+        .trisukses-card.akhlaq::before { background: var(--akhlaq); }
+        
+        .trisukses-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .trisukses-label { font-size: 0.875rem; color: var(--gray-600); margin-bottom: 0.25rem; }
+        .trisukses-value { font-size: 2.5rem; font-weight: 700; }
+        .trisukses-card.alim .trisukses-value { color: var(--alim); }
+        .trisukses-card.faqih .trisukses-value { color: var(--faqih); }
+        .trisukses-card.akhlaq .trisukses-value { color: var(--akhlaq); }
+        
+        /* Keaktifan */
+        .keaktifan-section {
+            padding: 1.5rem;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-top: none;
+        }
+        .keaktifan-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .keaktifan-title { font-weight: 600; font-size: 1rem; }
+        .keaktifan-badge { 
+            padding: 0.5rem 1rem; 
+            border-radius: 20px; 
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        .keaktifan-badge.excellent { background: #dcfce7; color: #166534; }
+        .keaktifan-badge.good { background: #fef3c7; color: #92400e; }
+        .keaktifan-badge.fair { background: #fee2e2; color: #991b1b; }
+        .keaktifan-stats { display: flex; gap: 2rem; }
+        .keaktifan-stat { text-align: center; }
+        .keaktifan-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        .keaktifan-stat-label { font-size: 0.75rem; color: var(--gray-500); }
+        .progress-bar-container { 
+            height: 12px; 
+            background: var(--gray-200); 
+            border-radius: 6px; 
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        .progress-bar-fill { 
+            height: 100%; 
+            background: linear-gradient(90deg, var(--primary) 0%, #10b981 100%);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+        
+        /* Detail Section */
+        .detail-section {
+            padding: 1.5rem;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-top: none;
+        }
+        .detail-section:last-child { border-radius: 0 0 16px 16px; }
+        .detail-title { 
+            font-weight: 600; 
+            font-size: 1rem; 
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .detail-item {
+            background: var(--gray-50);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        .detail-item-label { font-size: 0.8rem; color: var(--gray-500); margin-bottom: 0.25rem; }
+        .detail-item-value { font-weight: 600; font-size: 1.125rem; }
+        
+        /* Karakter Section */
+        .karakter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+        .karakter-item {
+            background: var(--gray-50);
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .karakter-name { font-size: 0.8rem; color: var(--gray-600); margin-bottom: 0.25rem; }
+        .karakter-value { font-weight: 700; font-size: 1.25rem; }
+        .karakter-value.excellent { color: #166534; }
+        .karakter-value.good { color: #92400e; }
+        .karakter-value.fair { color: #991b1b; }
+        
+        /* Catatan */
+        .catatan-section {
+            padding: 1.5rem;
+            background: #fefce8;
+            border: 1px solid #fef08a;
+            border-radius: 0 0 16px 16px;
+        }
+        .catatan-title { font-weight: 600; margin-bottom: 0.5rem; }
+        .catatan-text { color: var(--gray-700); line-height: 1.6; }
+        
+        /* Print */
         @media print {
             .no-print { display: none !important; }
-            .card { box-shadow: none; border: 1px solid #ddd; }
+            .card { box-shadow: none; }
+            .rapor-container { max-width: 100%; }
+        }
+        
+        @media (max-width: 768px) {
+            .trisukses-grid { grid-template-columns: 1fr; }
+            .rapor-info-grid { grid-template-columns: 1fr; }
+            .keaktifan-stats { flex-direction: column; gap: 1rem; }
         }
     </style>
 </head>
@@ -42,15 +186,13 @@
         <aside class="sidebar no-print" id="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">PPG</div>
-                <div><div class="sidebar-title">PPG Sorong</div><div class="sidebar-subtitle">Pembinaan Generasi Penerus</div></div>
+                <div><div class="sidebar-title">PPG Sorong</div><div class="sidebar-subtitle">Pembinaan Generus</div></div>
             </div>
             <nav class="sidebar-nav">
                 <div class="nav-section">Menu Utama</div>
                 <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span>Dashboard</span></a>
                 <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span>Data Jamaah</span></a>
-                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span>Pengajian</span></a>
-                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span>Presensi</span></a>
-                <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span>Progress Hafalan</span></a>
+                <a href="penilaian.html" class="nav-item"><span class="nav-icon">📝</span><span>Penilaian</span></a>
                 <div class="nav-section">Laporan</div>
                 <a href="rapor.html" class="nav-item active"><span class="nav-icon">📋</span><span>Rapor</span></a>
             </nav>
@@ -59,13 +201,9 @@
         
         <main class="main-content">
             <header class="header no-print">
-                <div class="header-left"><h1 class="header-title">Rapor Santri</h1></div>
+                <div class="header-left"><button class="btn-menu" onclick="toggleSidebar()">☰</button><h1 class="header-title">Rapor</h1></div>
                 <div class="header-right">
-                    <div class="user-menu">
-                        <div class="user-avatar" id="userAvatar">?</div>
-                        <div class="user-info"><div class="user-name" id="userName">Loading...</div><div class="user-role" id="userRole">-</div></div>
-                    </div>
-                    <button class="btn-logout-mobile" onclick="logout()">🚪</button>
+                    <div class="user-menu"><div class="user-avatar" id="userAvatar">?</div><div class="user-info"><div class="user-name" id="userName">Loading...</div><div class="user-role" id="userRole">-</div></div></div>
                     <button class="btn btn-outline btn-sm" onclick="logout()">Keluar</button>
                 </div>
             </header>
@@ -77,15 +215,7 @@
                         <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;">
                             <div style="flex:1;min-width:200px;">
                                 <label class="form-label">Santri</label>
-                                <select class="form-control" id="selectSantri" onchange="loadRapor()">
-                                    <option value="">-- Pilih Santri --</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="form-label">Tahun Ajaran</label>
-                                <select class="form-control" id="selectTahunAjaran" onchange="loadRapor()">
-                                    <option value="">-- Pilih --</option>
-                                </select>
+                                <select class="form-control" id="selectSantri" onchange="loadRapor()"><option value="">-- Pilih Santri --</option></select>
                             </div>
                             <div>
                                 <label class="form-label">Periode</label>
@@ -94,104 +224,135 @@
                                     <option value="semester_2">Semester 2</option>
                                 </select>
                             </div>
+                            <div>
+                                <label class="form-label">Tahun Ajaran</label>
+                                <select class="form-control" id="selectTA" onchange="loadRapor()"><option value="">-- Pilih --</option></select>
+                            </div>
                             <button class="btn btn-primary" onclick="window.print()">🖨️ Cetak</button>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Rapor Content -->
-                <div class="card" id="raporCard" style="display:none;">
-                    <div class="card-body">
-                        <div class="rapor-container">
-                            <div class="rapor-header">
-                                <div class="rapor-logo">📖</div>
-                                <div class="rapor-title">RAPOR SANTRI</div>
-                                <div class="rapor-subtitle">Pembinaan Generasi Penerus (PPG) Sorong</div>
-                            </div>
-                            
-                            <div class="rapor-info">
-                                <div>
-                                    <div class="rapor-info-item"><span class="rapor-info-label">Nama</span><span>: <span id="raporNama">-</span></span></div>
-                                    <div class="rapor-info-item"><span class="rapor-info-label">Tempat, Tgl Lahir</span><span>: <span id="raporTTL">-</span></span></div>
-                                    <div class="rapor-info-item"><span class="rapor-info-label">Jenis Kelamin</span><span>: <span id="raporJK">-</span></span></div>
-                                </div>
-                                <div>
-                                    <div class="rapor-info-item"><span class="rapor-info-label">Jenjang</span><span>: <span id="raporJenjang">-</span></span></div>
-                                    <div class="rapor-info-item"><span class="rapor-info-label">Kelompok</span><span>: <span id="raporKelompok">-</span></span></div>
-                                    <div class="rapor-info-item"><span class="rapor-info-label">Tahun Ajaran</span><span>: <span id="raporTA">-</span></span></div>
-                                </div>
-                            </div>
-                            
-                            <div class="rapor-section">
-                                <div class="rapor-section-title">🏆 Nilai Tri Sukses</div>
-                                <div class="nilai-grid">
-                                    <div class="nilai-card">
-                                        <div class="nilai-card-label">Alim Faqih</div>
-                                        <div class="nilai-card-value nilai-alim" id="nilaiAlim">-</div>
-                                    </div>
-                                    <div class="nilai-card">
-                                        <div class="nilai-card-label">Akhlaqul Karimah</div>
-                                        <div class="nilai-card-value nilai-akhlak" id="nilaiAkhlak">-</div>
-                                    </div>
-                                    <div class="nilai-card">
-                                        <div class="nilai-card-label">Mandiri</div>
-                                        <div class="nilai-card-value nilai-mandiri" id="nilaiMandiri">-</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="rapor-section">
-                                <div class="rapor-section-title">📊 Keaktifan</div>
-                                <div style="display:flex;gap:2rem;flex-wrap:wrap;">
-                                    <div><strong>Total Pengajian:</strong> <span id="totalPengajian">-</span></div>
-                                    <div><strong>Hadir:</strong> <span id="totalHadir">-</span></div>
-                                    <div><strong>Persentase:</strong> <span id="persenKeaktifan">-</span></div>
-                                </div>
-                                <div class="progress mt-md" style="height:12px;">
-                                    <div class="progress-bar" id="progressBar" style="width:0%;"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="rapor-section">
-                                <div class="rapor-section-title">📝 Progress Hafalan</div>
-                                <div class="table-container">
-                                    <table class="table" id="progressTable">
-                                        <thead>
-                                            <tr>
-                                                <th>Kategori</th>
-                                                <th>Selesai</th>
-                                                <th>Target</th>
-                                                <th>Persentase</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <div class="rapor-section">
-                                <div class="rapor-section-title">📌 Catatan & Rekomendasi</div>
-                                <div style="background:var(--gray-50);padding:1rem;border-radius:var(--radius-md);min-height:60px;" id="catatanRapor">
-                                    -
-                                </div>
-                            </div>
-                            
-                            <div style="display:flex;justify-content:flex-end;margin-top:2rem;">
-                                <div style="text-align:center;">
-                                    <p>Sorong, <span id="tanggalRapor">-</span></p>
-                                    <p style="margin-top:60px;border-top:1px solid var(--gray-400);padding-top:0.5rem;">Mubaligh</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
+                <!-- Empty State -->
                 <div class="card" id="emptyCard">
                     <div class="card-body">
                         <div class="empty-state">
                             <div class="empty-state-icon">📋</div>
                             <div class="empty-state-title">Pilih Santri</div>
-                            <p class="text-muted">Silakan pilih santri untuk melihat rapor</p>
+                            <p class="text-muted">Pilih santri untuk melihat rapor</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Rapor Content -->
+                <div id="raporCard" style="display:none;">
+                    <div class="rapor-container">
+                        <!-- Header -->
+                        <div class="rapor-header">
+                            <div class="rapor-logo">📖</div>
+                            <div class="rapor-title">RAPOR PEMBINAAN GENERUS</div>
+                            <div class="rapor-subtitle">Pembinaan Generasi Penerus (PPG) Sorong</div>
+                        </div>
+                        
+                        <!-- Info -->
+                        <div class="rapor-info-grid">
+                            <div class="rapor-info-group">
+                                <div class="rapor-info-item"><span class="rapor-info-label">Nama</span><span class="rapor-info-value" id="raporNama">-</span></div>
+                                <div class="rapor-info-item"><span class="rapor-info-label">Tempat, Tgl Lahir</span><span class="rapor-info-value" id="raporTTL">-</span></div>
+                                <div class="rapor-info-item"><span class="rapor-info-label">Jenis Kelamin</span><span class="rapor-info-value" id="raporJK">-</span></div>
+                            </div>
+                            <div class="rapor-info-group">
+                                <div class="rapor-info-item"><span class="rapor-info-label">Jenjang</span><span class="rapor-info-value" id="raporJenjang">-</span></div>
+                                <div class="rapor-info-item"><span class="rapor-info-label">Kelompok</span><span class="rapor-info-value" id="raporKelompok">-</span></div>
+                                <div class="rapor-info-item"><span class="rapor-info-label">Tahun Ajaran</span><span class="rapor-info-value" id="raporTA">-</span></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tri Sukses -->
+                        <div class="trisukses-grid">
+                            <div class="trisukses-card alim">
+                                <div class="trisukses-icon">📖</div>
+                                <div class="trisukses-label">ALIM</div>
+                                <div class="trisukses-value" id="nilaiAlim">-</div>
+                            </div>
+                            <div class="trisukses-card faqih">
+                                <div class="trisukses-icon">🕌</div>
+                                <div class="trisukses-label">FAQIH</div>
+                                <div class="trisukses-value" id="nilaiFaqih">-</div>
+                            </div>
+                            <div class="trisukses-card akhlaq">
+                                <div class="trisukses-icon">💎</div>
+                                <div class="trisukses-label">AKHLAQ</div>
+                                <div class="trisukses-value" id="nilaiAkhlaq">-</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Keaktifan -->
+                        <div class="keaktifan-section">
+                            <div class="keaktifan-header">
+                                <div class="keaktifan-title">📊 Keaktifan Pengajian</div>
+                                <div class="keaktifan-badge excellent" id="keaktifanBadge">Istimewa</div>
+                            </div>
+                            <div class="keaktifan-stats">
+                                <div class="keaktifan-stat">
+                                    <div class="keaktifan-stat-value" id="totalHadir">0</div>
+                                    <div class="keaktifan-stat-label">Total Hadir</div>
+                                </div>
+                                <div class="keaktifan-stat">
+                                    <div class="keaktifan-stat-value" id="totalPengajian">0</div>
+                                    <div class="keaktifan-stat-label">Total Pengajian</div>
+                                </div>
+                                <div class="keaktifan-stat">
+                                    <div class="keaktifan-stat-value" id="persenKeaktifan">0%</div>
+                                    <div class="keaktifan-stat-label">Persentase</div>
+                                </div>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" id="progressBar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Detail Alim -->
+                        <div class="detail-section">
+                            <div class="detail-title">📖 Detail Alim (Keilmuan)</div>
+                            <div class="detail-grid" id="detailAlim">
+                                <div class="detail-item"><div class="detail-item-label">Bacaan</div><div class="detail-item-value">-</div></div>
+                                <div class="detail-item"><div class="detail-item-label">Hafalan</div><div class="detail-item-value">-</div></div>
+                                <div class="detail-item"><div class="detail-item-label">Makna</div><div class="detail-item-value">-</div></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Detail Faqih -->
+                        <div class="detail-section">
+                            <div class="detail-title">🕌 Detail Faqih (Pemahaman)</div>
+                            <div class="detail-grid" id="detailFaqih">
+                                <div class="detail-item"><div class="detail-item-label">Pemahaman</div><div class="detail-item-value">-</div></div>
+                                <div class="detail-item"><div class="detail-item-label">Praktek</div><div class="detail-item-value">-</div></div>
+                                <div class="detail-item"><div class="detail-item-label">4 Tali Keimanan</div><div class="detail-item-value">-</div></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Detail Akhlaq - 6 Thobiat -->
+                        <div class="detail-section">
+                            <div class="detail-title">💎 6 Thobiat Luhur</div>
+                            <div class="karakter-grid" id="thobiatGrid">
+                                <!-- Dynamically loaded -->
+                            </div>
+                        </div>
+                        
+                        <!-- Detail Akhlaq - Other -->
+                        <div class="detail-section">
+                            <div class="detail-title">🙏 Tatakrama & Kemandirian</div>
+                            <div class="detail-grid" id="detailAkhlaq">
+                                <div class="detail-item"><div class="detail-item-label">Tatakrama</div><div class="detail-item-value">-</div></div>
+                                <div class="detail-item"><div class="detail-item-label">Kemandirian</div><div class="detail-item-value">-</div></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Catatan -->
+                        <div class="catatan-section">
+                            <div class="catatan-title">📝 Catatan & Rekomendasi</div>
+                            <div class="catatan-text" id="catatanRapor">-</div>
                         </div>
                     </div>
                 </div>
@@ -203,143 +364,105 @@
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/sidebar.js"></script>
     
     <script>
+        const $ = id => document.getElementById(id);
+        function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); $('sidebarOverlay').classList.toggle('show'); }
         
-        function toggleSidebar() {
-            $('sidebar').classList.toggle('collapsed');
-            $('sidebarOverlay').classList.toggle('show');
-        }
-
         document.addEventListener('DOMContentLoaded', async () => {
             if (!await requireAuth()) return;
-            updateSidebarUserInfo();
-            initSidebar();
-            updateUserUI();
             await loadFilters();
         });
         
-        function updateUserUI() {
-            if (currentUserData) {
-                $('userName').textContent = currentUserData.nama || currentUserData.email;
-                $('userAvatar').textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
-                if (userRoles.length > 0) $('userRole').textContent = userRoles[0].role?.nama || '-';
-            }
-        }
-        
         async function loadFilters() {
             try {
-                // Load jamaah
-                const { data: jamaah } = await db.from('jamaah').select('id, nama').eq('status_aktif', 'aktif').order('nama');
-                const selectSantri = $('selectSantri');
-                jamaah?.forEach(j => { selectSantri.innerHTML += `<option value="${j.id}">${j.nama}</option>`; });
+                const [santri, ta] = await Promise.all([
+                    db.from('jamaah').select('id, nama').eq('status_aktif', 'aktif').order('nama'),
+                    db.from('tahun_ajaran').select('*').order('kode', { ascending: false })
+                ]);
                 
-                // Load tahun ajaran
-                const { data: ta } = await db.from('tahun_ajaran').select('id, kode').order('kode', { ascending: false });
-                const selectTA = $('selectTahunAjaran');
-                ta?.forEach(t => { selectTA.innerHTML += `<option value="${t.id}">${t.kode}</option>`; });
-                if (ta?.length > 0) selectTA.value = ta[0].id;
-            } catch (error) {
-                console.error('Error:', error);
-            }
+                $('selectSantri').innerHTML = '<option value="">-- Pilih Santri --</option>' + 
+                    (santri.data || []).map(s => `<option value="${s.id}">${s.nama}</option>`).join('');
+                $('selectTA').innerHTML = '<option value="">-- Pilih --</option>' + 
+                    (ta.data || []).map(t => `<option value="${t.id}" ${t.is_aktif ? 'selected' : ''}>${t.kode}</option>`).join('');
+            } catch (error) { console.error('Error:', error); }
         }
         
         async function loadRapor() {
             const jamaahId = $('selectSantri').value;
-            const tahunAjaranId = $('selectTahunAjaran').value;
-            const periode = $('selectPeriode').value;
-            
-            if (!jamaahId) {
-                $('raporCard').style.display = 'none';
-                $('emptyCard').style.display = 'block';
-                return;
-            }
+            if (!jamaahId) { $('raporCard').style.display = 'none'; $('emptyCard').style.display = 'block'; return; }
             
             try {
                 // Get jamaah info
                 const { data: jamaah } = await db.from('jamaah')
                     .select('*, enrollment(jenjang:jenjang_id(nama), wilayah:wilayah_id(nama))')
-                    .eq('id', jamaahId)
-                    .single();
+                    .eq('id', jamaahId).single();
                 
                 const enrollment = jamaah.enrollment?.[0];
+                const taId = $('selectTA').value;
+                const { data: ta } = taId ? await db.from('tahun_ajaran').select('kode').eq('id', taId).single() : { data: null };
                 
-                // Get tahun ajaran
-                const { data: ta } = await db.from('tahun_ajaran').select('kode').eq('id', tahunAjaranId).single();
-                
-                // Fill rapor info
+                // Fill info
                 $('raporNama').textContent = jamaah.nama;
                 $('raporTTL').textContent = `${jamaah.tempat_lahir || '-'}, ${formatTanggal(jamaah.tanggal_lahir)}`;
                 $('raporJK').textContent = jamaah.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';
                 $('raporJenjang').textContent = enrollment?.jenjang?.nama || '-';
                 $('raporKelompok').textContent = enrollment?.wilayah?.nama || '-';
                 $('raporTA').textContent = ta?.kode || '-';
-                $('tanggalRapor').textContent = formatTanggal(new Date().toISOString());
                 
-                // Calculate nilai per bidang
-                const { data: progress } = await db.from('progress_jamaah')
-                    .select('*, materi_item:materi_item_id(kategori:kategori_id(bidang_id))')
+                // Get 6 Thobiat values
+                const { data: thobiat } = await db.from('nilai_karakter').select('*').eq('is_aktif', true).order('urutan');
+                const { data: nilaiThobiat } = await db.from('penilaian_akhlaq')
+                    .select('karakter_id, nilai')
                     .eq('jamaah_id', jamaahId)
-                    .eq('status', 'selesai');
+                    .not('karakter_id', 'is', null);
                 
-                let nilaiAlim = [], nilaiAkhlak = [], nilaiMandiri = [];
-                progress?.forEach(p => {
-                    if (p.nilai) {
-                        const bidangId = p.materi_item?.kategori?.bidang_id;
-                        if (bidangId === 1) nilaiAlim.push(p.nilai);
-                        else if (bidangId === 2) nilaiAkhlak.push(p.nilai);
-                        else if (bidangId === 3) nilaiMandiri.push(p.nilai);
-                    }
+                // Calculate average per thobiat
+                const thobiatAvg = {};
+                (nilaiThobiat || []).forEach(n => {
+                    if (!thobiatAvg[n.karakter_id]) thobiatAvg[n.karakter_id] = [];
+                    thobiatAvg[n.karakter_id].push(n.nilai);
                 });
                 
-                const avg = arr => arr.length ? (arr.reduce((a,b) => a+b, 0) / arr.length).toFixed(1) : '-';
-                $('nilaiAlim').textContent = avg(nilaiAlim);
-                $('nilaiAkhlak').textContent = avg(nilaiAkhlak);
-                $('nilaiMandiri').textContent = avg(nilaiMandiri);
+                const thobiatGrid = $('thobiatGrid');
+                thobiatGrid.innerHTML = (thobiat || []).map(t => {
+                    const values = thobiatAvg[t.id] || [];
+                    const avg = values.length ? (values.reduce((a,b) => a+b, 0) / values.length).toFixed(0) : '-';
+                    const cls = avg !== '-' ? (avg >= 80 ? 'excellent' : avg >= 60 ? 'good' : 'fair') : '';
+                    return `<div class="karakter-item"><div class="karakter-name">${t.nama}</div><div class="karakter-value ${cls}">${avg}</div></div>`;
+                }).join('');
                 
-                // Keaktifan (placeholder - would need date range filter)
-                $('totalPengajian').textContent = '-';
-                $('totalHadir').textContent = '-';
-                $('persenKeaktifan').textContent = '-';
-                $('progressBar').style.width = '0%';
+                // Calculate Tri Sukses averages
+                const allThobiatValues = Object.values(thobiatAvg).flat();
+                const akhlaqAvg = allThobiatValues.length ? (allThobiatValues.reduce((a,b) => a+b, 0) / allThobiatValues.length).toFixed(0) : '-';
                 
-                // Progress per kategori
-                const { data: kategori } = await db.from('kategori_materi').select('id, nama').eq('is_aktif', true).order('urutan');
+                $('nilaiAlim').textContent = '-'; // Would need progress_jamaah data
+                $('nilaiFaqih').textContent = '-';
+                $('nilaiAkhlaq').textContent = akhlaqAvg;
                 
-                let progressHtml = '';
-                for (const k of (kategori || [])) {
-                    const { count: selesai } = await db.from('progress_jamaah')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('jamaah_id', jamaahId)
-                        .eq('status', 'selesai')
-                        .eq('materi_item.kategori_id', k.id);
-                    
-                    const { count: total } = await db.from('materi_item')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('kategori_id', k.id);
-                    
-                    const persen = total > 0 ? ((selesai || 0) / total * 100).toFixed(0) : 0;
-                    
-                    progressHtml += `
-                        <tr>
-                            <td>${k.nama}</td>
-                            <td>${selesai || 0}</td>
-                            <td>${total || 0}</td>
-                            <td>
-                                <div style="display:flex;align-items:center;gap:0.5rem;">
-                                    <div class="progress" style="flex:1;height:8px;">
-                                        <div class="progress-bar ${persen >= 80 ? 'success' : persen >= 50 ? 'warning' : ''}" style="width:${persen}%;"></div>
-                                    </div>
-                                    <span>${persen}%</span>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }
-                $$('#progressTable tbody').innerHTML = progressHtml || '<tr><td colspan="4" class="text-center text-muted">Tidak ada data</td></tr>';
+                // Keaktifan
+                const { count: totalHadir } = await db.from('keaktifan_pengajian')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('jamaah_id', jamaahId)
+                    .eq('status', 'hadir');
                 
-                $('catatanRapor').textContent = 'Terus tingkatkan hafalan dan keaktifan mengaji.';
+                const { count: totalPengajian } = await db.from('keaktifan_pengajian')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('jamaah_id', jamaahId);
+                
+                const persen = totalPengajian > 0 ? Math.round((totalHadir / totalPengajian) * 100) : 0;
+                
+                $('totalHadir').textContent = totalHadir || 0;
+                $('totalPengajian').textContent = totalPengajian || 0;
+                $('persenKeaktifan').textContent = persen + '%';
+                $('progressBar').style.width = persen + '%';
+                
+                const badge = $('keaktifanBadge');
+                badge.textContent = persen >= 95 ? 'Istimewa' : persen >= 75 ? 'Sangat Baik' : persen >= 55 ? 'Baik' : 'Cukup';
+                badge.className = 'keaktifan-badge ' + (persen >= 75 ? 'excellent' : persen >= 55 ? 'good' : 'fair');
+                
+                // Catatan
+                $('catatanRapor').textContent = 'Terus tingkatkan hafalan dan keaktifan mengaji. Pertahankan akhlaq yang baik.';
                 
                 $('emptyCard').style.display = 'none';
                 $('raporCard').style.display = 'block';
@@ -351,30 +474,13 @@
         }
     </script>
 
-
-    <!-- Bottom Navigation for Mobile -->
-    <nav class="bottom-nav">
+    <nav class="bottom-nav no-print">
         <div class="bottom-nav-grid">
-            <a href="dashboard.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">📊</span>
-                <span class="bottom-nav-label">Home</span>
-            </a>
-            <a href="generus.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">👶</span>
-                <span class="bottom-nav-label">Generus</span>
-            </a>
-            <a href="presensi.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">✅</span>
-                <span class="bottom-nav-label">Presensi</span>
-            </a>
-            <a href="progress.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">📈</span>
-                <span class="bottom-nav-label">Progress</span>
-            </a>
-            <a href="#" class="bottom-nav-item" onclick="toggleSidebar(); return false;">
-                <span class="bottom-nav-icon">☰</span>
-                <span class="bottom-nav-label">Menu</span>
-            </a>
+            <a href="dashboard.html" class="bottom-nav-item"><span class="bottom-nav-icon">📊</span><span class="bottom-nav-label">Home</span></a>
+            <a href="generus.html" class="bottom-nav-item"><span class="bottom-nav-icon">👶</span><span class="bottom-nav-label">Generus</span></a>
+            <a href="presensi.html" class="bottom-nav-item"><span class="bottom-nav-icon">✅</span><span class="bottom-nav-label">Presensi</span></a>
+            <a href="penilaian.html" class="bottom-nav-item"><span class="bottom-nav-icon">📝</span><span class="bottom-nav-label">Nilai</span></a>
+            <a href="#" class="bottom-nav-item" onclick="toggleSidebar(); return false;"><span class="bottom-nav-icon">☰</span><span class="bottom-nav-label">Menu</span></a>
         </div>
     </nav>
 </body>
