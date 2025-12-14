@@ -134,6 +134,7 @@
                         <!-- Tabs -->
                         <div class="tabs">
                             <div class="tab active" onclick="switchTab('tabData', this)">📋 Data</div>
+                            <div class="tab" onclick="switchTab('tabOrtu', this)">👨‍👩‍👧 Ortu</div>
                             <div class="tab" onclick="switchTab('tabKelompok', this)">🏠 Pindah</div>
                             <div class="tab" onclick="switchTab('tabStatus', this)">💍 Status</div>
                         </div>
@@ -141,6 +142,8 @@
                         <input type="hidden" id="editId">
                         <input type="hidden" id="editEnrollmentId">
                         <input type="hidden" id="editCurrentKelompokId">
+                        <input type="hidden" id="editAyahId">
+                        <input type="hidden" id="editIbuId">
                         
                         <!-- Tab 1: Data Diri -->
                         <div class="tab-content active" id="tabData">
@@ -178,7 +181,36 @@
                             <button type="button" class="btn btn-primary w-100" onclick="saveDataDiri()">💾 Simpan Data</button>
                         </div>
                         
-                        <!-- Tab 2: Pindah Kelompok -->
+                        <!-- Tab 2: Orang Tua -->
+                        <div class="tab-content" id="tabOrtu">
+                            <div class="info-box">
+                                👨‍👩‍👧 Hubungkan generus dengan orang tua yang juga terdaftar sebagai jamaah.
+                            </div>
+                            
+                            <!-- Ayah -->
+                            <div class="form-group">
+                                <label class="form-label">👨 Ayah</label>
+                                <div id="selectedAyah"></div>
+                                <div class="search-select">
+                                    <input type="text" class="form-control" id="searchAyah" placeholder="Cari nama ayah..." oninput="searchOrangTua('ayah')">
+                                    <div class="search-results" id="searchAyahResults"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Ibu -->
+                            <div class="form-group">
+                                <label class="form-label">👩 Ibu</label>
+                                <div id="selectedIbu"></div>
+                                <div class="search-select">
+                                    <input type="text" class="form-control" id="searchIbu" placeholder="Cari nama ibu..." oninput="searchOrangTua('ibu')">
+                                    <div class="search-results" id="searchIbuResults"></div>
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary w-100" onclick="saveOrangTua()">💾 Simpan Orang Tua</button>
+                        </div>
+                        
+                        <!-- Tab 3: Pindah Kelompok -->
                         <div class="tab-content" id="tabKelompok">
                             <div class="current-info">
                                 <strong>Kelompok:</strong> <span id="currentKelompokName">-</span><br>
@@ -212,7 +244,7 @@
                             <button type="button" class="btn btn-primary w-100" onclick="savePindahKelompok()">🏠 Pindah Kelompok</button>
                         </div>
                         
-                        <!-- Tab 3: Status -->
+                        <!-- Tab 4: Status -->
                         <div class="tab-content" id="tabStatus">
                             <div class="current-info">
                                 <strong>Status:</strong> <span id="currentStatus">-</span>
@@ -608,7 +640,7 @@
         // ========== EDIT ==========
         async function editGenerus(id) {
             try {
-                var result = await db.from('jamaah').select('*').eq('id', id).single();
+                var result = await db.from('jamaah').select('*, ayah:ayah_id(id, nama), ibu:ibu_id(id, nama)').eq('id', id).single();
                 if (result.error) throw result.error;
                 var jamaah = result.data;
                 
@@ -619,7 +651,7 @@
                 
                 currentEditData = { jamaah: jamaah, enrollment: enrollment };
                 
-                // Tab 1
+                // Tab 1: Data Diri
                 $('editId').value = jamaah.id;
                 $('editNama').value = jamaah.nama || '';
                 $('editNamaPanggilan').value = jamaah.nama_panggilan || '';
@@ -629,20 +661,41 @@
                 $('editAlamat').value = jamaah.alamat_lengkap || '';
                 showUmur();
                 
-                // Tab 2
+                // Tab 2: Orang Tua
+                $('editAyahId').value = jamaah.ayah_id || '';
+                $('editIbuId').value = jamaah.ibu_id || '';
+                $('searchAyah').value = '';
+                $('searchIbu').value = '';
+                $('searchAyahResults').classList.remove('show');
+                $('searchIbuResults').classList.remove('show');
+                
+                // Tampilkan nama orang tua jika ada
+                if (jamaah.ayah) {
+                    $('selectedAyah').innerHTML = '<div class="selected-person"><span>👨 ' + jamaah.ayah.nama + '</span><span class="remove" onclick="removeOrangTua(\'ayah\')">✕</span></div>';
+                } else {
+                    $('selectedAyah').innerHTML = '';
+                }
+                
+                if (jamaah.ibu) {
+                    $('selectedIbu').innerHTML = '<div class="selected-person"><span>👩 ' + jamaah.ibu.nama + '</span><span class="remove" onclick="removeOrangTua(\'ibu\')">✕</span></div>';
+                } else {
+                    $('selectedIbu').innerHTML = '';
+                }
+                
+                // Tab 3: Pindah Kelompok
                 $('editEnrollmentId').value = enrollment ? enrollment.id : '';
                 $('editCurrentKelompokId').value = enrollment ? enrollment.wilayah_id : '';
                 $('currentKelompokName').textContent = enrollment && enrollment.wilayah ? enrollment.wilayah.nama : 'Belum terdaftar';
                 $('currentJenjangName').textContent = enrollment && enrollment.jenjang ? enrollment.jenjang.nama : '-';
                 
-                // Tab 3
+                // Tab 4: Status
                 $('currentStatus').textContent = jamaah.status_aktif || 'aktif';
                 $('newStatus').value = '';
-                $('formMenikah').style.display = 'none';
-                $('formNonaktif').style.display = 'none';
-                $('pasanganJamaahId').value = '';
-                $('selectedPasangan').innerHTML = '';
-                $('searchPasangan').value = '';
+                if ($('formMenikah')) $('formMenikah').style.display = 'none';
+                if ($('formNonaktif')) $('formNonaktif').style.display = 'none';
+                if ($('pasanganJamaahId')) $('pasanganJamaahId').value = '';
+                if ($('selectedPasangan')) $('selectedPasangan').innerHTML = '';
+                if ($('searchPasangan')) $('searchPasangan').value = '';
                 
                 switchTab('tabData', document.querySelector('.tab'));
                 $('editModal').classList.add('show');
@@ -929,9 +982,160 @@
             return age;
         }
         
+        // ========== ORANG TUA ==========
+        var searchOrtuTimeout = null;
+        
+        async function searchOrangTua(tipe) {
+            clearTimeout(searchOrtuTimeout);
+            
+            var searchInput = tipe === 'ayah' ? $('searchAyah') : $('searchIbu');
+            var resultsDiv = tipe === 'ayah' ? $('searchAyahResults') : $('searchIbuResults');
+            var search = searchInput.value.trim();
+            
+            if (search.length < 2) {
+                resultsDiv.classList.remove('show');
+                return;
+            }
+            
+            searchOrtuTimeout = setTimeout(async function() {
+                var gender = tipe === 'ayah' ? 'L' : 'P';
+                var currentId = parseInt($('editId').value);
+                
+                // Cari status menikah
+                const { data: statusMenikah } = await db
+                    .from('status_jamaah')
+                    .select('id')
+                    .eq('kode', 'menikah')
+                    .single();
+                
+                // Query jamaah yang sudah menikah
+                var query = db.from('jamaah')
+                    .select('id, nama, tanggal_lahir')
+                    .neq('id', currentId)
+                    .eq('jenis_kelamin', gender)
+                    .ilike('nama', '%' + search + '%')
+                    .limit(10);
+                
+                if (statusMenikah) {
+                    query = query.eq('status_id', statusMenikah.id);
+                }
+                
+                var result = await query;
+                var data = result.data;
+                
+                if (data && data.length > 0) {
+                    var html = '';
+                    for (var i = 0; i < data.length; i++) {
+                        var j = data[i];
+                        var umurText = j.tanggal_lahir ? ' - ' + hitungUmur(j.tanggal_lahir) + ' th' : '';
+                        html += '<div class="search-result-item" onclick="selectOrangTua(\'' + tipe + '\', ' + j.id + ', \'' + j.nama.replace(/'/g, "\\'") + '\')">';
+                        html += '<strong>' + j.nama + '</strong>' + umurText;
+                        html += '</div>';
+                    }
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = '<div class="search-result-item text-muted">Tidak ditemukan</div>';
+                }
+                resultsDiv.classList.add('show');
+            }, 300);
+        }
+        
+        function selectOrangTua(tipe, id, nama) {
+            if (tipe === 'ayah') {
+                $('editAyahId').value = id;
+                $('searchAyah').value = '';
+                $('searchAyahResults').classList.remove('show');
+                $('selectedAyah').innerHTML = '<div class="selected-person"><span>👨 ' + nama + '</span><span class="remove" onclick="removeOrangTua(\'ayah\')">✕</span></div>';
+            } else {
+                $('editIbuId').value = id;
+                $('searchIbu').value = '';
+                $('searchIbuResults').classList.remove('show');
+                $('selectedIbu').innerHTML = '<div class="selected-person"><span>👩 ' + nama + '</span><span class="remove" onclick="removeOrangTua(\'ibu\')">✕</span></div>';
+            }
+        }
+        
+        function removeOrangTua(tipe) {
+            if (tipe === 'ayah') {
+                $('editAyahId').value = '';
+                $('selectedAyah').innerHTML = '';
+            } else {
+                $('editIbuId').value = '';
+                $('selectedIbu').innerHTML = '';
+            }
+        }
+        
+        async function saveOrangTua() {
+            var jamaahId = parseInt($('editId').value);
+            var ayahId = $('editAyahId').value ? parseInt($('editAyahId').value) : null;
+            var ibuId = $('editIbuId').value ? parseInt($('editIbuId').value) : null;
+            
+            try {
+                // Update jamaah dengan ayah_id dan ibu_id
+                var { error } = await db.from('jamaah').update({
+                    ayah_id: ayahId,
+                    ibu_id: ibuId
+                }).eq('id', jamaahId);
+                
+                if (error) throw error;
+                
+                // Juga insert/update relasi_keluarga untuk konsistensi
+                // Hapus relasi anak lama
+                await db.from('relasi_keluarga')
+                    .delete()
+                    .eq('jamaah_id', jamaahId)
+                    .in('tipe_relasi', ['ayah', 'ibu']);
+                
+                // Insert relasi baru
+                var relasiInsert = [];
+                if (ayahId) {
+                    relasiInsert.push({
+                        jamaah_id: jamaahId,
+                        relasi_dengan_jamaah_id: ayahId,
+                        tipe_relasi: 'ayah',
+                        status_relasi: 'aktif'
+                    });
+                    // Relasi balik: ayah punya anak
+                    relasiInsert.push({
+                        jamaah_id: ayahId,
+                        relasi_dengan_jamaah_id: jamaahId,
+                        tipe_relasi: 'anak',
+                        status_relasi: 'aktif'
+                    });
+                }
+                if (ibuId) {
+                    relasiInsert.push({
+                        jamaah_id: jamaahId,
+                        relasi_dengan_jamaah_id: ibuId,
+                        tipe_relasi: 'ibu',
+                        status_relasi: 'aktif'
+                    });
+                    // Relasi balik: ibu punya anak
+                    relasiInsert.push({
+                        jamaah_id: ibuId,
+                        relasi_dengan_jamaah_id: jamaahId,
+                        tipe_relasi: 'anak',
+                        status_relasi: 'aktif'
+                    });
+                }
+                
+                if (relasiInsert.length > 0) {
+                    await db.from('relasi_keluarga').insert(relasiInsert);
+                }
+                
+                showToast('Orang tua berhasil disimpan!', 'success');
+                closeEditModal();
+                loadGenerus();
+                
+            } catch (error) {
+                showToast('Gagal: ' + error.message, 'error');
+            }
+        }
+        
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.search-select')) {
-                $('searchPasanganResults').classList.remove('show');
+                if ($('searchPasanganResults')) $('searchPasanganResults').classList.remove('show');
+                if ($('searchAyahResults')) $('searchAyahResults').classList.remove('show');
+                if ($('searchIbuResults')) $('searchIbuResults').classList.remove('show');
             }
         });
     </script>
