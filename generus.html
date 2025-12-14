@@ -184,7 +184,7 @@
                         <!-- Tab 2: Orang Tua -->
                         <div class="tab-content" id="tabOrtu">
                             <div class="info-box">
-                                👨‍👩‍👧 Hubungkan generus dengan orang tua yang juga terdaftar sebagai jamaah.
+                                👨‍👩‍👧 Hubungkan generus dengan orang tua. Jika tidak ditemukan, bisa tambah baru.
                             </div>
                             
                             <!-- Ayah -->
@@ -195,6 +195,7 @@
                                     <input type="text" class="form-control" id="searchAyah" placeholder="Cari nama ayah..." oninput="searchOrangTua('ayah')">
                                     <div class="search-results" id="searchAyahResults"></div>
                                 </div>
+                                <button type="button" class="btn btn-sm btn-outline mt-sm" onclick="showTambahOrtuModal('ayah')">➕ Tambah Ayah Baru</button>
                             </div>
                             
                             <!-- Ibu -->
@@ -205,6 +206,7 @@
                                     <input type="text" class="form-control" id="searchIbu" placeholder="Cari nama ibu..." oninput="searchOrangTua('ibu')">
                                     <div class="search-results" id="searchIbuResults"></div>
                                 </div>
+                                <button type="button" class="btn btn-sm btn-outline mt-sm" onclick="showTambahOrtuModal('ibu')">➕ Tambah Ibu Baru</button>
                             </div>
                             
                             <button type="button" class="btn btn-primary w-100" onclick="saveOrangTua()">💾 Simpan Orang Tua</button>
@@ -317,6 +319,53 @@
                             
                             <button type="button" class="btn btn-primary w-100" onclick="saveStatus()">💾 Simpan Status</button>
                         </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Tambah Orang Tua Baru -->
+            <div class="modal" id="tambahOrtuModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="tambahOrtuTitle">➕ Tambah Ayah Baru</h3>
+                        <button class="modal-close" onclick="closeTambahOrtuModal()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="ortuTipe" value="ayah">
+                        
+                        <div class="info-box">
+                            ℹ️ Data akan disimpan sebagai jamaah baru dengan status "Menikah" dan jenjang "Dewasa".
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Nama Lengkap *</label>
+                            <input type="text" class="form-control" id="ortuNama" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Tempat Lahir</label>
+                                <input type="text" class="form-control" id="ortuTempatLahir">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tanggal Lahir</label>
+                                <input type="date" class="form-control" id="ortuTanggalLahir">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">No. HP</label>
+                            <input type="text" class="form-control" id="ortuPhone" placeholder="08xxx">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Kelompok *</label>
+                            <select class="form-control" id="ortuKelompok" required>
+                                <option value="">Pilih Kelompok</option>
+                            </select>
+                        </div>
+                        
+                        <button type="button" class="btn btn-primary w-100" onclick="saveTambahOrtu()">💾 Simpan & Pilih</button>
                     </div>
                 </div>
             </div>
@@ -1125,6 +1174,107 @@
                 showToast('Orang tua berhasil disimpan!', 'success');
                 closeEditModal();
                 loadGenerus();
+                
+            } catch (error) {
+                showToast('Gagal: ' + error.message, 'error');
+            }
+        }
+        
+        // ========== TAMBAH ORANG TUA BARU ==========
+        function showTambahOrtuModal(tipe) {
+            $('ortuTipe').value = tipe;
+            $('tambahOrtuTitle').textContent = tipe === 'ayah' ? '➕ Tambah Ayah Baru' : '➕ Tambah Ibu Baru';
+            
+            // Reset form
+            $('ortuNama').value = '';
+            $('ortuTempatLahir').value = '';
+            $('ortuTanggalLahir').value = '';
+            $('ortuPhone').value = '';
+            
+            // Populate kelompok dropdown
+            $('ortuKelompok').innerHTML = '<option value="">Pilih Kelompok</option>' +
+                allKelompok.map(k => '<option value="' + k.id + '">' + k.nama + '</option>').join('');
+            
+            // Pre-select kelompok dari generus yang sedang diedit
+            if (currentEditData && currentEditData.enrollment) {
+                $('ortuKelompok').value = currentEditData.enrollment.wilayah_id || '';
+            }
+            
+            $('tambahOrtuModal').classList.add('show');
+        }
+        
+        function closeTambahOrtuModal() {
+            $('tambahOrtuModal').classList.remove('show');
+        }
+        
+        async function saveTambahOrtu() {
+            var tipe = $('ortuTipe').value;
+            var nama = $('ortuNama').value.trim();
+            var kelompokId = $('ortuKelompok').value;
+            
+            if (!nama) {
+                showToast('Nama harus diisi!', 'error');
+                return;
+            }
+            if (!kelompokId) {
+                showToast('Kelompok harus dipilih!', 'error');
+                return;
+            }
+            
+            try {
+                // Cari status_id untuk 'menikah'
+                const { data: statusMenikah } = await db
+                    .from('status_jamaah')
+                    .select('id')
+                    .eq('kode', 'menikah')
+                    .single();
+                
+                // Cari jenjang 'Dewasa'
+                const { data: jenjangDewasa } = await db
+                    .from('jenjang')
+                    .select('id')
+                    .ilike('nama', '%dewasa%')
+                    .single();
+                
+                // Cari tahun ajaran aktif
+                const { data: taAktif } = await db
+                    .from('tahun_ajaran')
+                    .select('id')
+                    .eq('is_aktif', true)
+                    .single();
+                
+                // Insert jamaah baru
+                var jamaahData = {
+                    nama: nama,
+                    jenis_kelamin: tipe === 'ayah' ? 'L' : 'P',
+                    tempat_lahir: $('ortuTempatLahir').value || null,
+                    tanggal_lahir: $('ortuTanggalLahir').value || null,
+                    phone: $('ortuPhone').value || null,
+                    status_id: statusMenikah?.id || null
+                };
+                
+                const { data: newJamaah, error: insertError } = await db
+                    .from('jamaah')
+                    .insert(jamaahData)
+                    .select()
+                    .single();
+                
+                if (insertError) throw insertError;
+                
+                // Insert enrollment dengan jenjang Dewasa
+                await db.from('enrollment').insert({
+                    jamaah_id: newJamaah.id,
+                    wilayah_id: parseInt(kelompokId),
+                    jenjang_id: jenjangDewasa?.id || null,
+                    tahun_ajaran_id: taAktif?.id || null,
+                    status: 'aktif'
+                });
+                
+                // Set sebagai orang tua yang dipilih
+                selectOrangTua(tipe, newJamaah.id, nama);
+                
+                closeTambahOrtuModal();
+                showToast(tipe === 'ayah' ? 'Ayah berhasil ditambahkan!' : 'Ibu berhasil ditambahkan!', 'success');
                 
             } catch (error) {
                 showToast('Gagal: ' + error.message, 'error');
