@@ -13,77 +13,423 @@
     <link rel="apple-touch-icon" href="images/icon-192x192.svg">
     <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --primary: #059669;
+            --primary-dark: #047857;
+            --primary-light: #10b981;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --danger: #dc2626;
+            --white: #ffffff;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .auth-wrapper {
+            width: 100%;
+            max-width: 420px;
+        }
+        
+        .auth-card {
+            background: var(--white);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+        
+        .auth-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            color: var(--white);
+        }
+        
+        .auth-logo {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            font-weight: 700;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .auth-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .auth-subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        .auth-body {
+            padding: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            font-family: inherit;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            transition: all 0.2s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+        }
+        
+        .form-control::placeholder {
+            color: var(--gray-400);
+        }
+        
+        .input-icon-wrapper {
+            position: relative;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.25rem;
+            color: var(--gray-400);
+        }
+        
+        .input-icon-wrapper .form-control {
+            padding-left: 3rem;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.25rem;
+            color: var(--gray-400);
+            transition: color 0.2s;
+        }
+        
+        .password-toggle:hover {
+            color: var(--gray-600);
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.5);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-block {
+            width: 100%;
+        }
+        
+        .btn-lg {
+            padding: 1rem 1.5rem;
+            font-size: 1.05rem;
+        }
+        
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: var(--danger);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        
+        .auth-footer {
+            text-align: center;
+            padding: 0 2rem 2rem;
+        }
+        
+        .auth-footer p {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+        
+        .auth-footer a {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: var(--gray-400);
+            font-size: 0.8rem;
+        }
+        
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--gray-200);
+        }
+        
+        .divider span {
+            padding: 0 1rem;
+        }
+        
+        .features-mini {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+        
+        .feature-mini {
+            text-align: center;
+            padding: 0.75rem 0.5rem;
+            background: var(--gray-50);
+            border-radius: 10px;
+        }
+        
+        .feature-mini-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .feature-mini-text {
+            font-size: 0.7rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Decorative elements */
+        .auth-decoration {
+            position: fixed;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        
+        .auth-decoration-1 {
+            top: 10%;
+            left: 5%;
+            font-size: 8rem;
+        }
+        
+        .auth-decoration-2 {
+            bottom: 10%;
+            right: 5%;
+            font-size: 6rem;
+        }
+        
+        @media (max-width: 480px) {
+            .auth-header { padding: 2rem 1.5rem; }
+            .auth-body { padding: 1.5rem; }
+            .auth-footer { padding: 0 1.5rem 1.5rem; }
+            .auth-decoration { display: none; }
+        }
+    </style>
 </head>
 <body>
-    <div class="auth-container">
+    <!-- Decorative Elements -->
+    <div class="auth-decoration auth-decoration-1">📖</div>
+    <div class="auth-decoration auth-decoration-2">🕌</div>
+    
+    <div class="auth-wrapper">
         <div class="auth-card">
-            <div class="auth-logo">
-                <div style="width:60px;height:60px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:white;font-size:1.5rem;font-weight:bold;">
-                    PPG
-                </div>
-                <h1>PPG Sorong</h1>
-                <p>Pembinaan Generasi Penerus</p>
+            <div class="auth-header">
+                <div class="auth-logo">PPG</div>
+                <h1 class="auth-title">PPG Sorong</h1>
+                <p class="auth-subtitle">Pembinaan Generasi Penerus</p>
             </div>
             
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label class="form-label" for="email">Email</label>
-                    <input type="email" class="form-control" id="email" name="email" 
-                           placeholder="Masukkan email" required>
-                </div>
+            <div class="auth-body">
+                <div class="error-message" id="errorMessage"></div>
                 
-                <div class="form-group">
-                    <label class="form-label" for="password">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" 
-                           placeholder="Masukkan password" required>
-                </div>
-                
-                <div class="form-group">
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email</label>
+                        <div class="input-icon-wrapper">
+                            <span class="input-icon">📧</span>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   placeholder="Masukkan email" required autocomplete="email">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <div class="input-icon-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   placeholder="Masukkan password" required autocomplete="current-password">
+                            <button type="button" class="password-toggle" onclick="togglePassword()">👁️</button>
+                        </div>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnLogin">
-                        Masuk
+                        <span id="btnText">Masuk</span>
+                        <div class="spinner" id="btnSpinner" style="display:none;"></div>
                     </button>
-                </div>
+                </form>
                 
-                <div id="errorMessage" class="text-danger text-center" style="display:none;"></div>
-            </form>
+                <div class="features-mini">
+                    <div class="feature-mini">
+                        <div class="feature-mini-icon">📖</div>
+                        <div class="feature-mini-text">Alim</div>
+                    </div>
+                    <div class="feature-mini">
+                        <div class="feature-mini-icon">🕌</div>
+                        <div class="feature-mini-text">Faqih</div>
+                    </div>
+                    <div class="feature-mini">
+                        <div class="feature-mini-icon">💎</div>
+                        <div class="feature-mini-text">Akhlaq</div>
+                    </div>
+                </div>
+            </div>
             
-            <div class="text-center mt-lg">
-                <p class="text-muted text-sm">
-                    Belum punya akun? <a href="register.html">Daftar di sini</a>
-                </p>
+            <div class="auth-footer">
+                <p>Belum punya akun? <a href="register.html">Daftar di sini</a></p>
             </div>
         </div>
     </div>
     
-    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     
     <script>
-        // Register Service Worker for PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => {
-                        console.log('SW registered:', registration.scope);
-                    })
-                    .catch((error) => {
-                        console.log('SW registration failed:', error);
-                    });
-            });
-        }
+        const $ = id => document.getElementById(id);
         
-        // Cek jika sudah login, redirect ke dashboard
+        // Check if already logged in
         (async function() {
-            const isLoggedIn = await checkSession();
-            if (isLoggedIn) {
-                window.location.href = 'dashboard.html';
+            try {
+                const isLoggedIn = await checkSession();
+                if (isLoggedIn) {
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (e) {
+                console.log('Not logged in');
             }
         })();
+        
+        function togglePassword() {
+            const pwd = $('password');
+            const btn = document.querySelector('.password-toggle');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                pwd.type = 'password';
+                btn.textContent = '👁️';
+            }
+        }
         
         async function handleLogin(event) {
             event.preventDefault();
@@ -91,30 +437,39 @@
             const email = $('email').value.trim();
             const password = $('password').value;
             const btnLogin = $('btnLogin');
+            const btnText = $('btnText');
+            const btnSpinner = $('btnSpinner');
             const errorMessage = $('errorMessage');
             
             // Reset error
-            errorMessage.style.display = 'none';
+            errorMessage.classList.remove('show');
             
-            // Disable button
+            // Loading state
             btnLogin.disabled = true;
-            btnLogin.innerHTML = 'Memproses...';
+            btnText.textContent = 'Memproses...';
+            btnSpinner.style.display = 'block';
             
             try {
                 const result = await login(email, password);
                 
                 if (result.success) {
-                    window.location.href = 'dashboard.html';
+                    btnText.textContent = 'Berhasil! Mengalihkan...';
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 500);
                 } else {
                     errorMessage.textContent = result.error || 'Email atau password salah';
-                    errorMessage.style.display = 'block';
+                    errorMessage.classList.add('show');
+                    btnLogin.disabled = false;
+                    btnText.textContent = 'Masuk';
+                    btnSpinner.style.display = 'none';
                 }
             } catch (error) {
                 errorMessage.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
-                errorMessage.style.display = 'block';
-            } finally {
+                errorMessage.classList.add('show');
                 btnLogin.disabled = false;
-                btnLogin.innerHTML = 'Masuk';
+                btnText.textContent = 'Masuk';
+                btnSpinner.style.display = 'none';
             }
         }
     </script>

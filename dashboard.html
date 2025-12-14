@@ -11,8 +11,248 @@
     <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
     <title>Dashboard - PPG Sorong</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            --alim: #0891b2;
+            --faqih: #7c3aed;
+            --akhlaq: #059669;
+        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* Welcome Banner */
+        .welcome-banner {
+            background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            color: white;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .welcome-banner::before {
+            content: '📖';
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 6rem;
+            opacity: 0.15;
+        }
+        .welcome-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .welcome-subtitle { opacity: 0.9; font-size: 0.95rem; margin-bottom: 1rem; }
+        .welcome-date { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+        
+        /* Stats Grid - Enhanced */
+        .stats-grid-main {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-card-main {
+            background: white;
+            border-radius: 16px;
+            padding: 1.25rem;
+            border: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s;
+        }
+        .stat-card-main:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .stat-icon-main {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .stat-icon-main.primary { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); }
+        .stat-icon-main.info { background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); }
+        .stat-icon-main.warning { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+        .stat-icon-main.purple { background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); }
+        .stat-value-main { font-size: 1.75rem; font-weight: 700; color: var(--gray-800); }
+        .stat-label-main { font-size: 0.8rem; color: var(--gray-500); }
+        
+        /* Tri Sukses Overview */
+        .trisukses-overview {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .trisukses-card-mini {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--gray-200);
+            position: relative;
+            overflow: hidden;
+        }
+        .trisukses-card-mini::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+        }
+        .trisukses-card-mini.alim::before { background: var(--alim); }
+        .trisukses-card-mini.faqih::before { background: var(--faqih); }
+        .trisukses-card-mini.akhlaq::before { background: var(--akhlaq); }
+        .trisukses-card-mini:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+        .trisukses-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .trisukses-name { font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem; }
+        .trisukses-desc { font-size: 0.75rem; color: var(--gray-500); }
+        
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        /* Card Enhancements */
+        .card-modern {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+        }
+        .card-modern .card-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--gray-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-modern .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-modern .card-body {
+            padding: 1.25rem;
+        }
+        
+        /* List Item */
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.875rem 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .list-item:last-child { border-bottom: none; }
+        .list-item-content { flex: 1; }
+        .list-item-title { font-weight: 500; font-size: 0.95rem; }
+        .list-item-subtitle { font-size: 0.8rem; color: var(--gray-500); margin-top: 0.125rem; }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        .quick-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1.25rem;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--gray-700);
+            transition: all 0.2s;
+        }
+        .quick-action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        .quick-action-icon { font-size: 1.5rem; }
+        .quick-action-text { font-size: 0.8rem; font-weight: 500; }
+        
+        /* Jenjang Bar */
+        .jenjang-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .jenjang-bar:last-child { border-bottom: none; }
+        .jenjang-name { flex: 1; font-weight: 500; font-size: 0.9rem; }
+        .jenjang-count { 
+            background: var(--primary); 
+            color: white; 
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .jenjang-progress {
+            width: 100px;
+            height: 6px;
+            background: var(--gray-200);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .jenjang-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, #10b981 100%);
+            border-radius: 3px;
+        }
+        
+        /* Activity Timeline */
+        .timeline-item {
+            display: flex;
+            gap: 1rem;
+            padding: 0.75rem 0;
+        }
+        .timeline-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .timeline-icon.success { background: #dcfce7; }
+        .timeline-icon.info { background: #e0f2fe; }
+        .timeline-icon.warning { background: #fef3c7; }
+        .timeline-content { flex: 1; }
+        .timeline-title { font-weight: 500; font-size: 0.9rem; }
+        .timeline-time { font-size: 0.75rem; color: var(--gray-500); }
+        
+        @media (max-width: 768px) {
+            .trisukses-overview { grid-template-columns: 1fr; }
+            .content-grid { grid-template-columns: 1fr; }
+            .quick-actions { grid-template-columns: 1fr; }
+            .welcome-banner::before { display: none; }
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -29,17 +269,15 @@
             <nav class="sidebar-nav">
                 <div class="nav-section">MENU UTAMA</div>
                 <a href="dashboard.html" class="nav-item active"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
-                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
                 <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
                 <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
-                <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
+                <a href="penilaian.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian</span></a>
                 <div class="nav-section">LAPORAN</div>
                 <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
                 <div class="nav-section">PENGATURAN</div>
                 <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
                 <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
-                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
-                <a href="pernikahan.html" class="nav-item" id="menuPernikahan" style="display:none;"><span class="nav-icon">💒</span><span class="nav-text">Data Pernikahan</span></a>
                 <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
             </nav>
             <div class="sidebar-footer">
@@ -76,53 +314,111 @@
             </header>
             
             <div class="page-content">
+                <!-- Welcome Banner -->
+                <div class="welcome-banner">
+                    <div class="welcome-title">Assalamu'alaikum, <span id="welcomeName">...</span>! 👋</div>
+                    <div class="welcome-subtitle">Selamat datang di Sistem Pembinaan Generasi Penerus Sorong</div>
+                    <div class="welcome-date">
+                        <span>📅</span>
+                        <span id="currentDate">-</span>
+                    </div>
+                </div>
+                
                 <!-- Stats Grid -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon primary">👥</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="totalSantri">-</div>
-                            <div class="stat-label">Total Santri Aktif</div>
+                <div class="stats-grid-main">
+                    <div class="stat-card-main">
+                        <div class="stat-icon-main primary">👥</div>
+                        <div>
+                            <div class="stat-value-main" id="totalSantri">-</div>
+                            <div class="stat-label-main">Total Generus Aktif</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon success">📖</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="totalPengajian">-</div>
-                            <div class="stat-label">Pengajian Bulan Ini</div>
+                    <div class="stat-card-main">
+                        <div class="stat-icon-main info">📖</div>
+                        <div>
+                            <div class="stat-value-main" id="totalPengajian">-</div>
+                            <div class="stat-label-main">Pengajian Bulan Ini</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon warning">🗺️</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="totalKelompok">-</div>
-                            <div class="stat-label">Kelompok</div>
+                    <div class="stat-card-main">
+                        <div class="stat-icon-main warning">🗺️</div>
+                        <div>
+                            <div class="stat-value-main" id="totalKelompok">-</div>
+                            <div class="stat-label-main">Kelompok Pengajian</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon info">📚</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="totalMateri">-</div>
-                            <div class="stat-label">Materi Kurikulum</div>
+                    <div class="stat-card-main">
+                        <div class="stat-icon-main purple">📚</div>
+                        <div>
+                            <div class="stat-value-main" id="totalMateri">-</div>
+                            <div class="stat-label-main">Materi Kurikulum</div>
                         </div>
                     </div>
                 </div>
                 
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:1.5rem;">
+                <!-- Tri Sukses Overview -->
+                <div class="trisukses-overview">
+                    <a href="kurikulum.html" class="trisukses-card-mini alim" style="text-decoration:none;">
+                        <div class="trisukses-icon">📖</div>
+                        <div class="trisukses-name">ALIM</div>
+                        <div class="trisukses-desc">Bacaan • Hafalan • Makna</div>
+                    </a>
+                    <a href="kurikulum.html" class="trisukses-card-mini faqih" style="text-decoration:none;">
+                        <div class="trisukses-icon">🕌</div>
+                        <div class="trisukses-name">FAQIH</div>
+                        <div class="trisukses-desc">Pemahaman • Praktek • 4 Tali</div>
+                    </a>
+                    <a href="kurikulum.html" class="trisukses-card-mini akhlaq" style="text-decoration:none;">
+                        <div class="trisukses-icon">💎</div>
+                        <div class="trisukses-name">AKHLAQ</div>
+                        <div class="trisukses-desc">6 Thobiat • Tatakrama • Mandiri</div>
+                    </a>
+                </div>
+                
+                <!-- Content Grid -->
+                <div class="content-grid">
                     <!-- Santri per Jenjang -->
-                    <div class="card">
+                    <div class="card-modern">
                         <div class="card-header">
-                            <h3 class="card-title">Santri per Jenjang</h3>
+                            <h3 class="card-title">📊 Generus per Jenjang</h3>
+                            <a href="jamaah.html" class="btn btn-sm btn-outline">Lihat Semua</a>
                         </div>
                         <div class="card-body" id="jenjangStats">
                             <p class="text-muted">Memuat data...</p>
                         </div>
                     </div>
                     
-                    <!-- Pengajian Terbaru -->
-                    <div class="card">
+                    <!-- Quick Actions -->
+                    <div class="card-modern">
                         <div class="card-header">
-                            <h3 class="card-title">Pengajian Terbaru</h3>
+                            <h3 class="card-title">⚡ Aksi Cepat</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="quick-actions">
+                                <a href="presensi.html" class="quick-action-btn">
+                                    <span class="quick-action-icon">✅</span>
+                                    <span class="quick-action-text">Input Presensi</span>
+                                </a>
+                                <a href="penilaian.html" class="quick-action-btn">
+                                    <span class="quick-action-icon">📝</span>
+                                    <span class="quick-action-text">Input Penilaian</span>
+                                </a>
+                                <a href="jamaah.html?action=add" class="quick-action-btn">
+                                    <span class="quick-action-icon">➕</span>
+                                    <span class="quick-action-text">Tambah Generus</span>
+                                </a>
+                                <a href="rapor.html" class="quick-action-btn">
+                                    <span class="quick-action-icon">📋</span>
+                                    <span class="quick-action-text">Lihat Rapor</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pengajian Terbaru -->
+                    <div class="card-modern">
+                        <div class="card-header">
+                            <h3 class="card-title">📖 Pengajian Terbaru</h3>
                             <a href="pengajian.html" class="btn btn-sm btn-outline">Lihat Semua</a>
                         </div>
                         <div class="card-body" id="recentPengajian">
@@ -130,36 +426,20 @@
                         </div>
                     </div>
                     
-                    <!-- Progress Terbaru -->
-                    <div class="card">
+                    <!-- Aktivitas Terbaru -->
+                    <div class="card-modern">
                         <div class="card-header">
-                            <h3 class="card-title">Progress Hafalan Terbaru</h3>
-                            <a href="progress.html" class="btn btn-sm btn-outline">Lihat Semua</a>
+                            <h3 class="card-title">🕐 Aktivitas Terbaru</h3>
                         </div>
-                        <div class="card-body" id="recentProgress">
+                        <div class="card-body" id="recentActivity">
                             <p class="text-muted">Memuat data...</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Quick Actions -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Aksi Cepat</h3>
-                        </div>
-                        <div class="card-body">
-                            <div style="display:flex;flex-direction:column;gap:0.75rem;">
-                                <a href="jamaah.html?action=add" class="btn btn-primary">➕ Tambah Santri Baru</a>
-                                <a href="pengajian.html?action=add" class="btn btn-success">📖 Buat Pengajian</a>
-                                <a href="presensi.html" class="btn btn-warning">✅ Input Presensi</a>
-                                <a href="progress.html?action=add" class="btn btn-outline">📈 Input Hafalan</a>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
@@ -167,27 +447,8 @@
     <script src="js/sidebar.js"></script>
     
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (!await requireAuth()) return;
-            updateSidebarUserInfo();
-            initSidebar();
-            
-            // Tampilkan menu pernikahan jika admin
-            const isAdmin = userRoles.some(r => r.role?.kode?.toLowerCase() === 'admin');
-            if (isAdmin) {
-                const menuPernikahan = $('menuPernikahan');
-                if (menuPernikahan) menuPernikahan.style.display = 'flex';
-            }
-            
-            // Update user info di header
-            if (currentUserData) {
-                $('userName').textContent = currentUserData.nama || currentUserData.email;
-                $('userAvatar').textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
-                if (userRoles.length > 0) $('userRole').textContent = userRoles[0].role?.nama || '-';
-            }
-            
-            await loadDashboardData();
-        });
+        const $ = id => document.getElementById(id);
+        let currentUserData = null;
         
         function toggleSidebar() {
             const sidebar = $('sidebar');
@@ -200,40 +461,69 @@
             }
         }
         
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
+            
+            // Set current date
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            $('currentDate').textContent = new Date().toLocaleDateString('id-ID', options);
+            
+            // Get user info
+            try {
+                const { data: { user } } = await db.auth.getUser();
+                if (user) {
+                    const { data: userData } = await db.from('users').select('nama').eq('auth_id', user.id).single();
+                    const firstName = (userData?.nama || user.email).split(' ')[0];
+                    $('welcomeName').textContent = firstName;
+                    $('userName').textContent = userData?.nama || user.email;
+                    $('sidebarUserName').textContent = userData?.nama || user.email;
+                    
+                    const initials = (userData?.nama || 'U').substring(0, 2).toUpperCase();
+                    $('userAvatar').textContent = initials;
+                    $('sidebarUserAvatar').textContent = initials;
+                }
+            } catch (e) {
+                console.error('Error getting user:', e);
+            }
+            
+            await loadDashboardData();
+        });
+        
         async function loadDashboardData() {
             try {
-                // Cari status_id untuk 'aktif'
-                const { data: statusAktif } = await db
-                    .from('status_jamaah')
-                    .select('id')
-                    .eq('kode', 'aktif')
-                    .single();
+                // Get active status ID
+                const { data: statusAktif } = await db.from('status_jamaah').select('id').eq('kode', 'aktif').single();
                 
-                // Total Jamaah Aktif (menggunakan status_id)
+                // Total Jamaah Aktif
                 let jamaahQuery = db.from('jamaah').select('*', { count: 'exact', head: true });
-                if (statusAktif) {
-                    jamaahQuery = jamaahQuery.eq('status_id', statusAktif.id);
-                }
+                if (statusAktif) jamaahQuery = jamaahQuery.eq('status_id', statusAktif.id);
                 const { count: jamaahCount } = await jamaahQuery;
                 $('totalSantri').textContent = formatAngka(jamaahCount || 0);
                 
                 // Pengajian bulan ini
                 const startOfMonth = new Date();
                 startOfMonth.setDate(1);
-                const { count: pengajianCount } = await db.from('pengajian').select('*', { count: 'exact', head: true }).gte('tanggal', startOfMonth.toISOString().split('T')[0]);
+                const { count: pengajianCount } = await db.from('pengajian')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('tanggal', startOfMonth.toISOString().split('T')[0]);
                 $('totalPengajian').textContent = formatAngka(pengajianCount || 0);
                 
                 // Total Kelompok
-                const { count: kelompokCount } = await db.from('wilayah').select('*', { count: 'exact', head: true }).eq('tingkat', 'kelompok');
+                const { count: kelompokCount } = await db.from('wilayah')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('tingkat', 'kelompok');
                 $('totalKelompok').textContent = formatAngka(kelompokCount || 0);
                 
                 // Total Materi
-                const { count: materiCount } = await db.from('materi_item').select('*', { count: 'exact', head: true });
+                const { count: materiCount } = await db.from('materi_item')
+                    .select('*', { count: 'exact', head: true });
                 $('totalMateri').textContent = formatAngka(materiCount || 0);
                 
-                await loadJenjangStats();
-                await loadRecentPengajian();
-                await loadRecentProgress();
+                await Promise.all([
+                    loadJenjangStats(),
+                    loadRecentPengajian(),
+                    loadRecentActivity()
+                ]);
             } catch (error) {
                 console.error('Error loading dashboard:', error);
             }
@@ -241,33 +531,43 @@
         
         async function loadJenjangStats() {
             try {
-                const { data: jenjangData } = await db.from('jenjang').select('id, kode, nama').order('urutan');
+                const { data: jenjangData } = await db.from('jenjang')
+                    .select('id, kode, nama')
+                    .eq('is_aktif', true)
+                    .order('urutan');
+                
                 if (!jenjangData || jenjangData.length === 0) {
                     $('jenjangStats').innerHTML = '<p class="text-muted">Belum ada data jenjang</p>';
                     return;
                 }
                 
-                // Hapus duplikat berdasarkan nama jenjang (ambil yang pertama)
-                const uniqueJenjang = [];
-                const seenNames = new Set();
-                for (const j of jenjangData) {
-                    const namaLower = j.nama.toLowerCase().trim();
-                    if (!seenNames.has(namaLower)) {
-                        seenNames.add(namaLower);
-                        uniqueJenjang.push(j);
-                    }
+                // Get total for progress bar calculation
+                let totalAll = 0;
+                const counts = [];
+                
+                for (const jenjang of jenjangData) {
+                    const { count } = await db.from('enrollment')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('jenjang_id', jenjang.id)
+                        .eq('status', 'aktif');
+                    counts.push({ jenjang, count: count || 0 });
+                    totalAll += (count || 0);
                 }
                 
                 let html = '';
-                for (const jenjang of uniqueJenjang) {
-                    const { count } = await db.from('enrollment').select('*', { count: 'exact', head: true }).eq('jenjang_id', jenjang.id).eq('status', 'aktif');
+                counts.forEach(({ jenjang, count }) => {
+                    const percentage = totalAll > 0 ? Math.round((count / totalAll) * 100) : 0;
                     html += `
-                        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">
-                            <span>${jenjang.nama}</span>
-                            <span class="badge badge-primary">${count || 0} santri</span>
+                        <div class="jenjang-bar">
+                            <span class="jenjang-name">${jenjang.nama}</span>
+                            <div class="jenjang-progress">
+                                <div class="jenjang-progress-bar" style="width: ${percentage}%"></div>
+                            </div>
+                            <span class="jenjang-count">${count}</span>
                         </div>
                     `;
-                }
+                });
+                
                 $('jenjangStats').innerHTML = html || '<p class="text-muted">Belum ada data</p>';
             } catch (error) {
                 console.error('Error:', error);
@@ -276,19 +576,23 @@
         
         async function loadRecentPengajian() {
             try {
-                const { data } = await db.from('pengajian').select('*, wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)').order('tanggal', { ascending: false }).limit(5);
+                const { data } = await db.from('pengajian')
+                    .select('*, wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)')
+                    .order('tanggal', { ascending: false })
+                    .limit(5);
+                
                 if (!data || data.length === 0) {
-                    $('recentPengajian').innerHTML = '<p class="text-muted">Belum ada pengajian</p>';
+                    $('recentPengajian').innerHTML = '<p class="text-muted text-center">Belum ada pengajian</p>';
                     return;
                 }
                 
                 $('recentPengajian').innerHTML = data.map(p => `
-                    <div style="padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">
-                        <div style="display:flex;justify-content:space-between;">
-                            <strong>${p.wilayah?.nama || '-'}</strong>
-                            <span class="badge badge-primary">${p.jenjang?.nama || '-'}</span>
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <div class="list-item-title">${p.wilayah?.nama || '-'}</div>
+                            <div class="list-item-subtitle">${formatTanggal(p.tanggal)}</div>
                         </div>
-                        <div class="text-sm text-muted mt-sm">${formatTanggal(p.tanggal)}</div>
+                        <span class="badge badge-primary">${p.jenjang?.nama || '-'}</span>
                     </div>
                 `).join('');
             } catch (error) {
@@ -296,26 +600,80 @@
             }
         }
         
-        async function loadRecentProgress() {
+        async function loadRecentActivity() {
             try {
-                const { data } = await db.from('progress_jamaah').select('*, jamaah:jamaah_id(nama), materi_item:materi_item_id(nama)').eq('status', 'selesai').order('tanggal_selesai', { ascending: false }).limit(5);
-                if (!data || data.length === 0) {
-                    $('recentProgress').innerHTML = '<p class="text-muted">Belum ada progress</p>';
+                // Get recent penilaian akhlaq
+                const { data: penilaian } = await db.from('penilaian_akhlaq')
+                    .select('*, jamaah:jamaah_id(nama), karakter:karakter_id(nama)')
+                    .order('created_at', { ascending: false })
+                    .limit(3);
+                
+                // Get recent progress
+                const { data: progress } = await db.from('progress_jamaah')
+                    .select('*, jamaah:jamaah_id(nama), materi_item:materi_item_id(nama)')
+                    .eq('status', 'selesai')
+                    .order('tanggal_selesai', { ascending: false })
+                    .limit(2);
+                
+                let activities = [];
+                
+                (penilaian || []).forEach(p => {
+                    activities.push({
+                        type: 'penilaian',
+                        title: `Penilaian ${p.karakter?.nama || 'Akhlaq'}`,
+                        subtitle: p.jamaah?.nama || '-',
+                        time: p.created_at,
+                        icon: '📝',
+                        iconClass: 'info'
+                    });
+                });
+                
+                (progress || []).forEach(p => {
+                    activities.push({
+                        type: 'progress',
+                        title: `Selesai: ${p.materi_item?.nama || '-'}`,
+                        subtitle: p.jamaah?.nama || '-',
+                        time: p.tanggal_selesai,
+                        icon: '✅',
+                        iconClass: 'success'
+                    });
+                });
+                
+                // Sort by time
+                activities.sort((a, b) => new Date(b.time) - new Date(a.time));
+                activities = activities.slice(0, 5);
+                
+                if (activities.length === 0) {
+                    $('recentActivity').innerHTML = '<p class="text-muted text-center">Belum ada aktivitas</p>';
                     return;
                 }
                 
-                $('recentProgress').innerHTML = data.map(p => `
-                    <div style="padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">
-                        <div style="display:flex;justify-content:space-between;">
-                            <strong>${p.jamaah?.nama || '-'}</strong>
-                            <span class="badge badge-success">Selesai</span>
+                $('recentActivity').innerHTML = activities.map(a => `
+                    <div class="timeline-item">
+                        <div class="timeline-icon ${a.iconClass}">${a.icon}</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">${a.title}</div>
+                            <div class="timeline-time">${a.subtitle} • ${formatTimeAgo(a.time)}</div>
                         </div>
-                        <div class="text-sm text-muted mt-sm">${p.materi_item?.nama || '-'}</div>
                     </div>
                 `).join('');
             } catch (error) {
                 console.error('Error:', error);
+                $('recentActivity').innerHTML = '<p class="text-muted text-center">Gagal memuat aktivitas</p>';
             }
+        }
+        
+        function formatTimeAgo(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+            
+            if (diff < 60) return 'Baru saja';
+            if (diff < 3600) return Math.floor(diff / 60) + ' menit lalu';
+            if (diff < 86400) return Math.floor(diff / 3600) + ' jam lalu';
+            if (diff < 604800) return Math.floor(diff / 86400) + ' hari lalu';
+            return formatTanggal(dateStr);
         }
     </script>
     
@@ -326,17 +684,17 @@
                 <span class="bottom-nav-icon">📊</span>
                 <span class="bottom-nav-label">Home</span>
             </a>
-            <a href="generus.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">👶</span>
+            <a href="jamaah.html" class="bottom-nav-item">
+                <span class="bottom-nav-icon">👥</span>
                 <span class="bottom-nav-label">Generus</span>
             </a>
             <a href="presensi.html" class="bottom-nav-item">
                 <span class="bottom-nav-icon">✅</span>
                 <span class="bottom-nav-label">Presensi</span>
             </a>
-            <a href="progress.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">📈</span>
-                <span class="bottom-nav-label">Progress</span>
+            <a href="penilaian.html" class="bottom-nav-item">
+                <span class="bottom-nav-icon">📝</span>
+                <span class="bottom-nav-label">Nilai</span>
             </a>
             <a href="#" class="bottom-nav-item" onclick="toggleSidebar(); return false;">
                 <span class="bottom-nav-icon">☰</span>
