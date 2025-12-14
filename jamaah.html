@@ -39,6 +39,7 @@
                 <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
                 <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
                 <a href="jamaah.html" class="nav-item active"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="pernikahan.html" class="nav-item" id="menuPernikahan" style="display:none;"><span class="nav-icon">💒</span><span class="nav-text">Data Pernikahan</span></a>
                 <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
             </nav>
             <div class="sidebar-footer">
@@ -283,6 +284,12 @@
             
             // FORCE tampilkan tombol tambah - halaman ini di Pengaturan untuk admin
             $('btnTambah').style.display = 'block';
+            
+            // Tampilkan menu pernikahan jika admin
+            const isAdminUser = userRoles.some(r => r.role?.kode?.toLowerCase() === 'admin');
+            if (isAdminUser && $('menuPernikahan')) {
+                $('menuPernikahan').style.display = 'flex';
+            }
             
             if (getUrlParam('action') === 'add') showAddModal();
         });

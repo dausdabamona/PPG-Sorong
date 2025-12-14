@@ -29,7 +29,7 @@
             <nav class="sidebar-nav">
                 <div class="nav-section">MENU UTAMA</div>
                 <a href="dashboard.html" class="nav-item active"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
-                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
                 <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
                 <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
                 <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
@@ -38,6 +38,8 @@
                 <div class="nav-section">PENGATURAN</div>
                 <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
                 <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="pernikahan.html" class="nav-item" id="menuPernikahan" style="display:none;"><span class="nav-icon">💒</span><span class="nav-text">Data Pernikahan</span></a>
                 <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
             </nav>
             <div class="sidebar-footer">
@@ -165,46 +167,54 @@
     <script src="js/sidebar.js"></script>
     
     <script>
-        // Register Service Worker for PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => {
-                        console.log('SW registered:', registration.scope);
-                    })
-                    .catch((error) => {
-                        console.log('SW registration failed:', error);
-                    });
-            });
-        }
-        
         document.addEventListener('DOMContentLoaded', async () => {
             if (!await requireAuth()) return;
             updateSidebarUserInfo();
             initSidebar();
+            
+            // Tampilkan menu pernikahan jika admin
+            const isAdmin = userRoles.some(r => r.role?.kode?.toLowerCase() === 'admin');
+            if (isAdmin) {
+                const menuPernikahan = $('menuPernikahan');
+                if (menuPernikahan) menuPernikahan.style.display = 'flex';
+            }
+            
+            // Update user info di header
+            if (currentUserData) {
+                $('userName').textContent = currentUserData.nama || currentUserData.email;
+                $('userAvatar').textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
+                if (userRoles.length > 0) $('userRole').textContent = userRoles[0].role?.nama || '-';
+            }
+            
             await loadDashboardData();
         });
         
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            
+            const sidebar = $('sidebar');
+            const overlay = $('sidebarOverlay');
             if (window.innerWidth <= 768) {
-                // Mobile: toggle show class
                 sidebar.classList.toggle('show');
-                if (overlay) {
-                    overlay.classList.toggle('show');
-                }
+                overlay.classList.toggle('show');
             } else {
-                // Desktop: toggle collapsed class
                 sidebar.classList.toggle('collapsed');
             }
         }
         
         async function loadDashboardData() {
             try {
-                // Total Jamaah Aktif
-                const { count: jamaahCount } = await db.from('jamaah').select('*', { count: 'exact', head: true }).eq('status_aktif', 'aktif');
+                // Cari status_id untuk 'aktif'
+                const { data: statusAktif } = await db
+                    .from('status_jamaah')
+                    .select('id')
+                    .eq('kode', 'aktif')
+                    .single();
+                
+                // Total Jamaah Aktif (menggunakan status_id)
+                let jamaahQuery = db.from('jamaah').select('*', { count: 'exact', head: true });
+                if (statusAktif) {
+                    jamaahQuery = jamaahQuery.eq('status_id', statusAktif.id);
+                }
+                const { count: jamaahCount } = await jamaahQuery;
                 $('totalSantri').textContent = formatAngka(jamaahCount || 0);
                 
                 // Pengajian bulan ini
@@ -237,8 +247,19 @@
                     return;
                 }
                 
+                // Hapus duplikat berdasarkan nama jenjang (ambil yang pertama)
+                const uniqueJenjang = [];
+                const seenNames = new Set();
+                for (const j of jenjangData) {
+                    const namaLower = j.nama.toLowerCase().trim();
+                    if (!seenNames.has(namaLower)) {
+                        seenNames.add(namaLower);
+                        uniqueJenjang.push(j);
+                    }
+                }
+                
                 let html = '';
-                for (const jenjang of jenjangData) {
+                for (const jenjang of uniqueJenjang) {
                     const { count } = await db.from('enrollment').select('*', { count: 'exact', head: true }).eq('jenjang_id', jenjang.id).eq('status', 'aktif');
                     html += `
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">
@@ -255,7 +276,6 @@
         
         async function loadRecentPengajian() {
             try {
-                // Note: mubaligh_id tidak ada di tabel pengajian, gunakan created_by atau hapus
                 const { data } = await db.from('pengajian').select('*, wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)').order('tanggal', { ascending: false }).limit(5);
                 if (!data || data.length === 0) {
                     $('recentPengajian').innerHTML = '<p class="text-muted">Belum ada pengajian</p>';
