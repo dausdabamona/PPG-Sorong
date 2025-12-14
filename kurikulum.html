@@ -476,7 +476,6 @@
         let allTahunAjaran = [];
         let selectedJenjang = null;
         
-        // $ dan $$ sudah didefinisikan di utils.js
         
         function toggleSidebar() {
             $('sidebar').classList.toggle('collapsed');
@@ -484,19 +483,12 @@
         }
         
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🚀 Kurikulum page loading...');
-            if (!await requireAuth()) {
-                console.log('❌ Auth failed');
-                return;
-            }
-            console.log('✅ Auth passed');
+            if (!await requireAuth()) return;
             await loadAllData();
         });
         
         async function loadAllData() {
             try {
-                console.log('📊 Loading kurikulum data...');
-                
                 // Load all data in parallel
                 const [bidang, kategori, materi, jenjang, target, thobiat, tali, ta] = await Promise.all([
                     db.from('bidang').select('*').order('urutan'),
@@ -509,16 +501,6 @@
                     db.from('tahun_ajaran').select('*').order('kode', { ascending: false })
                 ]);
                 
-                // Log errors if any
-                if (bidang.error) console.error('❌ bidang:', bidang.error);
-                if (kategori.error) console.error('❌ kategori:', kategori.error);
-                if (materi.error) console.error('❌ materi:', materi.error);
-                if (jenjang.error) console.error('❌ jenjang:', jenjang.error);
-                if (target.error) console.error('❌ target:', target.error);
-                if (thobiat.error) console.error('❌ thobiat:', thobiat.error);
-                if (tali.error) console.error('❌ tali:', tali.error);
-                if (ta.error) console.error('❌ tahun_ajaran:', ta.error);
-                
                 allBidang = bidang.data || [];
                 allKategori = kategori.data || [];
                 allMateri = materi.data || [];
@@ -527,17 +509,6 @@
                 allThobiat = thobiat.data || [];
                 allTali = tali.data || [];
                 allTahunAjaran = ta.data || [];
-                
-                console.log('📋 Data loaded:', {
-                    bidang: allBidang.length,
-                    kategori: allKategori.length,
-                    materi: allMateri.length,
-                    jenjang: allJenjang.length,
-                    target: allTarget.length,
-                    thobiat: allThobiat.length,
-                    tali: allTali.length,
-                    tahunAjaran: allTahunAjaran.length
-                });
                 
                 // Update stats
                 $('totalMateri').textContent = allMateri.length;

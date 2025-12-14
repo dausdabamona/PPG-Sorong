@@ -2,146 +2,173 @@
 // SERVICE WORKER - PPG SORONG PWA
 // ============================================================================
 
-const CACHE_NAME = 'ppg-sorong-v1';
-const OFFLINE_URL = '/offline.html';
-
-// Files to cache for offline use
-const STATIC_CACHE = [
-    '/',
-    '/index.html',
-    '/dashboard.html',
-    '/jamaah.html',
-    '/pengajian.html',
-    '/presensi.html',
-    '/progress.html',
-    '/rapor.html',
-    '/wilayah.html',
-    '/kurikulum.html',
-    '/users.html',
-    '/register.html',
-    '/css/style.css',
-    '/js/config.js',
-    '/js/utils.js',
-    '/js/auth.js',
-    '/js/sidebar.js',
-    '/images/icon-72x72.svg',
-    '/images/icon-192x192.svg',
-    '/manifest.json'
+const CACHE_NAME = 'ppg-sorong-v1.0.0';
+const urlsToCache = [
+  '/',
+  '/index-quick-login.html',
+  '/quick-testing.html',
+  '/jamaah.html',
+  '/dashboard.html',
+  '/css/style.css',
+  '/js/config.js',
+  '/js/auth.js',
+  '/js/sidebar.js',
+  '/js/utils.js',
+  '/js/quick-testing.js',
+  '/js/jamaah.js',
+  '/manifest.json',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
 ];
 
-// Install event - cache static assets
+// Install event - cache files
 self.addEventListener('install', (event) => {
-    console.log('[SW] Installing Service Worker...');
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log('[SW] Caching static assets');
-                return cache.addAll(STATIC_CACHE);
-            })
-            .then(() => {
-                console.log('[SW] Static assets cached');
-                return self.skipWaiting();
-            })
-            .catch((error) => {
-                console.error('[SW] Cache failed:', error);
-            })
-    );
+  console.log('[ServiceWorker] Installing...');
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('[ServiceWorker] Caching app shell');
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => {
+        console.log('[ServiceWorker] Installed successfully');
+        return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.error('[ServiceWorker] Install failed:', error);
+      })
+  );
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-    console.log('[SW] Activating Service Worker...');
-    event.waitUntil(
-        caches.keys()
-            .then((cacheNames) => {
-                return Promise.all(
-                    cacheNames.map((cacheName) => {
-                        if (cacheName !== CACHE_NAME) {
-                            console.log('[SW] Deleting old cache:', cacheName);
-                            return caches.delete(cacheName);
-                        }
-                    })
-                );
-            })
-            .then(() => {
-                console.log('[SW] Service Worker activated');
-                return self.clients.claim();
-            })
-    );
+  console.log('[ServiceWorker] Activating...');
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('[ServiceWorker] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      console.log('[ServiceWorker] Activated');
+      return self.clients.claim();
+    })
+  );
 });
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
-    const { request } = event;
-    const url = new URL(request.url);
-    
-    // Skip non-GET requests
-    if (request.method !== 'GET') {
-        return;
-    }
-    
-    // Skip external requests (like Supabase API)
-    if (!url.origin.includes(self.location.origin)) {
-        return;
-    }
-    
-    event.respondWith(
-        caches.match(request)
-            .then((cachedResponse) => {
-                if (cachedResponse) {
-                    // Return cached version
-                    return cachedResponse;
-                }
-                
-                // Try network
-                return fetch(request)
-                    .then((networkResponse) => {
-                        // Cache successful responses
-                        if (networkResponse && networkResponse.status === 200) {
-                            const responseClone = networkResponse.clone();
-                            caches.open(CACHE_NAME)
-                                .then((cache) => {
-                                    cache.put(request, responseClone);
-                                });
-                        }
-                        return networkResponse;
-                    })
-                    .catch(() => {
-                        // If both cache and network fail, show offline page for navigation requests
-                        if (request.mode === 'navigate') {
-                            return caches.match(OFFLINE_URL);
-                        }
-                        return new Response('Offline', { status: 503 });
-                    });
-            })
-    );
+  // Skip cross-origin requests
+  if (!event.request.url.startsWith(self.location.origin) &&
+      !event.request.url.includes('supabase.co') &&
+      !event.request.url.includes('googleapis.com') &&
+      !event.request.url.includes('jsdelivr.net')) {
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        // Cache hit - return response
+        if (response) {
+          console.log('[ServiceWorker] Found in cache:', event.request.url);
+          return response;
+        }
+
+        // Clone the request
+        const fetchRequest = event.request.clone();
+
+        // Fetch from network
+        return fetch(fetchRequest).then((response) => {
+          // Check if valid response
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+
+          // Clone the response
+          const responseToCache = response.clone();
+
+          // Cache the fetched response
+          caches.open(CACHE_NAME)
+            .then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+
+          return response;
+        }).catch((error) => {
+          console.error('[ServiceWorker] Fetch failed:', error);
+          
+          // Return offline page if available
+          return caches.match('/offline.html');
+        });
+      })
+  );
 });
 
-// Handle push notifications (optional, for future use)
-self.addEventListener('push', (event) => {
-    if (event.data) {
-        const data = event.data.json();
-        const options = {
-            body: data.body || 'Ada notifikasi baru',
-            icon: '/images/icon-192x192.svg',
-            badge: '/images/icon-72x72.svg',
-            vibrate: [100, 50, 100],
-            data: {
-                url: data.url || '/'
-            }
-        };
-        
-        event.waitUntil(
-            self.registration.showNotification(data.title || 'PPG Sorong', options)
-        );
-    }
+// Background sync for offline data
+self.addEventListener('sync', (event) => {
+  console.log('[ServiceWorker] Background sync:', event.tag);
+  
+  if (event.tag === 'sync-testing-data') {
+    event.waitUntil(syncTestingData());
+  }
 });
 
-// Handle notification click
-self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
+// Function to sync offline testing data
+async function syncTestingData() {
+  try {
+    // Get offline data from IndexedDB
+    const db = await openIndexedDB();
+    const offlineData = await getOfflineData(db);
     
-    event.waitUntil(
-        clients.openWindow(event.notification.data.url || '/')
-    );
-});
+    if (offlineData.length === 0) {
+      console.log('[ServiceWorker] No offline data to sync');
+      return;
+    }
+    
+    // Send to Supabase
+    // This would require Supabase client in service worker
+    console.log('[ServiceWorker] Syncing', offlineData.length, 'records');
+    
+    // Clear synced data
+    await clearOfflineData(db);
+    
+    // Notify client
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'SYNC_COMPLETE',
+          count: offlineData.length
+        });
+      });
+    });
+    
+  } catch (error) {
+    console.error('[ServiceWorker] Sync failed:', error);
+  }
+}
+
+// IndexedDB helpers (placeholder)
+function openIndexedDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('PPGSorong', 1);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function getOfflineData(db) {
+  // Implementation needed
+  return Promise.resolve([]);
+}
+
+function clearOfflineData(db) {
+  // Implementation needed
+  return Promise.resolve();
+}
+
+console.log('[ServiceWorker] Loaded');
