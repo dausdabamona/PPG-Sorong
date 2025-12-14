@@ -1,0 +1,132 @@
+jenjang,bidang,kategori,target_jumlah,satuan,keterangan,jenis,rumus,max_nilai,sumber
+PAUD,Keaktifan,Keaktifan Bulanan,20,kali,Target 20x/bulan,Obj,(Total/12)/20x100,100,Panduan
+PAUD,Alim,Iqro/Tilawaty,35,halaman,Iqro Jilid 1,Obj,Hal/35x100,100,Panduan
+PAUD,Alim,Hafalan Surat,6,surat,Al-Fatihah & An-Nas s/d Al-Kafirun,Obj,Surat/6x100,100,GBMTPG
+PAUD,Alim,Hafalan Doa GBMTPG,6,doa,Asmaul Husna & Doa harian,Obj,Doa/6x100,100,GBMTPG
+PAUD,Alim,Hafalan Doa Generus Sorong,12,doa,Doa Generus Sorong dasar,Obj,Doa/12x100,100,Panduan
+PAUD,Alim,Keilmuan GBMTPG,4,materi,Dasar aqidah,Obj,Materi/4x100,100,GBMTPG
+PAUD,Faqih,Kefahaman Agama GBMTPG,10,materi,Kefahaman dasar,Obj,Materi/10x100,100,GBMTPG
+PAUD,Faqih,Praktek Ibadah GBMTPG,6,materi,Praktek ibadah dasar,Obj,Materi/6x100,100,GBMTPG
+PAUD,Faqih,Praktek Wudhu Sholat,1,nilai,Praktek wudhu sholat,Subj,Nilai Penguji,75,Panduan
+PAUD,Faqih,Praktek Thoharoh,1,nilai,Praktek thoharoh,Subj,Nilai Penguji,75,Panduan
+PAUD,Faqih,4 Tali Keimanan,100,nilai,Pengenalan 4 Tali Keimanan,Subj,Nilai,100,Panduan
+PAUD,Akhlaq,6 Thobiat Luhur,100,nilai,Pengenalan 6 Thobiat,Subj,Nilai,100,Panduan
+PAUD,Akhlaq,Adab/Tatakrama,35,materi,Tatakrama dasar,Obj,Materi/35x100,100,GBMTPG
+PAUD,Kemandirian,Kemandirian GBMTPG,8,materi,Kemandirian dasar,Obj,Materi/8x100,100,GBMTPG
+PAUD,Kemandirian,ASAD Beladiri,1,jurus,Jurus 1,Subj,Nilai Penguji,75,Panduan
+Caberawit Iqro 1-2,Keaktifan,Keaktifan Bulanan,20,kali,Target 20x/bulan,Obj,(Total/12)/20x100,100,Panduan
+Caberawit Iqro 1-2,Alim,Iqro/Tilawaty,131,halaman,Iqro Jilid 1-4,Obj,Hal/131x100,100,Panduan
+Caberawit Iqro 1-2,Alim,Hafalan Surat,12,surat,12 surat pendek,Obj,Surat/12x100,100,GBMTPG
+Caberawit Iqro 1-2,Alim,Hafalan Doa GBMTPG,11,doa,Doa harian lengkap,Obj,Doa/11x100,100,GBMTPG
+Caberawit Iqro 1-2,Alim,Hafalan Doa Generus Sorong,24,doa,Doa Generus Sorong lanjutan,Obj,Doa/24x100,100,Panduan
+Caberawit Iqro 1-2,Alim,Keilmuan GBMTPG,7,materi,Aqidah dasar,Obj,Materi/7x100,100,GBMTPG
+Caberawit Iqro 1-2,Faqih,Kefahaman Agama GBMTPG,15,materi,Kefahaman agama dasar,Obj,Materi/15x100,100,GBMTPG
+Caberawit Iqro 1-2,Faqih,Praktek Ibadah GBMTPG,9,materi,Praktek ibadah dasar,Obj,Materi/9x100,100,GBMTPG
+Caberawit Iqro 1-2,Faqih,Praktek Wudhu Sholat,1,nilai,Praktek wudhu sholat,Subj,Nilai Penguji,75,Panduan
+Caberawit Iqro 1-2,Faqih,Praktek Thoharoh,1,nilai,Praktek thoharoh,Subj,Nilai Penguji,75,Panduan
+Caberawit Iqro 1-2,Faqih,4 Tali Keimanan,100,nilai,Pemahaman 4 Tali Keimanan,Subj,Nilai,100,Panduan
+Caberawit Iqro 1-2,Akhlaq,6 Thobiat Luhur,100,nilai,Pemahaman 6 Thobiat,Subj,Nilai,100,Panduan
+Caberawit Iqro 1-2,Akhlaq,Adab/Tatakrama,55,materi,Tatakrama lanjutan,Obj,Materi/55x100,100,GBMTPG
+Caberawit Iqro 1-2,Kemandirian,Kemandirian GBMTPG,16,materi,Kemandirian lanjutan,Obj,Materi/16x100,100,GBMTPG
+Caberawit Iqro 1-2,Kemandirian,ASAD Beladiri,2,jurus,Jurus 1-2,Subj,Nilai Penguji,75,Panduan
+Caberawit Iqro 3-4,Keaktifan,Keaktifan Bulanan,20,kali,Target 20x/bulan,Obj,(Total/12)/20x100,100,Panduan
+Caberawit Iqro 3-4,Alim,Iqro/Tilawaty,195,halaman,Iqro Jilid 1-6,Obj,Hal/195x100,100,Panduan
+Caberawit Iqro 3-4,Alim,Hafalan Surat,18,surat,18 surat pendek,Obj,Surat/18x100,100,GBMTPG
+Caberawit Iqro 3-4,Alim,Hafalan Doa GBMTPG,8,doa,Doa harian,Obj,Doa/8x100,100,GBMTPG
+Caberawit Iqro 3-4,Alim,Hafalan Doa Generus Sorong,30,doa,Doa Generus lengkap,Obj,Doa/30x100,100,Panduan
+Caberawit Iqro 3-4,Alim,Keilmuan GBMTPG,15,materi,Aqidah menengah,Obj,Materi/15x100,100,GBMTPG
+Caberawit Iqro 3-4,Faqih,Kefahaman Agama GBMTPG,20,materi,Kefahaman agama menengah,Obj,Materi/20x100,100,GBMTPG
+Caberawit Iqro 3-4,Faqih,Praktek Ibadah GBMTPG,14,materi,Praktek ibadah menengah,Obj,Materi/14x100,100,GBMTPG
+Caberawit Iqro 3-4,Faqih,Praktek Wudhu Sholat,1,nilai,Praktek wudhu sholat,Subj,Nilai Penguji,75,Panduan
+Caberawit Iqro 3-4,Faqih,Praktek Thoharoh,1,nilai,Praktek thoharoh,Subj,Nilai Penguji,75,Panduan
+Caberawit Iqro 3-4,Faqih,4 Tali Keimanan,100,nilai,Pendalaman 4 Tali Keimanan,Subj,Nilai,100,Panduan
+Caberawit Iqro 3-4,Akhlaq,6 Thobiat Luhur,100,nilai,Pendalaman 6 Thobiat,Subj,Nilai,100,Panduan
+Caberawit Iqro 3-4,Akhlaq,Adab/Tatakrama,108,materi,Tatakrama lengkap,Obj,Materi/108x100,100,GBMTPG
+Caberawit Iqro 3-4,Kemandirian,Kemandirian GBMTPG,17,materi,Kemandirian menengah,Obj,Materi/17x100,100,GBMTPG
+Caberawit Iqro 3-4,Kemandirian,ASAD Beladiri,4,jurus,Jurus 1-4,Subj,Nilai Penguji,75,Panduan
+Caberawit Quran,Keaktifan,Keaktifan Bulanan,20,kali,Target 20x/bulan,Obj,(Total/12)/20x100,100,Panduan
+Caberawit Quran,Alim,Makna Quran,20,halaman,Juz 30,Obj,Hal/20x100,100,Panduan
+Caberawit Quran,Alim,Makna Hadits,9,kitab,9 Kitab Hadits,Obj,Persen/9,100,Panduan
+Caberawit Quran,Alim,Hafalan Surat,30,surat,Juz Amma,Obj,Surat/30x100,100,GBMTPG
+Caberawit Quran,Alim,Hafalan Doa GBMTPG,8,doa,Doa harian,Obj,Doa/8x100,100,GBMTPG
+Caberawit Quran,Alim,Hafalan Doa Generus Sorong,36,doa,Doa Generus lengkap,Obj,Doa/36x100,100,Panduan
+Caberawit Quran,Alim,Hafalan Dalil GBMTPG,9,dalil,Dalil dasar,Obj,Dalil/9x100,100,GBMTPG
+Caberawit Quran,Alim,Hafalan Dalil Generus Sorong,34,dalil,Dalil lengkap,Obj,Dalil/34x100,100,Panduan
+Caberawit Quran,Alim,Keilmuan GBMTPG,15,materi,Aqidah lengkap,Obj,Materi/15x100,100,GBMTPG
+Caberawit Quran,Alim,Tajwid,30,materi,Tajwid lengkap,Obj,Materi/30x100,100,Panduan
+Caberawit Quran,Alim,Kualitas Bacaan,1,nilai,Kualitas bacaan Quran,Subj,Nilai Penguji,75,Panduan
+Caberawit Quran,Alim,Praktek Pegon,1,nilai,Tulisan pegon,Subj,Nilai Penguji,75,Panduan
+Caberawit Quran,Faqih,Kefahaman Agama GBMTPG,25,materi,Kefahaman agama lanjut,Obj,Materi/25x100,100,GBMTPG
+Caberawit Quran,Faqih,Praktek Ibadah GBMTPG,16,materi,Praktek ibadah lanjut,Obj,Materi/16x100,100,GBMTPG
+Caberawit Quran,Faqih,Praktek Wudhu Sholat,1,nilai,Praktek wudhu sholat,Subj,Nilai Penguji,75,Panduan
+Caberawit Quran,Faqih,Praktek Thoharoh,1,nilai,Praktek thoharoh,Subj,Nilai Penguji,75,Panduan
+Caberawit Quran,Faqih,4 Tali Keimanan,100,nilai,Penguasaan 4 Tali Keimanan,Subj,Nilai,100,Panduan
+Caberawit Quran,Akhlaq,6 Thobiat Luhur,100,nilai,Penguasaan 6 Thobiat,Subj,Nilai,100,Panduan
+Caberawit Quran,Akhlaq,Adab/Tatakrama,110,materi,Tatakrama lengkap,Obj,Materi/110x100,100,GBMTPG
+Caberawit Quran,Kemandirian,Kemandirian GBMTPG,21,materi,Kemandirian lanjut,Obj,Materi/21x100,100,GBMTPG
+Caberawit Quran,Kemandirian,ASAD Beladiri,7,jurus,Jurus 1-7,Subj,Nilai Penguji,75,Panduan
+Pra Remaja,Keaktifan,Keaktifan Bulanan,20,kali,Target 20x/bulan,Obj,(Total/12)/20x100,100,Panduan
+Pra Remaja,Alim,Makna Quran,10,juz,Juz 21-30,Obj,Persen/10,100,Panduan
+Pra Remaja,Alim,Makna Hadits,21,kitab,21 Kitab Hadits,Obj,Persen/21,100,Panduan
+Pra Remaja,Alim,Hafalan Surat,45,surat,45 surat,Obj,Surat/45x100,100,GBMTPG
+Pra Remaja,Alim,Hafalan Doa Generus Sorong,39,doa,Doa Generus lengkap,Obj,Doa/39x100,100,Panduan
+Pra Remaja,Alim,Hafalan Dalil Generus Sorong,34,dalil,Dalil lengkap,Obj,Dalil/34x100,100,Panduan
+Pra Remaja,Alim,Keilmuan GBMTPG,15,materi,Keilmuan lengkap,Obj,Materi/15x100,100,GBMTPG
+Pra Remaja,Alim,Tajwid,30,materi,Tajwid lengkap,Obj,Materi/30x100,100,Panduan
+Pra Remaja,Alim,Kualitas Bacaan,1,nilai,Kualitas bacaan Quran,Subj,Nilai Penguji,75,Panduan
+Pra Remaja,Alim,Praktek Pegon,1,nilai,Tulisan pegon,Subj,Nilai Penguji,75,Panduan
+Pra Remaja,Alim,Tadarus Al-Quran,30,juz,Khatam Quran,Obj,Juz/30x100,100,Panduan
+Pra Remaja,Faqih,Kefahaman Agama GBMTPG,35,materi,Kefahaman agama lengkap,Obj,Materi/35x100,100,GBMTPG
+Pra Remaja,Faqih,Praktek Ibadah GBMTPG,20,materi,Praktek ibadah lengkap,Obj,Materi/20x100,100,GBMTPG
+Pra Remaja,Faqih,Praktek Wudhu Sholat,1,nilai,Praktek wudhu sholat,Subj,Nilai Penguji,75,Panduan
+Pra Remaja,Faqih,Praktek Thoharoh,1,nilai,Praktek thoharoh,Subj,Nilai Penguji,75,Panduan
+Pra Remaja,Faqih,Nasehat Bernomor BPI,95,nasehat,95 Nasehat BPI,Obj,Nasehat/95x100,100,Panduan
+Pra Remaja,Faqih,4 Tali Keimanan,100,nilai,Penguasaan 4 Tali Keimanan,Subj,Nilai,100,Panduan
+Pra Remaja,Akhlaq,6 Thobiat Luhur,100,nilai,Penguasaan 6 Thobiat,Subj,Nilai,100,Panduan
+Pra Remaja,Akhlaq,Adab/Tatakrama,120,materi,Tatakrama lengkap,Obj,Materi/120x100,100,GBMTPG
+Pra Remaja,Kemandirian,Kemandirian GBMTPG,25,materi,Kemandirian lengkap,Obj,Materi/25x100,100,GBMTPG
+Pra Remaja,Kemandirian,ASAD Beladiri,7,jurus,Jurus 1-7,Subj,Nilai Penguji,75,Panduan
+Remaja,Keaktifan,Keaktifan Bulanan,20,kali,Target 20x/bulan,Obj,(Total/12)/20x100,100,Panduan
+Remaja,Alim,Makna Quran,20,juz,Juz 11-30,Obj,Persen/20,100,Panduan
+Remaja,Alim,Makna Hadits,27,kitab,27 Kitab Hadits,Obj,Persen/27,100,Panduan
+Remaja,Alim,Hafalan Surat,45,surat,45 surat,Obj,Surat/45x100,100,GBMTPG
+Remaja,Alim,Hafalan Doa Generus Sorong,39,doa,Doa Generus lengkap,Obj,Doa/39x100,100,Panduan
+Remaja,Alim,Hafalan Dalil Generus Sorong,34,dalil,Dalil lengkap,Obj,Dalil/34x100,100,Panduan
+Remaja,Alim,Keilmuan GBMTPG,15,materi,Keilmuan lengkap,Obj,Materi/15x100,100,GBMTPG
+Remaja,Alim,Tajwid,30,materi,Tajwid lengkap,Obj,Materi/30x100,100,Panduan
+Remaja,Alim,Kualitas Bacaan,1,nilai,Kualitas bacaan Quran,Subj,Nilai Penguji,75,Panduan
+Remaja,Alim,Praktek Pegon,1,nilai,Tulisan pegon,Subj,Nilai Penguji,75,Panduan
+Remaja,Alim,Tadarus Al-Quran,30,juz,Khatam Quran,Obj,Juz/30x100,100,Panduan
+Remaja,Faqih,Kefahaman Agama GBMTPG,35,materi,Kefahaman agama lengkap,Obj,Materi/35x100,100,GBMTPG
+Remaja,Faqih,Praktek Ibadah GBMTPG,20,materi,Praktek ibadah lengkap,Obj,Materi/20x100,100,GBMTPG
+Remaja,Faqih,Praktek Wudhu Sholat,1,nilai,Praktek wudhu sholat,Subj,Nilai Penguji,75,Panduan
+Remaja,Faqih,Praktek Thoharoh,1,nilai,Praktek thoharoh,Subj,Nilai Penguji,75,Panduan
+Remaja,Faqih,Praktek Perawatan Jenazah,1,nilai,Perawatan jenazah,Subj,Nilai Penguji,75,Panduan
+Remaja,Faqih,Nasehat Bernomor BPI,95,nasehat,95 Nasehat BPI,Obj,Nasehat/95x100,100,Panduan
+Remaja,Faqih,4 Tali Keimanan,100,nilai,Penguasaan 4 Tali Keimanan,Subj,Nilai,100,Panduan
+Remaja,Akhlaq,6 Thobiat Luhur,100,nilai,Penguasaan 6 Thobiat,Subj,Nilai,100,Panduan
+Remaja,Akhlaq,Adab/Tatakrama,120,materi,Tatakrama lengkap,Obj,Materi/120x100,100,GBMTPG
+Remaja,Kemandirian,Kemandirian GBMTPG,25,materi,Kemandirian lengkap,Obj,Materi/25x100,100,GBMTPG
+Remaja,Kemandirian,ASAD Beladiri,7,jurus,Jurus 1-7,Subj,Nilai Penguji,75,Panduan
+Pra Nikah,Keaktifan,Keaktifan Bulanan,16,kali,Target 16x/bulan,Obj,(Total/12)/16x100,100,Panduan
+Pra Nikah,Alim,Makna Quran,30,juz,Juz 1-30 lengkap,Obj,Persen/30,100,Panduan
+Pra Nikah,Alim,Makna Hadits,30,kitab,30 Kitab Hadits,Obj,Persen/30,100,Panduan
+Pra Nikah,Alim,Hafalan Surat,45,surat,45 surat,Obj,Surat/45x100,100,GBMTPG
+Pra Nikah,Alim,Hafalan Doa Generus Sorong,39,doa,Doa Generus lengkap,Obj,Doa/39x100,100,Panduan
+Pra Nikah,Alim,Hafalan Dalil Generus Sorong,34,dalil,Dalil lengkap,Obj,Dalil/34x100,100,Panduan
+Pra Nikah,Alim,Keilmuan GBMTPG,15,materi,Keilmuan lengkap,Obj,Materi/15x100,100,GBMTPG
+Pra Nikah,Alim,Tajwid,30,materi,Tajwid lengkap,Obj,Materi/30x100,100,Panduan
+Pra Nikah,Alim,Kualitas Bacaan,1,nilai,Kualitas bacaan Quran,Subj,Nilai Penguji,75,Panduan
+Pra Nikah,Alim,Praktek Pegon,1,nilai,Tulisan pegon,Subj,Nilai Penguji,75,Panduan
+Pra Nikah,Alim,Tadarus Al-Quran,30,juz,Khatam Quran,Obj,Juz/30x100,100,Panduan
+Pra Nikah,Faqih,Kefahaman Agama GBMTPG,35,materi,Kefahaman agama lengkap,Obj,Materi/35x100,100,GBMTPG
+Pra Nikah,Faqih,Praktek Ibadah GBMTPG,20,materi,Praktek ibadah lengkap,Obj,Materi/20x100,100,GBMTPG
+Pra Nikah,Faqih,Praktek Wudhu Sholat,1,nilai,Praktek wudhu sholat,Subj,Nilai Penguji,75,Panduan
+Pra Nikah,Faqih,Praktek Thoharoh,1,nilai,Praktek thoharoh,Subj,Nilai Penguji,75,Panduan
+Pra Nikah,Faqih,Praktek Perawatan Jenazah,1,nilai,Perawatan jenazah,Subj,Nilai Penguji,75,Panduan
+Pra Nikah,Faqih,Nasehat Bernomor BPI,95,nasehat,95 Nasehat BPI,Obj,Nasehat/95x100,100,Panduan
+Pra Nikah,Faqih,4 Tali Keimanan,100,nilai,Penguasaan 4 Tali Keimanan,Subj,Nilai,100,Panduan
+Pra Nikah,Akhlaq,6 Thobiat Luhur,100,nilai,Penguasaan 6 Thobiat,Subj,Nilai,100,Panduan
+Pra Nikah,Akhlaq,Adab/Tatakrama,120,materi,Tatakrama lengkap,Obj,Materi/120x100,100,GBMTPG
+Pra Nikah,Kemandirian,Kemandirian GBMTPG,25,materi,Kemandirian lengkap,Obj,Materi/25x100,100,GBMTPG
+Pra Nikah,Kemandirian,ASAD Beladiri,7,jurus,Jurus 1-7,Subj,Nilai Penguji,75,Panduan

@@ -440,7 +440,73 @@ function forceRelogin() {
     window.location.href = 'index.html';
 }
 
+// ============================================================================
+// COMPATIBILITY: checkAuth function (alias untuk checkSession)
+// ============================================================================
+
+async function checkAuth() {
+    try {
+        // Check test mode first
+        if (checkTestMode()) {
+            await loadTestModeData();
+            // Return user-like object for test mode
+            if (currentUserData) {
+                return {
+                    id: currentUserData.auth_id || currentUserData.id,
+                    email: currentUserData.email,
+                    user_metadata: {
+                        nama: currentUserData.nama,
+                        role: userRoles.length > 0 ? userRoles[0].role?.nama : 'user'
+                    }
+                };
+            }
+        }
+        
+        const { data: { session }, error } = await db.auth.getSession();
+        
+        if (error) {
+            console.error('checkAuth error:', error);
+            // Try refresh if JWT error
+            if (error.message && (error.message.includes('JWT') || error.message.includes('expired'))) {
+                const refreshed = await refreshSession();
+                if (refreshed) {
+                    const { data: { session: newSession } } = await db.auth.getSession();
+                    if (newSession) {
+                        currentUser = newSession.user;
+                        await loadUserData();
+                        return newSession.user;
+                    }
+                }
+            }
+            return null;
+        }
+        
+        if (session && session.user) {
+            currentUser = session.user;
+            await loadUserData();
+            
+            // Enhance user object with role info
+            var user = session.user;
+            if (currentUserData) {
+                user.user_metadata = user.user_metadata || {};
+                user.user_metadata.nama = currentUserData.nama || user.user_metadata.nama;
+                if (userRoles.length > 0) {
+                    user.user_metadata.role = userRoles[0].role?.nama || 'user';
+                }
+            }
+            
+            return user;
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('checkAuth exception:', error);
+        return null;
+    }
+}
+
 // Expose untuk debugging
 window.forceRelogin = forceRelogin;
 window.clearAuthData = clearAuthData;
 window.refreshSession = refreshSession;
+window.checkAuth = checkAuth;
