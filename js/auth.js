@@ -1,5 +1,5 @@
 // ============================================================================
-// AUTHENTICATION HANDLER - PPG SORONG
+// AUTHENTICATION HANDLER - PPG SORONG (FIXED VERSION)
 // ============================================================================
 
 // State
@@ -51,12 +51,87 @@ async function loadTestModeData() {
 }
 
 // ============================================================================
+// SESSION REFRESH HANDLER (NEW)
+// ============================================================================
+
+// Auto refresh session sebelum expired
+async function setupSessionRefresh() {
+    // Refresh session setiap 10 menit
+    setInterval(async () => {
+        try {
+            const { data: { session }, error } = await db.auth.getSession();
+            if (session && !error) {
+                // Session masih valid, cek apakah perlu refresh
+                const expiresAt = session.expires_at * 1000; // convert to ms
+                const now = Date.now();
+                const timeUntilExpiry = expiresAt - now;
+                
+                // Refresh jika kurang dari 5 menit
+                if (timeUntilExpiry < 5 * 60 * 1000) {
+                    console.log('Session akan expire, refreshing...');
+                    await refreshSession();
+                }
+            }
+        } catch (e) {
+            console.error('Error checking session:', e);
+        }
+    }, 10 * 60 * 1000); // Check setiap 10 menit
+}
+
+// Refresh session token
+async function refreshSession() {
+    try {
+        const { data, error } = await db.auth.refreshSession();
+        if (error) {
+            console.error('Failed to refresh session:', error);
+            // Jika refresh gagal, redirect ke login
+            if (error.message.includes('JWT') || error.message.includes('expired')) {
+                clearAuthData();
+                window.location.href = 'index.html';
+            }
+            return false;
+        }
+        console.log('Session refreshed successfully');
+        return true;
+    } catch (e) {
+        console.error('Error refreshing session:', e);
+        return false;
+    }
+}
+
+// Clear semua auth data
+function clearAuthData() {
+    // Clear test mode
+    localStorage.removeItem('ppg_test_mode');
+    localStorage.removeItem('ppg_test_user');
+    localStorage.removeItem('ppg_test_role');
+    
+    // Clear Supabase tokens (pattern: sb-[project-ref]-auth-token)
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+        if (key.startsWith('sb-') && key.includes('-auth-token')) {
+            localStorage.removeItem(key);
+        }
+    });
+    
+    // Clear state
+    currentUser = null;
+    currentUserData = null;
+    userRoles = [];
+    isTestMode = false;
+    testActiveRole = null;
+}
+
+// ============================================================================
 // AUTH FUNCTIONS
 // ============================================================================
 
 // Login dengan email dan password
 async function login(email, password) {
     try {
+        // Clear any stale tokens first
+        clearAuthData();
+        
         const { data, error } = await db.auth.signInWithPassword({
             email: email,
             password: password
@@ -64,14 +139,11 @@ async function login(email, password) {
         
         if (error) throw error;
         
-        // Clear test mode
-        localStorage.removeItem('ppg_test_mode');
-        localStorage.removeItem('ppg_test_user');
-        localStorage.removeItem('ppg_test_role');
-        isTestMode = false;
-        
         currentUser = data.user;
         await loadUserData();
+        
+        // Setup auto refresh
+        setupSessionRefresh();
         
         return { success: true, user: data.user };
     } catch (error) {
@@ -105,25 +177,16 @@ async function register(email, password, nama) {
 // Logout
 async function logout() {
     try {
-        // Clear test mode
-        localStorage.removeItem('ppg_test_mode');
-        localStorage.removeItem('ppg_test_user');
-        localStorage.removeItem('ppg_test_role');
-        isTestMode = false;
-        testActiveRole = null;
-        
         await db.auth.signOut();
-        currentUser = null;
-        currentUserData = null;
-        userRoles = [];
-        window.location.href = 'index.html';
     } catch (error) {
         console.error('Logout error:', error);
+    } finally {
+        clearAuthData();
         window.location.href = 'index.html';
     }
 }
 
-// Cek session aktif
+// Cek session aktif (IMPROVED)
 async function checkSession() {
     try {
         // Check test mode first
@@ -132,22 +195,57 @@ async function checkSession() {
             return true;
         }
         
-        const { data: { session } } = await db.auth.getSession();
+        const { data: { session }, error } = await db.auth.getSession();
+        
+        // Handle JWT errors
+        if (error) {
+            console.error('Session error:', error);
+            if (error.message.includes('JWT') || error.message.includes('expired') || error.message.includes('invalid')) {
+                console.log('JWT error detected, attempting refresh...');
+                
+                // Try to refresh
+                const refreshResult = await refreshSession();
+                if (!refreshResult) {
+                    clearAuthData();
+                    return false;
+                }
+                
+                // Get session again after refresh
+                const { data: { session: newSession } } = await db.auth.getSession();
+                if (newSession) {
+                    currentUser = newSession.user;
+                    await loadUserData();
+                    setupSessionRefresh();
+                    return true;
+                }
+            }
+            return false;
+        }
         
         if (session) {
             currentUser = session.user;
             await loadUserData();
+            
+            // Setup auto refresh for existing session
+            setupSessionRefresh();
+            
             return true;
         }
         return false;
     } catch (error) {
         console.error('Session check error:', error);
+        
+        // Jika error adalah JWT related, clear dan redirect
+        if (error.message && (error.message.includes('JWT') || error.message.includes('expired'))) {
+            clearAuthData();
+        }
+        
         return false;
     }
 }
 
-// Load user data dari tabel users
-async function loadUserData() {
+// Load user data dari tabel users (IMPROVED with retry)
+async function loadUserData(retryCount = 0) {
     if (!currentUser) return;
     
     try {
@@ -158,7 +256,15 @@ async function loadUserData() {
             .eq('auth_id', currentUser.id)
             .single();
         
-        if (userError) throw userError;
+        if (userError) {
+            // Jika JWT error, coba refresh
+            if (userError.message && userError.message.includes('JWT') && retryCount < 2) {
+                console.log('JWT error in loadUserData, refreshing session...');
+                await refreshSession();
+                return loadUserData(retryCount + 1);
+            }
+            throw userError;
+        }
         currentUserData = userData;
         
         // Get user roles
@@ -172,7 +278,15 @@ async function loadUserData() {
             .eq('user_id', userData.id)
             .eq('is_aktif', true);
         
-        if (rolesError) throw rolesError;
+        if (rolesError) {
+            // Jika JWT error, coba refresh
+            if (rolesError.message && rolesError.message.includes('JWT') && retryCount < 2) {
+                console.log('JWT error in loadUserData roles, refreshing session...');
+                await refreshSession();
+                return loadUserData(retryCount + 1);
+            }
+            throw rolesError;
+        }
         userRoles = rolesData || [];
         
     } catch (error) {
@@ -259,18 +373,26 @@ function getActiveTestRole() {
 }
 
 // ============================================================================
-// AUTH GUARD - Proteksi halaman
+// AUTH GUARD - Proteksi halaman (IMPROVED)
 // ============================================================================
 
 async function requireAuth() {
-    const isLoggedIn = await checkSession();
-    
-    if (!isLoggedIn) {
+    try {
+        const isLoggedIn = await checkSession();
+        
+        if (!isLoggedIn) {
+            clearAuthData();
+            window.location.href = 'index.html';
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('requireAuth error:', error);
+        clearAuthData();
         window.location.href = 'index.html';
         return false;
     }
-    
-    return true;
 }
 
 // Auth guard untuk halaman admin only
@@ -288,16 +410,37 @@ async function requireAdmin() {
 }
 
 // ============================================================================
-// AUTH STATE LISTENER
+// AUTH STATE LISTENER (IMPROVED)
 // ============================================================================
 
 db.auth.onAuthStateChange((event, session) => {
+    console.log('Auth state changed:', event);
+    
     if (event === 'SIGNED_IN') {
         currentUser = session.user;
         loadUserData();
+        setupSessionRefresh();
     } else if (event === 'SIGNED_OUT') {
-        currentUser = null;
-        currentUserData = null;
-        userRoles = [];
+        clearAuthData();
+    } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed automatically');
+        currentUser = session.user;
+    } else if (event === 'USER_UPDATED') {
+        currentUser = session.user;
+        loadUserData();
     }
 });
+
+// ============================================================================
+// UTILITY: Force clear and re-login (untuk debugging)
+// ============================================================================
+
+function forceRelogin() {
+    clearAuthData();
+    window.location.href = 'index.html';
+}
+
+// Expose untuk debugging
+window.forceRelogin = forceRelogin;
+window.clearAuthData = clearAuthData;
+window.refreshSession = refreshSession;
