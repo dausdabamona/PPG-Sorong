@@ -98,18 +98,15 @@
                                 <option value="meninggal">Meninggal</option>
                             </select>
                         </div>
-                        <!-- Row 2: Daerah + Desa -->
+                        <!-- Row 2: Desa + Kelompok -->
                         <div class="filter-grid" style="margin-top:8px;">
-                            <select class="form-control" id="filterDaerah" onchange="onFilterDaerahChange()">
-                                <option value="">Semua Daerah</option>
-                            </select>
                             <select class="form-control" id="filterDesa" onchange="onFilterDesaChange()">
                                 <option value="">Semua Desa</option>
                             </select>
+                            <select class="form-control" id="filterKelompok" onchange="loadJamaah()">
+                                <option value="">Semua Kelompok</option>
+                            </select>
                         </div>
-                        <!-- Row 3: Kelompok (hidden, for internal use) -->
-                        <input type="hidden" id="filterKelompok" value="">
-                        <input type="hidden" id="filterJenjang" value="">
                         <div style="margin-top:8px;">
                             <small class="text-muted" id="infoTotal">Total: 0 jamaah</small>
                         </div>
@@ -210,7 +207,6 @@
                             </div>
                         </div>
                     </div>
-                    <input type="hidden" name="daerah_id" id="formDaerah">
                 </form>
             </div>
             <div class="modal-footer">
@@ -311,62 +307,44 @@
                 const userWilayah = userWilayahId ? allWilayah.find(w => w.id === userWilayahId) : null;
                 const userTingkat = userWilayah?.tingkat;
                 
-                // Populate filter daerah
-                let daerahList = allWilayah.filter(w => w.tingkat === 'daerah');
-                
-                if (!isAdmin && userTingkat === 'daerah') {
-                    // User level daerah: hanya tampilkan daerahnya
-                    daerahList = daerahList.filter(d => d.id === userWilayahId);
-                } else if (!isAdmin && userTingkat === 'desa') {
-                    // User level desa: tampilkan parent daerahnya
-                    daerahList = daerahList.filter(d => d.id === userWilayah.parent_id);
-                } else if (!isAdmin && userTingkat === 'kelompok') {
-                    // User level kelompok: cari parent desa lalu parent daerah
-                    const desaUser = allWilayah.find(w => w.id === userWilayah.parent_id);
-                    if (desaUser) {
-                        daerahList = daerahList.filter(d => d.id === desaUser.parent_id);
-                    }
-                }
-                
-                $('filterDaerah').innerHTML = '<option value="">Semua Daerah</option>' + 
-                    daerahList.map(function(d) { return '<option value="' + d.id + '">' + d.nama + '</option>'; }).join('');
-                
                 // Populate filter desa
-                var desaList = allWilayah.filter(function(w) { return w.tingkat === 'desa'; });
+                let desaList = allWilayah.filter(w => w.tingkat === 'desa');
                 allDesa = desaList;
-                $('filterDesa').innerHTML = '<option value="">Semua Desa</option>' + 
-                    desaList.map(function(d) { return '<option value="' + d.id + '">' + d.nama + '</option>'; }).join('');
                 
-                // Form daerah (hidden, auto-set ke daerah pertama)
-                if (daerahList.length > 0) {
-                    $('formDaerah').value = daerahList[0].id;
+                if (!isAdmin && userTingkat === 'desa') {
+                    desaList = desaList.filter(d => d.id === userWilayahId);
+                } else if (!isAdmin && userTingkat === 'kelompok') {
+                    desaList = desaList.filter(d => d.id === userWilayah.parent_id);
                 }
                 
-                // Populate filter kelompok berdasarkan tingkat user
-                var kelompokList = allWilayah.filter(function(w) { return w.tingkat === 'kelompok'; });
+                $('filterDesa').innerHTML = '<option value="">Semua Desa</option>' + 
+                    desaList.map(d => `<option value="${d.id}">${d.nama}</option>`).join('');
+                
+                // Populate filter kelompok
+                let kelompokList = allWilayah.filter(w => w.tingkat === 'kelompok');
                 allKelompok = kelompokList;
                 
                 if (!isAdmin && userTingkat === 'kelompok') {
-                    kelompokList = kelompokList.filter(function(k) { return k.id === userWilayahId; });
+                    kelompokList = kelompokList.filter(k => k.id === userWilayahId);
                 } else if (!isAdmin && userTingkat === 'desa') {
-                    kelompokList = kelompokList.filter(function(k) { return k.parent_id === userWilayahId; });
-                } else if (!isAdmin && userTingkat === 'daerah') {
-                    var desaIds = allWilayah.filter(function(w) { return w.tingkat === 'desa' && w.parent_id === userWilayahId; }).map(function(d) { return d.id; });
-                    kelompokList = kelompokList.filter(function(k) { return desaIds.includes(k.parent_id); });
+                    kelompokList = kelompokList.filter(k => k.parent_id === userWilayahId);
                 }
+                
+                $('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' + 
+                    kelompokList.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
                 
                 // Form kelompok (untuk tambah/edit santri)
                 $('formKelompok').innerHTML = '<option value="">-- Pilih Kelompok --</option>' + 
-                    kelompokList.map(function(k) { return '<option value="' + k.id + '">' + k.nama + '</option>'; }).join('');
+                    kelompokList.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
                 
                 // Load jenjang
-                var jenjangResult = await db.from('jenjang').select('*').eq('is_aktif', true).order('urutan');
-                allJenjang = jenjangResult.data || [];
+                const { data: jenjangData } = await db.from('jenjang').select('*').eq('is_aktif', true).order('urutan');
+                allJenjang = jenjangData || [];
                 
                 $('formJenjang').innerHTML = '<option value="">-- Pilih --</option>' + 
-                    allJenjang.map(function(j) {
-                        var usiaText = (j.usia_mulai && j.usia_sampai) ? ' (' + j.usia_mulai + '-' + j.usia_sampai + ' th)' : '';
-                        return '<option value="' + j.id + '">' + j.nama + usiaText + '</option>';
+                    allJenjang.map(j => {
+                        const usiaText = (j.usia_mulai && j.usia_sampai) ? ` (${j.usia_mulai}-${j.usia_sampai} th)` : '';
+                        return `<option value="${j.id}">${j.nama}${usiaText}</option>`;
                     }).join('');
                     
             } catch (error) {
@@ -377,25 +355,20 @@
         var allDesa = [];
         var allKelompok = [];
         
-        // Filter daerah berubah -> update desa
-        function onFilterDaerahChange() {
-            var daerahId = $('filterDaerah').value;
+        // Filter desa berubah -> update kelompok
+        function onFilterDesaChange() {
+            const desaId = $('filterDesa').value;
             
-            var filteredDesa;
-            if (daerahId) {
-                filteredDesa = allDesa.filter(function(d) { return d.parent_id == daerahId; });
+            let filteredKelompok;
+            if (desaId) {
+                filteredKelompok = allKelompok.filter(k => k.parent_id == desaId);
             } else {
-                filteredDesa = allDesa;
+                filteredKelompok = allKelompok;
             }
             
-            $('filterDesa').innerHTML = '<option value="">Semua Desa</option>' + 
-                filteredDesa.map(function(d) { return '<option value="' + d.id + '">' + d.nama + '</option>'; }).join('');
+            $('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' + 
+                filteredKelompok.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
             
-            loadJamaah();
-        }
-        
-        // Filter desa berubah
-        function onFilterDesaChange() {
             loadJamaah();
         }
         
@@ -504,24 +477,13 @@
         
         async function loadJamaah() {
             try {
-                var search = $('searchInput').value.trim().toLowerCase();
-                var status = $('filterStatus').value || 'aktif';
-                var daerahId = $('filterDaerah').value;
-                var desaId = $('filterDesa').value;
-                
-                // Determine which kelompok to load based on filters
-                var kelompokIds = [];
-                if (desaId) {
-                    kelompokIds = allKelompok.filter(function(k) { return k.parent_id == desaId; }).map(function(k) { return k.id; });
-                } else if (daerahId) {
-                    var desaIds = allDesa.filter(function(d) { return d.parent_id == daerahId; }).map(function(d) { return d.id; });
-                    kelompokIds = allKelompok.filter(function(k) { return desaIds.includes(k.parent_id); }).map(function(k) { return k.id; });
-                } else {
-                    kelompokIds = allKelompok.map(function(k) { return k.id; });
-                }
+                const search = $('searchInput').value.trim().toLowerCase();
+                const status = $('filterStatus').value || 'aktif';
+                const desaId = $('filterDesa').value;
+                const kelompokId = $('filterKelompok').value;
                 
                 // Call RPC function
-                var result = await db.rpc('get_jamaah_by_wilayah', {
+                const result = await db.rpc('get_jamaah_by_wilayah', {
                     p_wilayah_id: null,
                     p_jenjang_id: null,
                     p_status: status || null
@@ -529,23 +491,27 @@
                 
                 if (result.error) throw result.error;
                 
-                var allData = result.data || [];
+                let allData = result.data || [];
                 
-                // Filter by selected kelompok
-                var filtered = allData.filter(function(j) {
-                    return kelompokIds.length === 0 || kelompokIds.includes(j.kelompok_id);
-                });
+                // Filter by kelompok (jika dipilih)
+                if (kelompokId) {
+                    allData = allData.filter(j => j.kelompok_id == kelompokId);
+                } else if (desaId) {
+                    // Filter by desa (ambil semua kelompok dalam desa)
+                    const kelompokInDesa = allKelompok.filter(k => k.parent_id == desaId).map(k => k.id);
+                    allData = allData.filter(j => kelompokInDesa.includes(j.kelompok_id));
+                }
                 
                 // Filter by search
                 if (search) {
-                    filtered = filtered.filter(function(j) {
-                        return j.nama.toLowerCase().includes(search) ||
-                            (j.nama_panggilan && j.nama_panggilan.toLowerCase().includes(search));
-                    });
+                    allData = allData.filter(j => 
+                        j.nama.toLowerCase().includes(search) ||
+                        (j.nama_panggilan && j.nama_panggilan.toLowerCase().includes(search))
+                    );
                 }
                 
-                $('infoTotal').textContent = 'Total: ' + filtered.length + ' jamaah';
-                renderGrouped(filtered);
+                $('infoTotal').textContent = 'Total: ' + allData.length + ' jamaah';
+                renderGroupedByJenjang(allData);
                 
             } catch (error) {
                 console.error('Error loading jamaah:', error);
@@ -553,68 +519,91 @@
             }
         }
         
-        function renderGrouped(data) {
-            var container = $('jamaahContainer');
+        function renderGroupedByJenjang(data) {
+            const container = $('jamaahContainer');
             
             if (!data.length) {
                 container.innerHTML = '<div class="card"><div class="card-body text-center text-muted py-4">Tidak ada data</div></div>';
                 return;
             }
             
-            // Group by kelompok
-            var groups = {};
-            for (var i = 0; i < data.length; i++) {
-                var j = data[i];
-                var kelompok = j.kelompok_nama || 'Tanpa Kelompok';
-                if (!groups[kelompok]) {
-                    groups[kelompok] = [];
+            // Group by jenjang
+            const groups = {};
+            for (const j of data) {
+                const jenjang = j.jenjang_nama || 'Tanpa Jenjang';
+                if (!groups[jenjang]) {
+                    groups[jenjang] = [];
                 }
-                groups[kelompok].push(j);
+                groups[jenjang].push(j);
             }
             
-            var html = '';
-            var kelompokNames = Object.keys(groups).sort();
+            // Sort jenjang berdasarkan urutan di allJenjang
+            const jenjangOrder = allJenjang.map(j => j.nama);
+            const sortedJenjang = Object.keys(groups).sort((a, b) => {
+                const indexA = jenjangOrder.indexOf(a);
+                const indexB = jenjangOrder.indexOf(b);
+                if (indexA === -1) return 1;
+                if (indexB === -1) return -1;
+                return indexA - indexB;
+            });
             
-            for (var k = 0; k < kelompokNames.length; k++) {
-                var kelompok = kelompokNames[k];
-                var members = groups[kelompok];
+            let html = '';
+            
+            for (const jenjang of sortedJenjang) {
+                const members = groups[jenjang];
                 
-                html += '<div class="card mb-sm">';
-                html += '<div class="card-header" style="background:#d1fae5;padding:8px 12px;">';
-                html += '<strong>🏠 ' + kelompok + '</strong>';
-                html += '<span class="badge badge-primary" style="margin-left:8px;">' + members.length + '</span>';
-                html += '</div>';
-                html += '<div class="card-body" style="padding:0;">';
-                html += '<div class="table-responsive">';
-                html += '<table class="table" style="margin:0;">';
-                html += '<thead><tr>';
-                html += '<th width="35">NO</th>';
-                html += '<th>NAMA</th>';
-                html += '<th width="40">L/P</th>';
-                html += '<th width="80">JENJANG</th>';
-                html += '<th width="70">AKSI</th>';
-                html += '</tr></thead>';
-                html += '<tbody>';
+                // Sort members by nama
+                members.sort((a, b) => a.nama.localeCompare(b.nama));
                 
-                for (var m = 0; m < members.length; m++) {
-                    var j = members[m];
-                    html += '<tr>';
-                    html += '<td>' + (m + 1) + '</td>';
-                    html += '<td><strong>' + j.nama + '</strong>';
-                    if (j.nama_panggilan) html += '<br><small class="text-muted">' + j.nama_panggilan + '</small>';
-                    html += '</td>';
-                    html += '<td>' + (j.jenis_kelamin || '-') + '</td>';
-                    html += '<td><span class="badge badge-info">' + (j.jenjang_nama || '-') + '</span></td>';
-                    html += '<td>';
-                    html += '<div class="btn-group">';
-                    html += '<button class="btn btn-sm btn-outline" onclick="editJamaah(' + j.jamaah_id + ')" title="Edit">✏️</button>';
-                    html += '<button class="btn btn-sm btn-danger" onclick="deleteJamaah(' + j.jamaah_id + ')" title="Hapus">🗑️</button>';
-                    html += '</div>';
-                    html += '</td>';
-                    html += '</tr>';
+                // Jenjang badge colors
+                const badgeColors = {
+                    'PAUD': '#f59e0b',
+                    'Caberawit': '#10b981',
+                    'Praremaja': '#3b82f6',
+                    'Remaja': '#8b5cf6',
+                    'Pranikah': '#ec4899',
+                    'Dewasa': '#6b7280'
+                };
+                const bgColor = badgeColors[jenjang] || '#059669';
+                
+                html += `<div class="card mb-sm">`;
+                html += `<div class="card-header" style="background:${bgColor}20;padding:10px 12px;border-left:4px solid ${bgColor};">`;
+                html += `<div style="display:flex;justify-content:space-between;align-items:center;">`;
+                html += `<strong style="color:${bgColor};">📚 ${jenjang}</strong>`;
+                html += `<span class="badge" style="background:${bgColor};color:white;">${members.length} jamaah</span>`;
+                html += `</div>`;
+                html += `</div>`;
+                html += `<div class="card-body" style="padding:0;">`;
+                html += `<div class="table-responsive">`;
+                html += `<table class="table" style="margin:0;">`;
+                html += `<thead><tr>`;
+                html += `<th width="35">NO</th>`;
+                html += `<th>NAMA</th>`;
+                html += `<th width="40">L/P</th>`;
+                html += `<th>KELOMPOK</th>`;
+                html += `<th width="70">AKSI</th>`;
+                html += `</tr></thead>`;
+                html += `<tbody>`;
+                
+                for (let i = 0; i < members.length; i++) {
+                    const j = members[i];
+                    html += `<tr>`;
+                    html += `<td>${i + 1}</td>`;
+                    html += `<td><strong>${j.nama}</strong>`;
+                    if (j.nama_panggilan) html += `<br><small class="text-muted">${j.nama_panggilan}</small>`;
+                    html += `</td>`;
+                    html += `<td>${j.jenis_kelamin || '-'}</td>`;
+                    html += `<td><small>${j.kelompok_nama || '-'}</small></td>`;
+                    html += `<td>`;
+                    html += `<div class="btn-group">`;
+                    html += `<button class="btn btn-sm btn-outline" onclick="editJamaah(${j.jamaah_id})" title="Edit">✏️</button>`;
+                    html += `<button class="btn btn-sm btn-danger" onclick="deleteJamaah(${j.jamaah_id})" title="Hapus">🗑️</button>`;
+                    html += `</div>`;
+                    html += `</td>`;
+                    html += `</tr>`;
                 }
                 
-                html += '</tbody></table></div></div></div>';
+                html += `</tbody></table></div></div></div>`;
             }
             
             container.innerHTML = html;
