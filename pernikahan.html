@@ -13,6 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/mobile-menu.css">
     <style>
         .couple-card {
             background: white;
@@ -218,11 +219,11 @@
                             <div class="stat-number" id="statTotal">0</div>
                             <div class="stat-label">Total Pernikahan</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" id="cardMonogami" style="display:none;">
                             <div class="stat-number" id="statMonogami">0</div>
                             <div class="stat-label">Monogami</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" id="cardPoligami" style="display:none;">
                             <div class="stat-number" id="statPoligami">0</div>
                             <div class="stat-label">Poligami</div>
                         </div>
@@ -344,6 +345,14 @@
             
             $('accessDenied').style.display = 'none';
             $('mainContent').style.display = 'block';
+            
+            // Tampilkan statistik monogami/poligami hanya untuk Firdaus Dabamona
+            const isFirdaus = currentUserData?.nama?.toLowerCase().includes('firdaus') && 
+                              currentUserData?.nama?.toLowerCase().includes('dabamona');
+            if (isFirdaus) {
+                if ($('cardMonogami')) $('cardMonogami').style.display = 'block';
+                if ($('cardPoligami')) $('cardPoligami').style.display = 'block';
+            }
             
             await loadCalonPasangan();
             await loadPernikahan();
@@ -891,11 +900,12 @@
                 <span class="bottom-nav-icon">📈</span>
                 <span class="bottom-nav-label">Progress</span>
             </a>
-            <a href="#" class="bottom-nav-item" onclick="toggleSidebar(); return false;">
+            <a href="#" class="bottom-nav-item" onclick="openMobileMenu(); return false;">
                 <span class="bottom-nav-icon">☰</span>
                 <span class="bottom-nav-label">Menu</span>
             </a>
         </div>
     </nav>
+    <script src="js/mobile-menu.js"></script>
 </body>
 </html>

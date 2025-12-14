@@ -497,45 +497,27 @@ h1, h2, h3, h4 { font-weight: 600; color: var(--gray-900); }
     bottom: 0;
     left: 0;
     right: 0;
+    height: var(--bottom-nav-height);
     background: var(--white);
     border-top: 1px solid var(--gray-200);
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    z-index: 100;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-}
-.bottom-nav-grid {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    height: var(--bottom-nav-height);
-    max-width: 100%;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    z-index: 100;
 }
 .bottom-nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     text-decoration: none;
     color: var(--gray-400);
-    padding: 6px 12px;
-    min-width: 60px;
-    flex: 1;
-    max-width: 80px;
-    transition: color 0.2s;
+    padding: 4px;
+    min-width: 50px;
 }
-.bottom-nav-item:hover,
-.bottom-nav-item.active { 
-    color: var(--primary); 
-}
-.bottom-nav-icon { 
-    font-size: 1.3rem; 
-    line-height: 1;
-}
-.bottom-nav-label { 
-    font-size: 0.6rem; 
-    margin-top: 3px;
-    white-space: nowrap;
-}
+.bottom-nav-item.active { color: var(--primary); }
+.bottom-nav-icon { font-size: 1.2rem; }
+.bottom-nav-label { font-size: 0.55rem; margin-top: 2px; }
 
 /* JENJANG LIST */
 .jenjang-list { display: flex; flex-direction: column; gap: 4px; }

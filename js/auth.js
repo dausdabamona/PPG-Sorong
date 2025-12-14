@@ -190,10 +190,55 @@ function isAdmin() {
     return userRoles.some(ur => ur.role?.kode?.toLowerCase() === 'admin');
 }
 
-// Cek apakah mubaligh/pengajar
+// Cek apakah operator (admin atau operator)
+function isOperator() {
+    return userRoles.some(ur => 
+        ur.role?.kode?.toLowerCase() === 'operator' || 
+        ur.role?.kode?.toLowerCase() === 'admin'
+    );
+}
+
+// Cek apakah mubaligh/pengajar (semua yang bisa mengajar)
 function isMubaligh() {
-    const mubalighRoles = ['mubaligh', 'mubaligh_daerah', 'mubaligh_desa', 'imam_kelompok', 'wakil_kelompok', 'pakar_pendidik', 'asisten_mubaligh', 'mubaligh_kelompok', 'ki_kelompok', 'pjp'];
+    const mubalighRoles = [
+        // Daerah
+        'ki_daerah',
+        'wakil_ki_daerah',
+        'mubaligh_daerah',
+        'pakar_pendidik',
+        // Desa
+        'ki_desa',
+        'wakil_ki_desa',
+        'mubaligh_desa',
+        // Kelompok
+        'ki_kelompok',
+        'pjp',
+        'asisten_mubaligh'
+    ];
     return userRoles.some(ur => mubalighRoles.includes(ur.role?.kode?.toLowerCase()));
+}
+
+// Cek apakah pimpinan (KI atau Wakil KI)
+function isPimpinan() {
+    const pimpinanRoles = [
+        'ki_daerah', 'wakil_ki_daerah',
+        'ki_desa', 'wakil_ki_desa',
+        'ki_kelompok'
+    ];
+    return userRoles.some(ur => pimpinanRoles.includes(ur.role?.kode?.toLowerCase()));
+}
+
+// Cek apakah punya akses level tertentu (daerah/desa/kelompok)
+function hasLevel(level) {
+    return userRoles.some(ur => ur.role?.level?.toLowerCase() === level.toLowerCase());
+}
+
+// Cek apakah pengurus/admin desa
+function isPengurusDesa() {
+    return userRoles.some(ur => 
+        ur.role?.kode?.toLowerCase() === 'pengurus_desa' || 
+        ur.role?.kode?.toLowerCase() === 'operator'
+    );
 }
 
 // Cek apakah orang tua
