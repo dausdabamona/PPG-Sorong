@@ -16,6 +16,7 @@
         .filter-bar { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 0.5rem; background: white; padding: 0.75rem; border-radius: 10px; border: 1px solid #e2e8f0; }
         .filter-bar select, .filter-bar input { padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; }
         .info-bar { display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b; }
+        .role-badge { background: #dbeafe; color: #1e40af; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; }
         .data-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; }
         .jenjang-group { background: white; border-radius: 10px; border: 1px solid #e2e8f0; overflow: hidden; }
         .jenjang-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; cursor: pointer; }
@@ -119,6 +120,12 @@
                     <h2 class="page-title">Daftar Generus</h2>
                     <button class="btn btn-primary btn-sm" onclick="showAddModal()">➕ Tambah</button>
                 </div>
+                
+                <!-- Info akses wilayah -->
+                <div id="accessInfo" style="display:none;" class="info-box">
+                    <span id="accessText">-</span>
+                </div>
+                
                 <div class="filter-bar">
                     <select id="filterDesa" onchange="onDesaChange()"><option value="">Semua Desa</option></select>
                     <select id="filterKelompok" onchange="loadGenerus()"><option value="">Semua Kelompok</option></select>
@@ -189,7 +196,7 @@
                 </div>
                 
                 <div class="tab-content" id="tabOrtu">
-                    <div class="info-box">ℹ️ Pilih ayah dan ibu dari daftar jamaah yang sudah terdaftar.</div>
+                    <div class="info-box">ℹ️ Pilih ayah dan ibu dari daftar jamaah.</div>
                     <div class="form-group">
                         <label class="form-label">Ayah</label>
                         <div class="search-select">
@@ -260,7 +267,11 @@
     <script src="js/sidebar.js"></script>
     <script>
         var db, allJenjang = [], allKelompok = [], allDesa = [], allStatus = [];
+        var accessibleKelompokIds = null; // null = semua, [] = tidak ada akses, [ids] = terbatas
+        var accessibleDesaIds = null;
         var searchTimeout, currentEditId = null;
+        var userAccessLevel = 'kelompok';
+        var userWilayahNames = [];
 
         document.addEventListener('DOMContentLoaded', async function() {
             try {
@@ -273,6 +284,8 @@
                 document.getElementById('userRole').textContent = user.user_metadata?.role || 'user';
                 document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
                 
+                // Tentukan akses berdasarkan role
+                await determineAccess();
                 await loadMasterData();
                 await loadGenerus();
                 
@@ -292,23 +305,87 @@
             }
         });
 
+        async function determineAccess() {
+            // Admin dan operator bisa akses semua
+            if (typeof isAdmin === 'function' && isAdmin()) {
+                accessibleKelompokIds = null;
+                accessibleDesaIds = null;
+                return;
+            }
+            if (typeof isOperator === 'function' && isOperator()) {
+                accessibleKelompokIds = null;
+                accessibleDesaIds = null;
+                return;
+            }
+            
+            // Dapatkan wilayah yang bisa diakses
+            if (typeof getAccessibleWilayahIds === 'function') {
+                accessibleKelompokIds = await getAccessibleWilayahIds(db, 'kelompok');
+                accessibleDesaIds = await getAccessibleWilayahIds(db, 'desa');
+            }
+            
+            // Dapatkan nama wilayah untuk info
+            if (typeof getUserRolesWithWilayah === 'function') {
+                var roles = getUserRolesWithWilayah();
+                userWilayahNames = roles.filter(function(r) { return r.wilayah_nama; }).map(function(r) { return r.wilayah_nama; });
+                
+                if (userWilayahNames.length > 0) {
+                    document.getElementById('accessInfo').style.display = 'block';
+                    document.getElementById('accessText').innerHTML = '🔒 Akses terbatas: <strong>' + userWilayahNames.join(', ') + '</strong>';
+                }
+            }
+            
+            console.log('Accessible kelompok:', accessibleKelompokIds);
+            console.log('Accessible desa:', accessibleDesaIds);
+        }
+
         async function loadMasterData() {
+            // Load Jenjang
             var res1 = await db.from('jenjang').select('id, nama, kode, urutan, usia_mulai, usia_sampai').eq('is_aktif', true).order('urutan');
             allJenjang = res1.data || [];
             document.getElementById('formJenjang').innerHTML = '<option value="">Pilih</option>' + allJenjang.map(function(j) { return '<option value="' + j.id + '">' + j.nama + '</option>'; }).join('');
 
+            // Load Status
             var res2 = await db.from('status_jamaah').select('id, kode, nama').eq('is_aktif', true).order('urutan');
             allStatus = res2.data || [];
             document.getElementById('formStatus').innerHTML = '<option value="">-- Pilih --</option>' + allStatus.map(function(s) { return '<option value="' + s.id + '">' + s.nama + '</option>'; }).join('');
 
-            var res3 = await db.from('wilayah').select('id, nama').eq('tingkat', 'desa').eq('is_aktif', true).order('nama');
-            allDesa = res3.data || [];
+            // Load Desa - filter berdasarkan akses
+            var desaQuery = db.from('wilayah').select('id, nama').eq('tingkat', 'desa').eq('is_aktif', true).order('nama');
+            var res3 = await desaQuery;
+            var desaList = res3.data || [];
+            
+            // Filter desa jika ada pembatasan
+            if (accessibleDesaIds !== null && accessibleDesaIds.length > 0) {
+                desaList = desaList.filter(function(d) { return accessibleDesaIds.indexOf(d.id) >= 0; });
+            } else if (accessibleDesaIds !== null && accessibleDesaIds.length === 0) {
+                // User level kelompok - tidak perlu filter desa, akan difilter di kelompok
+                // Tampilkan semua desa tapi kelompok akan difilter
+            }
+            
+            allDesa = desaList;
             document.getElementById('filterDesa').innerHTML = '<option value="">Semua Desa</option>' + allDesa.map(function(d) { return '<option value="' + d.id + '">' + d.nama + '</option>'; }).join('');
 
-            var res4 = await db.from('wilayah').select('id, nama, parent_id').eq('tingkat', 'kelompok').eq('is_aktif', true).order('nama');
-            allKelompok = res4.data || [];
+            // Load Kelompok - filter berdasarkan akses
+            var kelompokQuery = db.from('wilayah').select('id, nama, parent_id').eq('tingkat', 'kelompok').eq('is_aktif', true).order('nama');
+            var res4 = await kelompokQuery;
+            var kelompokList = res4.data || [];
+            
+            // Filter kelompok jika ada pembatasan
+            if (accessibleKelompokIds !== null && accessibleKelompokIds.length > 0) {
+                kelompokList = kelompokList.filter(function(k) { return accessibleKelompokIds.indexOf(k.id) >= 0; });
+            } else if (accessibleKelompokIds !== null && accessibleKelompokIds.length === 0) {
+                kelompokList = []; // tidak ada akses
+            }
+            
+            allKelompok = kelompokList;
             document.getElementById('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' + allKelompok.map(function(k) { return '<option value="' + k.id + '">' + k.nama + '</option>'; }).join('');
             document.getElementById('formKelompok').innerHTML = '<option value="">Pilih</option>' + allKelompok.map(function(k) { return '<option value="' + k.id + '">' + k.nama + '</option>'; }).join('');
+            
+            // Jika hanya ada 1 kelompok, auto-select
+            if (allKelompok.length === 1) {
+                document.getElementById('filterKelompok').value = allKelompok[0].id;
+            }
         }
 
         function onDesaChange() {
@@ -335,6 +412,13 @@
 
                 var validData = (result.data || []).filter(function(e) { return e.jamaah && e.jamaah.id; });
                 
+                // Filter berdasarkan akses wilayah
+                if (accessibleKelompokIds !== null) {
+                    validData = validData.filter(function(e) {
+                        return accessibleKelompokIds.indexOf(e.wilayah_id) >= 0;
+                    });
+                }
+                
                 var allData = validData.map(function(e) {
                     var j = e.jamaah;
                     var umur = j.tanggal_lahir ? hitungUmur(j.tanggal_lahir) : null;
@@ -357,6 +441,7 @@
                     };
                 });
 
+                // Filter tambahan berdasarkan pilihan user
                 if (kelompokId) {
                     allData = allData.filter(function(j) { return j.kelompok_id == kelompokId; });
                 } else if (desaId) {
@@ -457,9 +542,16 @@
             document.getElementById('selectedIbu').innerHTML = '';
             document.getElementById('formAyahId').value = '';
             document.getElementById('formIbuId').value = '';
-            document.getElementById('formKelompok').value = '';
-            document.getElementById('formJenjang').value = '';
+            document.getElementById('formStatus').value = '';
             document.getElementById('btnDelete').style.display = 'none';
+            
+            // Set default kelompok jika hanya 1
+            if (allKelompok.length === 1) {
+                document.getElementById('formKelompok').value = allKelompok[0].id;
+            } else {
+                document.getElementById('formKelompok').value = '';
+            }
+            document.getElementById('formJenjang').value = '';
             
             document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
             document.getElementById('tabPribadi').classList.add('active');
@@ -631,6 +723,12 @@
                 var jenjangId = document.getElementById('formJenjang').value;
                 if (!kelompokId || !jenjangId) {
                     alert('Pilih kelompok dan jenjang!');
+                    return;
+                }
+                
+                // Validasi akses kelompok
+                if (accessibleKelompokIds !== null && accessibleKelompokIds.indexOf(parseInt(kelompokId)) < 0) {
+                    alert('Anda tidak memiliki akses ke kelompok ini!');
                     return;
                 }
 
