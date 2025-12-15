@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>Penilaian Hafalan - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .generus-select{display:flex;align-items:center;padding:0.75rem;background:#f0fdf4;border-radius:0.5rem;margin-bottom:0.5rem;cursor:pointer;}
+        .generus-select:hover{background:#dcfce7;}
+        .generus-avatar{width:40px;height:40px;background:#059669;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;margin-right:0.75rem;}
+        .generus-info{flex:1;}
+        .generus-name{font-weight:600;font-size:0.9rem;}
+        .generus-meta{font-size:0.75rem;color:#6b7280;}
+        .tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:0.5rem;overflow-x:auto;}
+        .tab{padding:0.5rem 1rem;cursor:pointer;font-size:0.8rem;font-weight:500;color:#6b7280;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;}
+        .tab.active{color:#059669;border-bottom-color:#059669;}
+        .hafalan-item{display:flex;align-items:center;padding:0.5rem 0.75rem;border-bottom:1px solid #f1f5f9;}
+        .hafalan-check{margin-right:0.5rem;}
+        .hafalan-check input{width:18px;height:18px;accent-color:#059669;}
+        .hafalan-info{flex:1;}
+        .hafalan-nama{font-size:0.85rem;}
+        .hafalan-status{font-size:0.7rem;padding:2px 6px;border-radius:3px;}
+        .hafalan-status.belum{background:#fee2e2;color:#dc2626;}
+        .hafalan-status.proses{background:#fef3c7;color:#d97706;}
+        .hafalan-status.hafal{background:#d1fae5;color:#059669;}
+        .hafalan-status.lancar{background:#059669;color:#fff;}
+        .summary-bar{display:flex;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;}
+        .summary-item{font-size:0.7rem;padding:4px 8px;background:#f3f4f6;border-radius:4px;}
+        .btn-save{position:fixed;bottom:70px;right:16px;padding:12px 20px;background:#059669;color:#fff;border:none;border-radius:25px;font-weight:600;box-shadow:0 4px 12px rgba(5,150,105,0.4);cursor:pointer;}
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand"><div class="sidebar-title">PPG Sorong</div></div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item active"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Penilaian Hafalan</h1>
+                </div>
+            </header>
+            
+            <div class="page-content">
+                <!-- Step 1: Pilih Generus -->
+                <div id="step1">
+                    <div class="card mb-sm">
+                        <div class="card-body">
+                            <input type="text" class="form-control" id="searchGenerus" placeholder="🔍 Cari generus..." oninput="filterGenerus()">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body" style="padding:0.5rem;">
+                            <div id="generusList"><div class="text-center text-muted py-4">Memuat...</div></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Input Hafalan -->
+                <div id="step2" style="display:none;">
+                    <div class="card mb-sm">
+                        <div class="card-body">
+                            <div style="display:flex;align-items:center;justify-content:space-between;">
+                                <div>
+                                    <strong id="selectedName">-</strong>
+                                    <div class="text-muted" style="font-size:0.75rem;" id="selectedMeta">-</div>
+                                </div>
+                                <button class="btn btn-sm btn-outline" onclick="backToList()">← Ganti</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tabs">
+                        <div class="tab active" onclick="switchTab('surat')">📖 Surat</div>
+                        <div class="tab" onclick="switchTab('doa')">🤲 Doa</div>
+                        <div class="tab" onclick="switchTab('asmaul')">✨ Asmaul</div>
+                    </div>
+                    
+                    <div class="summary-bar" id="summaryBar"></div>
+                    
+                    <div class="card">
+                        <div class="card-body" style="padding:0;">
+                            <div id="hafalanList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <button class="btn-save" id="btnSave" style="display:none;" onclick="saveProgress()">💾 Simpan</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        var allGenerus=[], dataSurat=[], dataDoa=[], dataAsmaul=[];
+        var selectedJamaah=null, currentTab='surat';
+        var progressSurat={}, progressDoa={}, progressAsmaul={};
+        var changes={surat:{},doa:{},asmaul:{}};
+        
+        function $(id){return document.getElementById(id);}
+        function toggleSidebar(){$('sidebar').classList.toggle('show');$('sidebarOverlay').classList.toggle('show');}
+        
+        document.addEventListener('DOMContentLoaded', async function(){
+            if(!await requireAuth())return;
+            await loadGenerus();
+            await loadMateri();
+        });
+        
+        async function loadGenerus(){
+            try{
+                var r=await db.rpc('get_generus_by_wilayah',{p_wilayah_id:null,p_jenjang_id:null,p_status:'aktif'});
+                allGenerus=r.data||[];
+                renderGenerus(allGenerus);
+            }catch(e){console.error(e);}
+        }
+        
+        async function loadMateri(){
+            var r1=await db.from('hafalan_surat').select('*').order('urutan_hafalan').order('nomor_surat');
+            dataSurat=r1.data||[];
+            var r2=await db.from('hafalan_doa').select('*').order('urutan');
+            dataDoa=r2.data||[];
+            var r3=await db.from('asmaul_husna').select('*').order('nomor');
+            dataAsmaul=r3.data||[];
+        }
+        
+        function filterGenerus(){
+            var q=$('searchGenerus').value.toLowerCase();
+            var filtered=allGenerus.filter(function(g){
+                return g.nama.toLowerCase().includes(q)||(g.nama_panggilan&&g.nama_panggilan.toLowerCase().includes(q));
+            });
+            renderGenerus(filtered);
+        }
+        
+        function renderGenerus(list){
+            if(!list.length){$('generusList').innerHTML='<div class="text-center text-muted py-4">Tidak ada data</div>';return;}
+            var html='';
+            list.forEach(function(g){
+                html+='<div class="generus-select" onclick="selectGenerus('+g.jamaah_id+')">';
+                html+='<div class="generus-avatar">'+g.nama.charAt(0)+'</div>';
+                html+='<div class="generus-info"><div class="generus-name">'+g.nama+'</div>';
+                html+='<div class="generus-meta">'+(g.jenjang_nama||'-')+' • '+(g.kelompok_nama||'-')+'</div></div>';
+                html+='<span>→</span></div>';
+            });
+            $('generusList').innerHTML=html;
+        }
+        
+        async function selectGenerus(id){
+            selectedJamaah=allGenerus.find(function(g){return g.jamaah_id===id;});
+            if(!selectedJamaah)return;
+            
+            $('selectedName').textContent=selectedJamaah.nama;
+            $('selectedMeta').textContent=(selectedJamaah.jenjang_nama||'-')+' • '+(selectedJamaah.kelompok_nama||'-');
+            
+            // Load existing progress
+            var now=new Date();
+            var bulan=now.getMonth()+1, tahun=now.getFullYear();
+            
+            var r1=await db.from('progress_hafalan_surat').select('*').eq('jamaah_id',id);
+            progressSurat={};
+            (r1.data||[]).forEach(function(p){progressSurat[p.hafalan_surat_id]=p;});
+            
+            var r2=await db.from('progress_hafalan_doa').select('*').eq('jamaah_id',id);
+            progressDoa={};
+            (r2.data||[]).forEach(function(p){progressDoa[p.hafalan_doa_id]=p;});
+            
+            var r3=await db.from('progress_asmaul_husna').select('*').eq('jamaah_id',id);
+            progressAsmaul={};
+            (r3.data||[]).forEach(function(p){progressAsmaul[p.asmaul_husna_id]=p;});
+            
+            changes={surat:{},doa:{},asmaul:{}};
+            
+            $('step1').style.display='none';
+            $('step2').style.display='block';
+            $('btnSave').style.display='block';
+            
+            renderHafalan();
+        }
+        
+        function backToList(){
+            $('step1').style.display='block';
+            $('step2').style.display='none';
+            $('btnSave').style.display='none';
+            selectedJamaah=null;
+        }
+        
+        function switchTab(tab){
+            currentTab=tab;
+            document.querySelectorAll('.tab').forEach(function(t,i){
+                t.classList.toggle('active',['surat','doa','asmaul'][i]===tab);
+            });
+            renderHafalan();
+        }
+        
+        function renderHafalan(){
+            var html='', data, progress, statusCounts={belum:0,proses:0,hafal:0,lancar:0};
+            
+            if(currentTab==='surat'){
+                data=dataSurat; progress=progressSurat;
+                data.forEach(function(s){
+                    var p=progress[s.id]||{status:'belum'};
+                    var st=changes.surat[s.id]||p.status||'belum';
+                    statusCounts[st]++;
+                    html+=renderItem('surat',s.id,s.nomor_surat,s.nama_surat,st);
+                });
+            }else if(currentTab==='doa'){
+                data=dataDoa; progress=progressDoa;
+                data.forEach(function(d,i){
+                    var p=progress[d.id]||{status:'belum'};
+                    var st=changes.doa[d.id]||p.status||'belum';
+                    statusCounts[st]++;
+                    html+=renderItem('doa',d.id,i+1,d.nama_doa,st);
+                });
+            }else{
+                data=dataAsmaul; progress=progressAsmaul;
+                data.forEach(function(a){
+                    var p=progress[a.id]||{status:'belum'};
+                    var st=changes.asmaul[a.id]||p.status||'belum';
+                    statusCounts[st]++;
+                    html+=renderItem('asmaul',a.id,a.nomor,a.nama_latin,st);
+                });
+            }
+            
+            $('hafalanList').innerHTML=html||'<div class="text-center text-muted py-4">Tidak ada data</div>';
+            $('summaryBar').innerHTML='<div class="summary-item">❌ Belum: '+statusCounts.belum+'</div><div class="summary-item">⏳ Proses: '+statusCounts.proses+'</div><div class="summary-item">✅ Hafal: '+statusCounts.hafal+'</div><div class="summary-item">⭐ Lancar: '+statusCounts.lancar+'</div>';
+        }
+        
+        function renderItem(type,id,no,nama,status){
+            return '<div class="hafalan-item"><div class="hafalan-check"><input type="checkbox" '+(status==='hafal'||status==='lancar'?'checked':'')+' onchange="toggleStatus(\''+type+'\','+id+',this.checked)"></div><div class="hafalan-info"><div class="hafalan-nama">'+no+'. '+nama+'</div></div><span class="hafalan-status '+status+'">'+status+'</span></div>';
+        }
+        
+        function toggleStatus(type,id,checked){
+            var newStatus=checked?'hafal':'belum';
+            changes[type][id]=newStatus;
+            renderHafalan();
+        }
+        
+        async function saveProgress(){
+            if(!selectedJamaah)return;
+            var now=new Date();
+            var bulan=now.getMonth()+1, tahun=now.getFullYear();
+            var jamaahId=selectedJamaah.jamaah_id;
+            
+            try{
+                // Save surat
+                for(var id in changes.surat){
+                    var existing=progressSurat[id];
+                    var data={jamaah_id:jamaahId,hafalan_surat_id:parseInt(id),status:changes.surat[id],periode_bulan:bulan,periode_tahun:tahun,tanggal_selesai:changes.surat[id]==='hafal'||changes.surat[id]==='lancar'?now.toISOString().split('T')[0]:null,updated_at:new Date().toISOString()};
+                    if(existing){
+                        await db.from('progress_hafalan_surat').update(data).eq('id',existing.id);
+                    }else{
+                        await db.from('progress_hafalan_surat').insert(data);
+                    }
+                }
+                // Save doa
+                for(var id in changes.doa){
+                    var existing=progressDoa[id];
+                    var data={jamaah_id:jamaahId,hafalan_doa_id:parseInt(id),status:changes.doa[id],periode_bulan:bulan,periode_tahun:tahun,tanggal_selesai:changes.doa[id]==='hafal'||changes.doa[id]==='lancar'?now.toISOString().split('T')[0]:null,updated_at:new Date().toISOString()};
+                    if(existing){
+                        await db.from('progress_hafalan_doa').update(data).eq('id',existing.id);
+                    }else{
+                        await db.from('progress_hafalan_doa').insert(data);
+                    }
+                }
+                // Save asmaul
+                for(var id in changes.asmaul){
+                    var existing=progressAsmaul[id];
+                    var data={jamaah_id:jamaahId,asmaul_husna_id:parseInt(id),status:changes.asmaul[id],periode_bulan:bulan,periode_tahun:tahun,tanggal_selesai:changes.asmaul[id]==='hafal'||changes.asmaul[id]==='lancar'?now.toISOString().split('T')[0]:null,updated_at:new Date().toISOString()};
+                    if(existing){
+                        await db.from('progress_asmaul_husna').update(data).eq('id',existing.id);
+                    }else{
+                        await db.from('progress_asmaul_husna').insert(data);
+                    }
+                }
+                
+                alert('Berhasil disimpan!');
+                changes={surat:{},doa:{},asmaul:{}};
+                await selectGenerus(jamaahId); // Reload
+            }catch(e){
+                console.error(e);
+                alert('Gagal menyimpan: '+e.message);
+            }
+        }
+    </script>
+    
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="bottom-nav-item"><span class="bottom-nav-icon">📊</span><span class="bottom-nav-label">Home</span></a>
+        <a href="generus.html" class="bottom-nav-item"><span class="bottom-nav-icon">👶</span><span class="bottom-nav-label">Generus</span></a>
+        <a href="presensi.html" class="bottom-nav-item"><span class="bottom-nav-icon">✅</span><span class="bottom-nav-label">Presensi</span></a>
+        <a href="penilaian-hafalan.html" class="bottom-nav-item active"><span class="bottom-nav-icon">📝</span><span class="bottom-nav-label">Hafalan</span></a>
+        <a href="#" class="bottom-nav-item" onclick="toggleSidebar();return false;"><span class="bottom-nav-icon">☰</span><span class="bottom-nav-label">Menu</span></a>
+    </nav>
+</body>
+</html>

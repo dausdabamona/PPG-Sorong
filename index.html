@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#059669">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PPG Sorong">
@@ -14,576 +13,246 @@
     <link rel="apple-touch-icon" href="images/icon-192x192.svg">
     <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        :root {
-            --primary: #059669;
-            --primary-dark: #047857;
-            --primary-light: #10b981;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-300: #d1d5db;
-            --gray-400: #9ca3af;
-            --gray-500: #6b7280;
-            --gray-600: #4b5563;
-            --gray-700: #374151;
-            --gray-800: #1f2937;
-            --gray-900: #111827;
-            --danger: #dc2626;
-            --white: #ffffff;
-        }
-        
-        body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        
-        .auth-wrapper {
-            width: 100%;
-            max-width: 420px;
-        }
-        
-        .auth-card {
-            background: var(--white);
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            overflow: hidden;
-        }
-        
-        .auth-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            padding: 2.5rem 2rem;
-            text-align: center;
-            color: var(--white);
-        }
-        
-        .auth-logo {
-            width: 80px;
-            height: 80px;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 2rem;
-            font-weight: 700;
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-        
-        .auth-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-        
-        .auth-subtitle {
-            opacity: 0.9;
-            font-size: 0.95rem;
-        }
-        
-        .auth-body {
-            padding: 2rem;
-        }
-        
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-        
-        .form-label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--gray-700);
-            margin-bottom: 0.5rem;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 0.875rem 1rem;
-            font-size: 1rem;
-            font-family: inherit;
-            border: 2px solid var(--gray-200);
-            border-radius: 12px;
-            background: var(--gray-50);
-            color: var(--gray-800);
-            transition: all 0.2s ease;
-        }
-        
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: var(--white);
-            box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
-        }
-        
-        .form-control::placeholder {
-            color: var(--gray-400);
-        }
-        
-        .input-icon-wrapper {
-            position: relative;
-        }
-        
-        .input-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.25rem;
-            color: var(--gray-400);
-        }
-        
-        .input-icon-wrapper .form-control {
-            padding-left: 3rem;
-        }
-        
-        .password-toggle {
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.25rem;
-            color: var(--gray-400);
-            transition: color 0.2s;
-        }
-        
-        .password-toggle:hover {
-            color: var(--gray-600);
-        }
-        
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0.875rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            font-family: inherit;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: var(--white);
-            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.5);
-        }
-        
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-        
-        .btn-primary:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .btn-block {
-            width: 100%;
-        }
-        
-        .btn-lg {
-            padding: 1rem 1.5rem;
-            font-size: 1.05rem;
-        }
-        
-        .error-message {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: var(--danger);
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-            display: none;
-        }
-        
-        .error-message.show {
-            display: block;
-            animation: shake 0.5s ease;
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-5px); }
-            40%, 80% { transform: translateX(5px); }
-        }
-        
-        .auth-footer {
-            text-align: center;
-            padding: 0 2rem 2rem;
-        }
-        
-        .auth-footer p {
-            color: var(--gray-500);
-            font-size: 0.875rem;
-        }
-        
-        .auth-footer a {
-            color: var(--primary);
-            font-weight: 600;
-            text-decoration: none;
-        }
-        
-        .auth-footer a:hover {
-            text-decoration: underline;
-        }
-        
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 1.5rem 0;
-            color: var(--gray-400);
-            font-size: 0.8rem;
-        }
-        
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--gray-200);
-        }
-        
-        .divider span {
-            padding: 0 1rem;
-        }
-        
-        .features-mini {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-            margin-top: 1.5rem;
-        }
-        
-        .feature-mini {
-            text-align: center;
-            padding: 0.75rem 0.5rem;
-            background: var(--gray-50);
-            border-radius: 10px;
-        }
-        
-        .feature-mini-icon {
-            font-size: 1.5rem;
-            margin-bottom: 0.25rem;
-        }
-        
-        .feature-mini-text {
-            font-size: 0.7rem;
-            color: var(--gray-600);
-            font-weight: 500;
-        }
-        
-        /* Loading Spinner */
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Decorative elements */
-        .auth-decoration {
-            position: fixed;
-            opacity: 0.1;
-            pointer-events: none;
-        }
-        
-        .auth-decoration-1 {
-            top: 10%;
-            left: 5%;
-            font-size: 8rem;
-        }
-        
-        .auth-decoration-2 {
-            bottom: 10%;
-            right: 5%;
-            font-size: 6rem;
-        }
-        
-        @media (max-width: 480px) {
-            .auth-header { padding: 2rem 1.5rem; }
-            .auth-body { padding: 1.5rem; }
-            .auth-footer { padding: 0 1.5rem 1.5rem; }
-            .auth-decoration { display: none; }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Decorative Elements -->
-    <div class="auth-decoration auth-decoration-1">📖</div>
-    <div class="auth-decoration auth-decoration-2">🕌</div>
-    
-    <div class="auth-wrapper">
+    <div class="auth-container">
         <div class="auth-card">
-            <div class="auth-header">
-                <div class="auth-logo">PPG</div>
-                <h1 class="auth-title">PPG Sorong</h1>
-                <p class="auth-subtitle">Pembinaan Generasi Penerus</p>
-            </div>
-            
-            <div class="auth-body">
-                <div class="error-message" id="errorMessage"></div>
-                
-                <!-- PENTING: method="POST" dan action="#" untuk mencegah form submit ke URL -->
-                <form id="loginForm" method="POST" action="#" autocomplete="off">
-                    <div class="form-group">
-                        <label class="form-label" for="email">Email</label>
-                        <div class="input-icon-wrapper">
-                            <span class="input-icon">📧</span>
-                            <input type="email" class="form-control" id="email" 
-                                   placeholder="Masukkan email" required autocomplete="username">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="password">Password</label>
-                        <div class="input-icon-wrapper">
-                            <span class="input-icon">🔒</span>
-                            <input type="password" class="form-control" id="password" 
-                                   placeholder="Masukkan password" required autocomplete="current-password">
-                            <button type="button" class="password-toggle" onclick="togglePassword()">👁️</button>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnLogin">
-                        <span id="btnText">Masuk</span>
-                        <div class="spinner" id="btnSpinner" style="display:none;"></div>
-                    </button>
-                </form>
-                
-                <div class="features-mini">
-                    <div class="feature-mini">
-                        <div class="feature-mini-icon">📖</div>
-                        <div class="feature-mini-text">Alim</div>
-                    </div>
-                    <div class="feature-mini">
-                        <div class="feature-mini-icon">🕌</div>
-                        <div class="feature-mini-text">Faqih</div>
-                    </div>
-                    <div class="feature-mini">
-                        <div class="feature-mini-icon">💎</div>
-                        <div class="feature-mini-text">Akhlaq</div>
-                    </div>
+            <div class="auth-logo">
+                <div style="width:60px;height:60px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:white;font-size:1.5rem;font-weight:bold;">
+                    PPG
                 </div>
+                <h1>PPG Sorong</h1>
+                <p>Pembinaan Generasi Penerus</p>
             </div>
             
-            <div class="auth-footer">
-                <p>Belum punya akun? <a href="register.html">Daftar di sini</a></p>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           placeholder="Masukkan email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" 
+                           placeholder="Masukkan password" required>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnLogin">
+                        Masuk
+                    </button>
+                </div>
+                
+                <div id="errorMessage" class="text-danger text-center" style="display:none;"></div>
+            </form>
+            
+            <div class="text-center mt-lg">
+                <p class="text-muted text-sm">
+                    Belum punya akun? <a href="register.html">Daftar di sini</a>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Quick Login Panel untuk Testing -->
+        <div class="auth-card" style="margin-top:1rem;max-width:400px;">
+            <div style="text-align:center;margin-bottom:1rem;">
+                <h3 style="margin:0;color:var(--gray-700);">🧪 Quick Login (Testing)</h3>
+                <p style="font-size:0.75rem;color:var(--gray-500);margin:0.25rem 0 0;">Klik untuk login langsung</p>
+            </div>
+            
+            <div id="quickLoginPanel" style="display:flex;flex-direction:column;gap:0.5rem;">
+                <p class="text-muted text-center text-sm">Memuat user...</p>
             </div>
         </div>
     </div>
     
+    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     
     <script>
-        
-        // ============================================================
-        // CLEAR URL PARAMS - Hapus email/password dari URL jika ada
-        // ============================================================
-        (function clearUrlParams() {
-            if (window.location.search) {
-                // Ganti URL tanpa query params
-                window.history.replaceState({}, document.title, window.location.pathname);
+        // Cek jika sudah login, redirect ke dashboard
+        (async function() {
+            const isLoggedIn = await checkSession();
+            if (isLoggedIn) {
+                window.location.href = 'dashboard.html';
             }
         })();
-        
-        // ============================================================
-        // CHECK SESSION - Redirect jika sudah login
-        // ============================================================
-        (async function initPage() {
-            try {
-                // Clear any stale tokens jika ada error sebelumnya
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('error') === 'session_expired') {
-                    if (typeof clearAuthData === 'function') {
-                        clearAuthData();
-                    }
-                    showError('Sesi telah berakhir. Silakan login kembali.');
-                }
-                
-                const isLoggedIn = await checkSession();
-                if (isLoggedIn) {
-                    window.location.href = 'dashboard.html';
-                }
-            } catch (e) {
-                console.log('Not logged in or session error:', e);
-                // Clear stale data
-                if (typeof clearAuthData === 'function') {
-                    clearAuthData();
-                }
-            }
-        })();
-        
-        // ============================================================
-        // FORM HANDLERS
-        // ============================================================
-        
-        function togglePassword() {
-            const pwd = $('password');
-            const btn = document.querySelector('.password-toggle');
-            if (pwd.type === 'password') {
-                pwd.type = 'text';
-                btn.textContent = '🙈';
-            } else {
-                pwd.type = 'password';
-                btn.textContent = '👁️';
-            }
-        }
-        
-        function showError(message) {
-            const errorMessage = $('errorMessage');
-            errorMessage.textContent = message;
-            errorMessage.classList.add('show');
-        }
-        
-        function hideError() {
-            $('errorMessage').classList.remove('show');
-        }
-        
-        function setLoading(loading) {
-            const btnLogin = $('btnLogin');
-            const btnText = $('btnText');
-            const btnSpinner = $('btnSpinner');
-            
-            btnLogin.disabled = loading;
-            btnText.textContent = loading ? 'Memproses...' : 'Masuk';
-            btnSpinner.style.display = loading ? 'block' : 'none';
-        }
-        
-        // ============================================================
-        // LOGIN HANDLER
-        // ============================================================
         
         async function handleLogin(event) {
-            // PENTING: Hentikan form submission ke URL
             event.preventDefault();
-            event.stopPropagation();
             
             const email = $('email').value.trim();
             const password = $('password').value;
+            const btnLogin = $('btnLogin');
+            const errorMessage = $('errorMessage');
             
-            // Validasi
-            if (!email || !password) {
-                showError('Email dan password harus diisi');
-                return false;
-            }
+            // Reset error
+            errorMessage.style.display = 'none';
             
-            // Reset error & set loading
-            hideError();
-            setLoading(true);
+            // Disable button
+            btnLogin.disabled = true;
+            btnLogin.innerHTML = 'Memproses...';
             
             try {
                 const result = await login(email, password);
                 
                 if (result.success) {
-                    $('btnText').textContent = 'Berhasil! Mengalihkan...';
-                    
-                    // Clear form untuk keamanan
-                    $('email').value = '';
-                    $('password').value = '';
-                    
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 500);
+                    window.location.href = 'dashboard.html';
                 } else {
-                    // Handle specific errors
-                    let errorMsg = result.error || 'Email atau password salah';
-                    
-                    if (errorMsg.includes('Invalid login credentials')) {
-                        errorMsg = 'Email atau password salah';
-                    } else if (errorMsg.includes('Email not confirmed')) {
-                        errorMsg = 'Email belum dikonfirmasi. Cek inbox email Anda.';
-                    } else if (errorMsg.includes('JWT')) {
-                        errorMsg = 'Sesi tidak valid. Silakan coba lagi.';
-                        // Clear stale tokens
-                        if (typeof clearAuthData === 'function') {
-                            clearAuthData();
-                        }
-                    }
-                    
-                    showError(errorMsg);
-                    setLoading(false);
+                    errorMessage.textContent = result.error || 'Email atau password salah';
+                    errorMessage.style.display = 'block';
                 }
             } catch (error) {
-                console.error('Login error:', error);
-                showError('Terjadi kesalahan. Silakan coba lagi.');
-                setLoading(false);
-                
-                // Clear stale tokens if needed
-                if (error.message && error.message.includes('JWT')) {
-                    if (typeof clearAuthData === 'function') {
-                        clearAuthData();
-                    }
-                }
+                errorMessage.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
+                errorMessage.style.display = 'block';
+            } finally {
+                btnLogin.disabled = false;
+                btnLogin.innerHTML = 'Masuk';
             }
-            
-            return false; // Mencegah form submit
         }
         
-        // ============================================================
-        // EVENT LISTENERS
-        // ============================================================
-        
-        // Attach form submit handler
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = $('loginForm');
+        // ==================== QUICK LOGIN PANEL ====================
+        async function loadQuickLoginPanel() {
+            const panel = $('quickLoginPanel');
             
-            // Remove any existing handlers and add new one
-            form.onsubmit = handleLogin;
-            
-            // Also listen for submit event
-            form.addEventListener('submit', handleLogin, { capture: true });
-            
-            // Prevent form from submitting via Enter key bypassing handler
-            form.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleLogin(e);
+            try {
+                // Ambil semua user beserta role-nya
+                const { data: users, error } = await db
+                    .from('users')
+                    .select(`
+                        id, nama, email, status,
+                        user_role(
+                            is_aktif,
+                            role:role_id(kode, nama, level)
+                        )
+                    `);
+                
+                console.log('Quick Login - Users:', users, 'Error:', error);
+                
+                if (error) {
+                    panel.innerHTML = `<p class="text-danger text-center text-sm">Error: ${error.message}</p>`;
+                    return;
                 }
-            });
-            
-            // Register Service Worker for PWA
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(function(registration) {
-                        console.log('SW registered:', registration.scope);
-                    })
-                    .catch(function(error) {
-                        console.log('SW registration failed:', error);
-                    });
+                
+                if (!users || users.length === 0) {
+                    panel.innerHTML = '<p class="text-muted text-center text-sm">Tidak ada user</p>';
+                    return;
+                }
+                
+                // Filter hanya user aktif
+                const activeUsers = users.filter(u => u.status === 'aktif');
+                
+                if (activeUsers.length === 0) {
+                    panel.innerHTML = '<p class="text-muted text-center text-sm">Tidak ada user aktif</p>';
+                    return;
+                }
+                
+                const levelOrder = ['sistem', 'daerah', 'desa', 'kelompok'];
+                const levelLabels = {
+                    'sistem': '🔧 Sistem',
+                    'daerah': '🏛️ Daerah', 
+                    'desa': '🏘️ Desa',
+                    'kelompok': '👥 Kelompok'
+                };
+                
+                let html = '';
+                
+                activeUsers.forEach(user => {
+                const activeRoles = (user.user_role || [])
+                    .filter(ur => ur.is_aktif && ur.role)
+                    .map(ur => ur.role);
+                
+                if (activeRoles.length === 0) return;
+                
+                // Group by level
+                const rolesByLevel = {};
+                activeRoles.forEach(r => {
+                    if (!rolesByLevel[r.level]) rolesByLevel[r.level] = [];
+                    rolesByLevel[r.level].push(r);
+                });
+                
+                html += `<div style="border:1px solid var(--gray-200);border-radius:8px;padding:0.75rem;background:var(--gray-50);">`;
+                html += `<div style="font-weight:600;margin-bottom:0.5rem;">${user.nama}</div>`;
+                html += `<div style="display:flex;flex-wrap:wrap;gap:0.25rem;">`;
+                
+                levelOrder.forEach(level => {
+                    if (rolesByLevel[level]) {
+                        rolesByLevel[level].forEach(role => {
+                            const colors = {
+                                'sistem': '#dc2626',
+                                'daerah': '#7c3aed',
+                                'desa': '#0891b2',
+                                'kelompok': '#16a34a'
+                            };
+                            html += `
+                                <button onclick="quickLogin('${user.email}', '${role.kode}')" 
+                                    style="padding:0.25rem 0.5rem;font-size:0.7rem;border:none;border-radius:4px;
+                                    background:${colors[level] || '#6b7280'};color:white;cursor:pointer;
+                                    transition:opacity 0.2s;" 
+                                    onmouseover="this.style.opacity='0.8'" 
+                                    onmouseout="this.style.opacity='1'"
+                                    title="${levelLabels[level]}">
+                                    ${role.nama}
+                                </button>`;
+                        });
+                    }
+                });
+                
+                html += `</div></div>`;
+                });
+                
+                panel.innerHTML = html || '<p class="text-muted text-center text-sm">Tidak ada user dengan role aktif</p>';
+                
+            } catch (err) {
+                console.error('Quick Login Error:', err);
+                panel.innerHTML = `<p class="text-danger text-center text-sm">Error: ${err.message}</p>`;
             }
-        });
+        }
+        
+        async function quickLogin(email, roleKode) {
+            // Untuk testing, langsung set session tanpa password
+            // Simpan email dan role ke localStorage, lalu redirect
+            
+            const panel = $('quickLoginPanel');
+            panel.innerHTML = '<p class="text-center">🔄 Logging in...</p>';
+            
+            try {
+                // Ambil user data
+                const { data: userData, error: userError } = await db
+                    .from('users')
+                    .select('*')
+                    .eq('email', email)
+                    .single();
+                
+                if (userError || !userData) {
+                    alert('User tidak ditemukan');
+                    loadQuickLoginPanel();
+                    return;
+                }
+                
+                // Simpan ke localStorage untuk bypass auth (TESTING ONLY)
+                localStorage.setItem('ppg_test_mode', 'true');
+                localStorage.setItem('ppg_test_user', JSON.stringify(userData));
+                localStorage.setItem('ppg_test_role', roleKode);
+                
+                // Redirect ke dashboard
+                window.location.href = 'dashboard.html';
+                
+            } catch (err) {
+                console.error(err);
+                alert('Gagal login: ' + err.message);
+                loadQuickLoginPanel();
+            }
+        }
+        
+        // Load quick login panel
+        loadQuickLoginPanel();
     </script>
 </body>
 </html>

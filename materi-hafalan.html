@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>Materi Hafalan - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:0.5rem;overflow-x:auto;}
+        .tab{padding:0.5rem 1rem;cursor:pointer;font-size:0.8rem;font-weight:500;color:#6b7280;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;}
+        .tab.active{color:#059669;border-bottom-color:#059669;}
+        .materi-item{display:flex;align-items:center;padding:0.5rem 0.75rem;border-bottom:1px solid #f1f5f9;}
+        .materi-no{width:28px;height:28px;background:#d1fae5;color:#059669;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:600;margin-right:0.5rem;flex-shrink:0;}
+        .materi-info{flex:1;min-width:0;}
+        .materi-nama{font-size:0.85rem;font-weight:500;}
+        .materi-detail{font-size:0.7rem;color:#6b7280;}
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand"><div class="sidebar-title">PPG Sorong</div></div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="materi-hafalan.html" class="nav-item active"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Materi Hafalan</h1>
+                </div>
+            </header>
+            
+            <div class="page-content">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('surat')">📖 Surat (<span id="countSurat">0</span>)</div>
+                    <div class="tab" onclick="switchTab('doa')">🤲 Doa (<span id="countDoa">0</span>)</div>
+                    <div class="tab" onclick="switchTab('asmaul')">✨ Asmaul (<span id="countAsmaul">0</span>)</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body" style="padding:0;">
+                        <div id="materiContainer"><div class="text-center text-muted py-4">Memuat...</div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        var dataSurat=[], dataDoa=[], dataAsmaul=[];
+        var currentTab='surat';
+        
+        function $(id){return document.getElementById(id);}
+        function toggleSidebar(){$('sidebar').classList.toggle('show');$('sidebarOverlay').classList.toggle('show');}
+        
+        document.addEventListener('DOMContentLoaded', async function(){
+            if(!await requireAuth())return;
+            await loadAllData();
+        });
+        
+        async function loadAllData(){
+            try{
+                var r1=await db.from('hafalan_surat').select('*').order('urutan_hafalan').order('nomor_surat');
+                dataSurat=r1.data||[];
+                $('countSurat').textContent=dataSurat.length;
+                
+                var r2=await db.from('hafalan_doa').select('*').order('urutan');
+                dataDoa=r2.data||[];
+                $('countDoa').textContent=dataDoa.length;
+                
+                var r3=await db.from('asmaul_husna').select('*').order('nomor');
+                dataAsmaul=r3.data||[];
+                $('countAsmaul').textContent=dataAsmaul.length;
+                
+                renderMateri();
+            }catch(e){console.error(e);}
+        }
+        
+        function switchTab(tab){
+            currentTab=tab;
+            document.querySelectorAll('.tab').forEach(function(t,i){
+                t.classList.toggle('active',['surat','doa','asmaul'][i]===tab);
+            });
+            renderMateri();
+        }
+        
+        function renderMateri(){
+            var html='';
+            if(currentTab==='surat'){
+                dataSurat.forEach(function(s){
+                    html+='<div class="materi-item"><div class="materi-no">'+s.nomor_surat+'</div>';
+                    html+='<div class="materi-info"><div class="materi-nama">'+s.nama_surat+'</div>';
+                    html+='<div class="materi-detail">'+s.jumlah_ayat+' ayat'+(s.arti_nama?' • '+s.arti_nama:'')+'</div></div></div>';
+                });
+            }else if(currentTab==='doa'){
+                dataDoa.forEach(function(d,i){
+                    html+='<div class="materi-item"><div class="materi-no">'+(i+1)+'</div>';
+                    html+='<div class="materi-info"><div class="materi-nama">'+d.nama_doa+'</div>';
+                    html+='<div class="materi-detail">'+(d.kategori||'-')+'</div></div></div>';
+                });
+            }else{
+                dataAsmaul.forEach(function(a){
+                    html+='<div class="materi-item"><div class="materi-no">'+a.nomor+'</div>';
+                    html+='<div class="materi-info"><div class="materi-nama">'+a.nama_latin+'</div>';
+                    html+='<div class="materi-detail">'+a.arti+'</div></div></div>';
+                });
+            }
+            $('materiContainer').innerHTML=html||'<div class="text-center text-muted py-4">Tidak ada data</div>';
+        }
+    </script>
+    
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="bottom-nav-item"><span class="bottom-nav-icon">📊</span><span class="bottom-nav-label">Home</span></a>
+        <a href="generus.html" class="bottom-nav-item"><span class="bottom-nav-icon">👶</span><span class="bottom-nav-label">Generus</span></a>
+        <a href="presensi.html" class="bottom-nav-item"><span class="bottom-nav-icon">✅</span><span class="bottom-nav-label">Presensi</span></a>
+        <a href="penilaian-hafalan.html" class="bottom-nav-item"><span class="bottom-nav-icon">📝</span><span class="bottom-nav-label">Hafalan</span></a>
+        <a href="#" class="bottom-nav-item" onclick="toggleSidebar();return false;"><span class="bottom-nav-icon">☰</span><span class="bottom-nav-label">Menu</span></a>
+    </nav>
+</body>
+</html>

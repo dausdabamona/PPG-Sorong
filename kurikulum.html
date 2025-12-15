@@ -5,219 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#059669">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
     <title>Kurikulum - PPG Sorong</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/mobile-grid.css">
-    <link rel="stylesheet" href="css/pwa-enhanced.css">
-    <link rel="stylesheet" href="css/mobile-menu.css">
     <style>
-        :root {
-            --alim: #0891b2;
-            --faqih: #7c3aed;
-            --akhlaq: #059669;
-            --keaktifan: #f59e0b;
-        }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        
-        /* Tabs */
-        .tabs-container { border-bottom: 2px solid var(--gray-200); margin-bottom: 1.5rem; }
-        .tabs { display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .tabs-container { border-bottom: 1px solid var(--gray-200); margin-bottom: 1.5rem; }
+        .tabs { display: flex; gap: 0; border-bottom: none; margin-bottom: 0; overflow-x: auto; }
         .tab-item { 
-            padding: 0.875rem 1.25rem; 
+            padding: 0.75rem 1.25rem; 
             white-space: nowrap;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-            cursor: pointer;
-            font-weight: 500;
-            color: var(--gray-500);
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
         }
-        .tab-item:hover { color: var(--gray-700); }
-        .tab-item.active { color: var(--primary); border-bottom-color: var(--primary); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Bidang Cards */
-        .bidang-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .bidang-card {
-            background: linear-gradient(135deg, var(--card-bg) 0%, var(--card-accent) 100%);
-            border-radius: 16px;
-            padding: 1.5rem;
-            border-left: 5px solid var(--card-border);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .bidang-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
-        .bidang-card.alim { --card-bg: #ecfeff; --card-accent: #cffafe; --card-border: var(--alim); }
-        .bidang-card.faqih { --card-bg: #f5f3ff; --card-accent: #ede9fe; --card-border: var(--faqih); }
-        .bidang-card.akhlaq { --card-bg: #ecfdf5; --card-accent: #d1fae5; --card-border: var(--akhlaq); }
-        .bidang-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-        .bidang-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; }
-        .bidang-subtitle { font-size: 0.875rem; color: var(--gray-600); margin-bottom: 1rem; }
-        .bidang-stats { display: flex; gap: 1.5rem; }
-        .bidang-stat { text-align: center; }
-        .bidang-stat-value { font-size: 1.5rem; font-weight: 700; }
-        .bidang-stat-label { font-size: 0.75rem; color: var(--gray-500); }
-        
-        /* Karakter Cards (6 Thobiat & 4 Tali) */
-        .karakter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
-        .karakter-card {
-            background: white;
+        .materi-card {
+            background: var(--white);
             border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            padding: 1.25rem;
-            transition: all 0.2s;
-        }
-        .karakter-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .karakter-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
-        .karakter-badge { 
-            display: inline-flex; align-items: center; gap: 0.375rem;
-            padding: 0.25rem 0.75rem; border-radius: 20px;
-            font-size: 0.75rem; font-weight: 600;
-        }
-        .karakter-badge.thobiat { background: #dcfce7; color: #166534; }
-        .karakter-badge.tali { background: #ede9fe; color: #5b21b6; }
-        .karakter-title { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .karakter-desc { font-size: 0.875rem; color: var(--gray-600); line-height: 1.5; }
-        .karakter-indikator { 
-            margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--gray-200);
-            font-size: 0.8rem; color: var(--gray-500);
-        }
-        .karakter-indikator strong { color: var(--gray-700); }
-        
-        /* Target Jenjang */
-        .jenjang-selector { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
-        .jenjang-btn {
-            padding: 0.5rem 1rem;
-            border: 2px solid var(--gray-200);
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .jenjang-btn:hover { border-color: var(--primary); }
-        .jenjang-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        
-        .target-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .target-table th { 
-            background: var(--gray-100); 
-            padding: 0.75rem 1rem; 
-            text-align: left; 
-            font-weight: 600;
-            font-size: 0.875rem;
-            border-bottom: 2px solid var(--gray-200);
-        }
-        .target-table td { 
-            padding: 0.75rem 1rem; 
-            border-bottom: 1px solid var(--gray-100);
-            font-size: 0.875rem;
-        }
-        .target-table tr:hover td { background: var(--gray-50); }
-        .target-value { 
-            font-weight: 600; 
-            padding: 0.25rem 0.75rem; 
-            border-radius: 6px;
-            display: inline-block;
-            min-width: 50px;
-            text-align: center;
-        }
-        .target-value.alim { background: #ecfeff; color: var(--alim); }
-        .target-value.faqih { background: #f5f3ff; color: var(--faqih); }
-        .target-value.akhlaq { background: #ecfdf5; color: var(--akhlaq); }
-        
-        /* Materi Accordion */
-        .materi-section { margin-bottom: 1rem; }
-        .materi-header {
-            background: var(--gray-100);
-            padding: 1rem 1.25rem;
-            border-radius: 10px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-        }
-        .materi-header:hover { background: var(--gray-200); }
-        .materi-header.open { border-radius: 10px 10px 0 0; }
-        .materi-header-left { display: flex; align-items: center; gap: 0.75rem; }
-        .materi-header-icon { font-size: 1.25rem; }
-        .materi-header-title { font-weight: 600; }
-        .materi-header-count { 
-            background: var(--primary); 
-            color: white; 
-            padding: 0.25rem 0.625rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .materi-header-arrow { transition: transform 0.3s; }
-        .materi-header.open .materi-header-arrow { transform: rotate(180deg); }
-        .materi-body {
-            display: none;
-            background: white;
-            border: 1px solid var(--gray-200);
-            border-top: none;
-            border-radius: 0 0 10px 10px;
+            border-radius: var(--radius-md);
             padding: 1rem;
-        }
-        .materi-body.open { display: block; }
-        .materi-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.75rem;
-            border-radius: 8px;
             margin-bottom: 0.5rem;
-            background: var(--gray-50);
+            transition: all 0.2s;
         }
-        .materi-item:last-child { margin-bottom: 0; }
-        .materi-item:hover { background: var(--gray-100); }
-        .materi-item-name { font-weight: 500; }
-        .materi-item-meta { font-size: 0.8rem; color: var(--gray-500); }
-        
-        /* Stats Cards */
-        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .stat-mini {
-            background: white;
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            padding: 1.25rem;
+        .materi-card:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+        .materi-info { flex: 1; }
+        .materi-nama { font-weight: 600; margin-bottom: 0.25rem; }
+        .materi-meta { font-size: 0.8rem; color: var(--gray-500); }
+        .kategori-header {
+            background: var(--gray-100);
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 0.75rem;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 1rem;
         }
-        .stat-mini-icon { 
-            width: 48px; height: 48px; 
-            border-radius: 12px; 
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem;
-        }
-        .stat-mini-icon.primary { background: #ecfdf5; }
-        .stat-mini-icon.warning { background: #fef3c7; }
-        .stat-mini-icon.info { background: #e0f2fe; }
-        .stat-mini-icon.purple { background: #f3e8ff; }
-        .stat-mini-value { font-size: 1.5rem; font-weight: 700; }
-        .stat-mini-label { font-size: 0.8rem; color: var(--gray-500); }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .bidang-grid { grid-template-columns: 1fr; }
-            .karakter-grid { grid-template-columns: 1fr; }
-            .tab-item { padding: 0.75rem 1rem; font-size: 0.875rem; }
-        }
+        .kategori-title { font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+        .bidang-alim { border-left: 4px solid var(--primary); }
+        .bidang-akhlak { border-left: 4px solid var(--success); }
+        .bidang-mandiri { border-left: 4px solid var(--warning); }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <aside class="sidebar" id="sidebar">
+                <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">PPG</div>
                 <div class="sidebar-brand">
@@ -229,12 +66,14 @@
             <nav class="sidebar-nav">
                 <div class="nav-section">MENU UTAMA</div>
                 <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
-                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
                 <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
-                <a href="penilaian.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian</span></a>
+                <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
                 <div class="nav-section">LAPORAN</div>
                 <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
                 <div class="nav-section">PENGATURAN</div>
                 <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
                 <a href="kurikulum.html" class="nav-item active"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
@@ -255,207 +94,200 @@
         
         <main class="main-content">
             <header class="header">
-                <div class="header-left">
-                    <button class="btn-menu" onclick="toggleSidebar()">☰</button>
-                    <h1 class="header-title">Kurikulum</h1>
-                </div>
+                <div class="header-left"><h1 class="header-title">Kurikulum</h1></div>
                 <div class="header-right">
                     <div class="user-menu">
                         <div class="user-avatar" id="userAvatar">?</div>
-                        <div class="user-info">
-                            <div class="user-name" id="userName">Loading...</div>
-                            <div class="user-role" id="userRole">-</div>
-                        </div>
+                        <div class="user-info"><div class="user-name" id="userName">Loading...</div><div class="user-role" id="userRole">-</div></div>
                     </div>
+                    <button class="btn-logout-mobile" onclick="logout()">🚪</button>
                     <button class="btn btn-outline btn-sm" onclick="logout()">Keluar</button>
                 </div>
             </header>
             
             <div class="page-content">
-                <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;">
-                    <div>
-                        <div class="breadcrumb"><a href="dashboard.html">Dashboard</a><span>/</span><span>Kurikulum</span></div>
-                        <h2 class="page-title">Kurikulum & Materi Pembinaan</h2>
-                    </div>
-                    <a href="admin-kurikulum.html" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.625rem 1rem;background:#059669;color:white;border-radius:8px;text-decoration:none;font-weight:500;">
-                        ⚙️ Admin Kurikulum
-                    </a>
-                </div>
-                
-                <!-- Stats Row -->
-                <div class="stats-row">
-                    <div class="stat-mini">
-                        <div class="stat-mini-icon primary">📖</div>
-                        <div>
-                            <div class="stat-mini-value" id="totalMateri">0</div>
-                            <div class="stat-mini-label">Total Materi</div>
-                        </div>
-                    </div>
-                    <div class="stat-mini">
-                        <div class="stat-mini-icon info">📂</div>
-                        <div>
-                            <div class="stat-mini-value" id="totalKategori">0</div>
-                            <div class="stat-mini-label">Kategori</div>
-                        </div>
-                    </div>
-                    <div class="stat-mini">
-                        <div class="stat-mini-icon purple">🎯</div>
-                        <div>
-                            <div class="stat-mini-value" id="totalTarget">0</div>
-                            <div class="stat-mini-label">Target Jenjang</div>
-                        </div>
-                    </div>
-                    <div class="stat-mini">
-                        <div class="stat-mini-icon warning">📊</div>
-                        <div>
-                            <div class="stat-mini-value" id="totalJenjang">0</div>
-                            <div class="stat-mini-label">Jenjang</div>
+                <!-- Access Denied -->
+                <div class="card" id="accessDenied" style="display:none;">
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔒</div>
+                            <div class="empty-state-title">Akses Ditolak</div>
+                            <p class="text-muted">Halaman ini hanya dapat diakses oleh Admin</p>
+                            <a href="dashboard.html" class="btn btn-primary mt-md">Kembali ke Dashboard</a>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Tabs -->
-                <div class="tabs-container">
-                    <div class="tabs">
-                        <div class="tab-item active" onclick="switchTab('trisukses')">🏆 Tri Sukses</div>
-                        <div class="tab-item" onclick="switchTab('thobiat')">💎 6 Thobiat Luhur</div>
-                        <div class="tab-item" onclick="switchTab('tali')">🔗 4 Tali Keimanan</div>
-                        <div class="tab-item" onclick="switchTab('target')">🎯 Target Jenjang</div>
-                        <div class="tab-item" onclick="switchTab('materi')">📖 Daftar Materi</div>
-                        <div class="tab-item" onclick="switchTab('settings')">⚙️ Pengaturan</div>
-                    </div>
-                </div>
-                
-                <!-- Tab: Tri Sukses -->
-                <div class="tab-content active" id="tabTrisukses">
-                    <h3 style="margin-bottom:1rem;color:var(--gray-700);">Bidang Pembinaan (Tri Sukses)</h3>
-                    <div class="bidang-grid" id="bidangGrid">
-                        <!-- Loaded dynamically -->
+                <!-- Main Content (Admin Only) -->
+                <div id="adminContent" style="display:none;">
+                    <div class="page-header">
+                        <div>
+                            <div class="breadcrumb"><a href="dashboard.html">Dashboard</a><span>/</span><span>Kurikulum</span></div>
+                            <h2 class="page-title">Kelola Kurikulum & Materi</h2>
+                        </div>
                     </div>
                     
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Struktur Kurikulum</h3>
+                    <!-- Stats -->
+                    <div class="stats-grid mb-lg">
+                        <div class="stat-card">
+                            <div class="stat-icon primary">📖</div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="totalMateri">0</div>
+                                <div class="stat-label">Total Materi</div>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div id="strukturKurikulum">
+                        <div class="stat-card">
+                            <div class="stat-icon success">📂</div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="totalKategori">0</div>
+                                <div class="stat-label">Kategori</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon warning">🎯</div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="totalJenjang">0</div>
+                                <div class="stat-label">Jenjang</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tabs -->
+                    <div class="tabs-container">
+                        <div class="tabs">
+                            <div class="tab-item active" onclick="switchTab('materi')">📖 Materi</div>
+                            <div class="tab-item" onclick="switchTab('kategori')">📂 Kategori</div>
+                            <div class="tab-item" onclick="switchTab('bidang')">🎯 Bidang</div>
+                            <div class="tab-item" onclick="switchTab('jenjang')">📊 Jenjang</div>
+                            <div class="tab-item" onclick="switchTab('tahunAjaran')">📅 Tahun Ajaran</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Materi -->
+                    <div class="tab-content active" id="tabMateri">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Daftar Materi</h3>
+                                <div class="btn-group">
+                                    <select class="form-control" id="filterKategori" onchange="loadMateri()" style="width:200px;">
+                                        <option value="">Semua Kategori</option>
+                                    </select>
+                                    <button class="btn btn-primary" onclick="showMateriModal()">➕ Tambah Materi</button>
+                                </div>
+                            </div>
+                            <div class="card-body" id="materiList">
                                 <p class="text-muted">Memuat data...</p>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Tab: 6 Thobiat Luhur -->
-                <div class="tab-content" id="tabThobiat">
-                    <div style="margin-bottom:1.5rem;">
-                        <h3 style="margin-bottom:0.5rem;">6 Thobiat Luhur</h3>
-                        <p style="color:var(--gray-600);">Karakter utama yang harus dimiliki generus dalam bidang Akhlaq</p>
-                    </div>
-                    <div class="karakter-grid" id="thobiatGrid">
-                        <!-- Loaded dynamically -->
-                    </div>
-                </div>
-                
-                <!-- Tab: 4 Tali Keimanan -->
-                <div class="tab-content" id="tabTali">
-                    <div style="margin-bottom:1.5rem;">
-                        <h3 style="margin-bottom:0.5rem;">4 Tali Keimanan</h3>
-                        <p style="color:var(--gray-600);">Pilar keimanan yang harus diamalkan dalam bidang Faqih</p>
-                    </div>
-                    <div class="karakter-grid" id="taliGrid">
-                        <!-- Loaded dynamically -->
-                    </div>
-                </div>
-                
-                <!-- Tab: Target Jenjang -->
-                <div class="tab-content" id="tabTarget">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Target per Jenjang</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="jenjang-selector" id="jenjangSelector">
-                                <!-- Loaded dynamically -->
+                    
+                    <!-- Tab: Kategori -->
+                    <div class="tab-content" id="tabKategori">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Kategori Materi</h3>
+                                <button class="btn btn-primary" onclick="showKategoriModal()">➕ Tambah Kategori</button>
                             </div>
-                            <div class="table-container">
-                                <table class="target-table" id="targetTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Bidang</th>
-                                            <th>Kategori</th>
-                                            <th>Target</th>
-                                            <th>Satuan</th>
-                                            <th>Keterangan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Tab: Daftar Materi -->
-                <div class="tab-content" id="tabMateri">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Daftar Materi Pembelajaran</h3>
-                            <div class="btn-group">
-                                <select class="form-control" id="filterBidang" onchange="loadMateri()" style="width:180px;">
-                                    <option value="">Semua Bidang</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="card-body" id="materiContainer">
-                            <p class="text-muted">Memuat data...</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Tab: Pengaturan -->
-                <div class="tab-content" id="tabSettings">
-                    <div class="card mb-lg">
-                        <div class="card-header">
-                            <h3 class="card-title">Jenjang Pendidikan</h3>
-                            <button class="btn btn-primary btn-sm" onclick="showJenjangModal()">➕ Tambah</button>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-container">
-                                <table class="table" id="jenjangTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Kode</th>
-                                            <th>Nama</th>
-                                            <th>Usia</th>
-                                            <th>Target Keaktifan</th>
-                                            <th>Status</th>
-                                            <th>Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
+                            <div class="card-body">
+                                <div class="table-container">
+                                    <table class="table" id="kategoriTable">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Kode</th>
+                                                <th>Nama</th>
+                                                <th>Bidang</th>
+                                                <th>Urutan</th>
+                                                <th>Status</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Tahun Ajaran</h3>
-                            <button class="btn btn-primary btn-sm" onclick="showTahunAjaranModal()">➕ Tambah</button>
+                    <!-- Tab: Bidang -->
+                    <div class="tab-content" id="tabBidang">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Bidang (Tri Sukses)</h3>
+                                <button class="btn btn-primary" onclick="showBidangModal()">➕ Tambah Bidang</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-container">
+                                    <table class="table" id="bidangTable">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Kode</th>
+                                                <th>Nama</th>
+                                                <th>Deskripsi</th>
+                                                <th>Urutan</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="table-container">
-                                <table class="table" id="tahunAjaranTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Kode</th>
-                                            <th>Periode</th>
-                                            <th>Status</th>
-                                            <th>Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
+                    </div>
+                    
+                    <!-- Tab: Jenjang -->
+                    <div class="tab-content" id="tabJenjang">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Jenjang Pendidikan</h3>
+                                <button class="btn btn-primary" onclick="showJenjangModal()">➕ Tambah Jenjang</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-container">
+                                    <table class="table" id="jenjangTable">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Kode</th>
+                                                <th>Nama</th>
+                                                <th>Usia</th>
+                                                <th>Target Keaktifan</th>
+                                                <th>Urutan</th>
+                                                <th>Status</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Tahun Ajaran -->
+                    <div class="tab-content" id="tabTahunAjaran">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Tahun Ajaran</h3>
+                                <button class="btn btn-primary" onclick="showTahunAjaranModal()">➕ Tambah Tahun Ajaran</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-container">
+                                    <table class="table" id="tahunAjaranTable">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Kode</th>
+                                                <th>Tanggal Mulai</th>
+                                                <th>Tanggal Selesai</th>
+                                                <th>Status</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -463,465 +295,839 @@
             </div>
         </main>
     </div>
+    
+    <!-- Modal Materi -->
+    <div class="modal" id="materiModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="materiModalTitle">Tambah Materi</h3>
+                <button class="modal-close" onclick="hideModal('materiModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="materiForm">
+                    <input type="hidden" name="id" id="materiId">
+                    <div class="form-group">
+                        <label class="form-label required">Kategori</label>
+                        <select class="form-control" name="kategori_id" id="materiKategori" required>
+                            <option value="">-- Pilih Kategori --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Tipe</label>
+                        <select class="form-control" name="tipe" required>
+                            <option value="">-- Pilih Tipe --</option>
+                            <option value="surat">Surat</option>
+                            <option value="doa">Doa</option>
+                            <option value="dalil">Dalil</option>
+                            <option value="kitab_hadits">Kitab Hadits</option>
+                            <option value="juz">Juz</option>
+                            <option value="iqro">Iqro</option>
+                            <option value="akhlak">Akhlak</option>
+                            <option value="kemandirian">Kemandirian</option>
+                            <option value="sholat">Sholat</option>
+                            <option value="asad">ASAD</option>
+                            <option value="nasehat">Nasehat</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">Nama</label>
+                            <input type="text" class="form-control" name="nama" required placeholder="Contoh: Al-Fatihah">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nomor Urut</label>
+                            <input type="number" class="form-control" name="nomor" min="1" placeholder="Opsional">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Deskripsi</label>
+                        <textarea class="form-control" name="deskripsi" rows="2" placeholder="Opsional"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('materiModal')">Batal</button>
+                <button class="btn btn-primary" onclick="saveMateri()">Simpan</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Kategori -->
+    <div class="modal" id="kategoriModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="kategoriModalTitle">Tambah Kategori</h3>
+                <button class="modal-close" onclick="hideModal('kategoriModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="kategoriForm">
+                    <input type="hidden" name="id" id="kategoriId">
+                    <div class="form-group">
+                        <label class="form-label required">Bidang</label>
+                        <select class="form-control" name="bidang_id" id="kategoriBidang" required>
+                            <option value="">-- Pilih Bidang --</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">Kode</label>
+                            <input type="text" class="form-control" name="kode" required placeholder="Contoh: hafalan_surat">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Urutan</label>
+                            <input type="number" class="form-control" name="urutan" min="1" value="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Nama</label>
+                        <input type="text" class="form-control" name="nama" required placeholder="Contoh: Hafalan Surat">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" name="is_aktif">
+                            <option value="true">Aktif</option>
+                            <option value="false">Nonaktif</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('kategoriModal')">Batal</button>
+                <button class="btn btn-primary" onclick="saveKategori()">Simpan</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Bidang -->
+    <div class="modal" id="bidangModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="bidangModalTitle">Tambah Bidang</h3>
+                <button class="modal-close" onclick="hideModal('bidangModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="bidangForm">
+                    <input type="hidden" name="id" id="bidangId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">Kode</label>
+                            <input type="text" class="form-control" name="kode" required placeholder="Contoh: alim">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Urutan</label>
+                            <input type="number" class="form-control" name="urutan" min="1" value="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Nama</label>
+                        <input type="text" class="form-control" name="nama" required placeholder="Contoh: Alim Faqih">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Deskripsi</label>
+                        <textarea class="form-control" name="deskripsi" rows="2" placeholder="Opsional"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('bidangModal')">Batal</button>
+                <button class="btn btn-primary" onclick="saveBidang()">Simpan</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Jenjang -->
+    <div class="modal" id="jenjangModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="jenjangModalTitle">Tambah Jenjang</h3>
+                <button class="modal-close" onclick="hideModal('jenjangModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="jenjangForm">
+                    <input type="hidden" name="id" id="jenjangId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">Kode</label>
+                            <input type="text" class="form-control" name="kode" required placeholder="Contoh: paud">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Urutan</label>
+                            <input type="number" class="form-control" name="urutan" min="1" value="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Nama</label>
+                        <input type="text" class="form-control" name="nama" required placeholder="Contoh: PAUD">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Usia Mulai</label>
+                            <input type="number" class="form-control" name="usia_mulai" min="0" placeholder="Tahun">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Usia Sampai</label>
+                            <input type="number" class="form-control" name="usia_sampai" min="0" placeholder="Tahun">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Target Keaktifan (%)</label>
+                        <input type="number" class="form-control" name="target_keaktifan" min="0" max="100" placeholder="Contoh: 80">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" name="is_aktif">
+                            <option value="true">Aktif</option>
+                            <option value="false">Nonaktif</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('jenjangModal')">Batal</button>
+                <button class="btn btn-primary" onclick="saveJenjang()">Simpan</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Tahun Ajaran -->
+    <div class="modal" id="tahunAjaranModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="tahunAjaranModalTitle">Tambah Tahun Ajaran</h3>
+                <button class="modal-close" onclick="hideModal('tahunAjaranModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="tahunAjaranForm">
+                    <input type="hidden" name="id" id="tahunAjaranId">
+                    <div class="form-group">
+                        <label class="form-label required">Kode</label>
+                        <input type="text" class="form-control" name="kode" required placeholder="Contoh: 2024/2025">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Tanggal Mulai</label>
+                            <input type="date" class="form-control" name="tanggal_mulai">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tanggal Selesai</label>
+                            <input type="date" class="form-control" name="tanggal_selesai">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" name="is_aktif">
+                            <option value="true">Aktif</option>
+                            <option value="false">Nonaktif</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('tahunAjaranModal')">Batal</button>
+                <button class="btn btn-primary" onclick="saveTahunAjaran()">Simpan</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
     
     <script>
-        // Data stores
-        let allBidang = [];
-        let allKategori = [];
         let allMateri = [];
+        let allKategori = [];
+        let allBidang = [];
         let allJenjang = [];
-        let allTarget = [];
-        let allThobiat = [];
-        let allTali = [];
         let allTahunAjaran = [];
-        let selectedJenjang = null;
+        let currentTab = 'materi';
         
         
         function toggleSidebar() {
             $('sidebar').classList.toggle('collapsed');
             $('sidebarOverlay').classList.toggle('show');
         }
-        
+
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🚀 Kurikulum page loading...');
-            if (!await requireAuth()) {
-                console.log('❌ Auth failed');
+            if (!await requireAuth()) return;
+            updateSidebarUserInfo();
+            initSidebar();
+            updateUserUI();
+            
+            // Check admin access
+            if (!isAdmin()) {
+                $('accessDenied').style.display = 'block';
+                $('adminContent').style.display = 'none';
                 return;
             }
-            console.log('✅ Auth passed');
+            
+            $('accessDenied').style.display = 'none';
+            $('adminContent').style.display = 'block';
+            
             await loadAllData();
         });
         
-        async function loadAllData() {
-            try {
-                console.log('📊 Loading kurikulum data...');
-                
-                // Load all data in parallel with error handling
-                const [bidang, kategori, materi, jenjang, target, thobiat, tali, ta] = await Promise.all([
-                    db.from('bidang').select('*').order('urutan'),
-                    db.from('kategori_materi').select('*, bidang:bidang_id(kode, nama)').order('urutan'),
-                    db.from('materi_item').select('*, kategori:kategori_id(kode, nama, bidang:bidang_id(kode))').order('nomor'),
-                    db.from('jenjang').select('*').order('urutan'),
-                    db.from('target_jenjang').select('*, jenjang:jenjang_id(kode, nama), kategori:kategori_id(kode, nama, satuan, bidang:bidang_id(kode, nama))'),
-                    db.from('nilai_karakter').select('*, kategori:kategori_id(nama)').order('urutan'),
-                    db.from('tali_keimanan').select('*, kategori:kategori_id(nama)').order('urutan'),
-                    db.from('tahun_ajaran').select('*').order('kode', { ascending: false })
-                ]);
-                
-                // Log errors if any
-                if (bidang.error) console.error('❌ bidang:', bidang.error.message);
-                if (kategori.error) console.error('❌ kategori:', kategori.error.message);
-                if (materi.error) console.error('❌ materi:', materi.error.message);
-                if (jenjang.error) console.error('❌ jenjang:', jenjang.error.message);
-                if (target.error) console.error('❌ target:', target.error.message);
-                if (thobiat.error) console.error('❌ thobiat (nilai_karakter):', thobiat.error.message);
-                if (tali.error) console.error('❌ tali (tali_keimanan):', tali.error.message);
-                if (ta.error) console.error('❌ tahun_ajaran:', ta.error.message);
-                
-                allBidang = bidang.data || [];
-                allKategori = kategori.data || [];
-                allMateri = materi.data || [];
-                allJenjang = jenjang.data || [];
-                allTarget = target.data || [];
-                allThobiat = thobiat.data || [];
-                allTali = tali.data || [];
-                allTahunAjaran = ta.data || [];
-                
-                console.log('📋 Data loaded:', {
-                    bidang: allBidang.length,
-                    kategori: allKategori.length,
-                    materi: allMateri.length,
-                    jenjang: allJenjang.length,
-                    target: allTarget.length,
-                    thobiat: allThobiat.length,
-                    tali: allTali.length,
-                    tahunAjaran: allTahunAjaran.length
-                });
-                
-                // Update stats
-                $('totalMateri').textContent = allMateri.length;
-                $('totalKategori').textContent = allKategori.length;
-                $('totalTarget').textContent = allTarget.length;
-                $('totalJenjang').textContent = allJenjang.length;
-                
-                // Render all tabs
-                renderBidangGrid();
-                renderStrukturKurikulum();
-                renderThobiatGrid();
-                renderTaliGrid();
-                renderJenjangSelector();
-                renderMateri();
-                renderJenjangTable();
-                renderTahunAjaranTable();
-                populateFilters();
-                
-                console.log('✅ Kurikulum render complete');
-                
-            } catch (error) {
-                console.error('❌ Error loading data:', error);
-                showToast('Gagal memuat data: ' + error.message, 'error');
+        function updateUserUI() {
+            if (currentUserData) {
+                $('userName').textContent = currentUserData.nama || currentUserData.email;
+                $('userAvatar').textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
+                if (userRoles.length > 0) $('userRole').textContent = userRoles[0].role?.nama || '-';
             }
         }
         
-        // ==================== TAB SWITCHING ====================
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        async function loadAllData() {
+            await Promise.all([
+                loadBidang(),
+                loadKategori(),
+                loadMateri(),
+                loadJenjang(),
+                loadTahunAjaran()
+            ]);
+            
+            // Update stats
+            $('totalMateri').textContent = allMateri.length;
+            $('totalKategori').textContent = allKategori.length;
+            $('totalJenjang').textContent = allJenjang.length;
+        }
+        
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab UI
+            $$$('.tab-item').forEach(t => t.classList.remove('active'));
+            $$$('.tab-content').forEach(t => t.classList.remove('active'));
             
             event.target.classList.add('active');
-            $('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
-        }
-        
-        // ==================== BIDANG / TRI SUKSES ====================
-        function renderBidangGrid() {
-            const grid = $('bidangGrid');
-            // Handle variasi nama: AKHLAK atau AKHLAQ
-            const triSukses = allBidang.filter(b => 
-                ['ALIM', 'FAQIH', 'AKHLAQ', 'AKHLAK'].includes(b.kode.toUpperCase())
-            );
-            
-            // Deduplicate - ambil yang unique berdasarkan kode (case insensitive)
-            const seen = {};
-            const uniqueBidang = triSukses.filter(b => {
-                const kodeUpper = b.kode.toUpperCase().replace('AKHLAK', 'AKHLAQ');
-                if (seen[kodeUpper]) return false;
-                seen[kodeUpper] = true;
-                return true;
-            });
-            
-            if (uniqueBidang.length === 0) {
-                grid.innerHTML = '<p class="text-muted text-center">Belum ada data bidang (ALIM/FAQIH/AKHLAQ)</p>';
-                return;
-            }
-            
-            grid.innerHTML = uniqueBidang.map(b => {
-                const kategoriCount = allKategori.filter(k => k.bidang_id === b.id).length;
-                const materiCount = allMateri.filter(m => {
-                    const bidangKode = m.kategori?.bidang?.kode?.toUpperCase();
-                    return bidangKode === b.kode.toUpperCase() || 
-                           (bidangKode === 'AKHLAK' && b.kode.toUpperCase() === 'AKHLAQ') ||
-                           (bidangKode === 'AKHLAQ' && b.kode.toUpperCase() === 'AKHLAK');
-                }).length;
-                const kodeUpper = b.kode.toUpperCase();
-                const cssClass = kodeUpper.replace('AKHLAK', 'AKHLAQ').toLowerCase();
-                const icons = { ALIM: '📖', FAQIH: '🕌', AKHLAQ: '💎', AKHLAK: '💎' };
-                const subtitles = { 
-                    ALIM: 'Keilmuan - Bacaan, Hafalan, Makna', 
-                    FAQIH: 'Pemahaman & Praktek Ibadah', 
-                    AKHLAQ: 'Perilaku & Karakter Mulia',
-                    AKHLAK: 'Perilaku & Karakter Mulia'
-                };
-                
-                return `
-                <div class="bidang-card ${cssClass}" onclick="filterByBidang('${b.kode}')">
-                    <div class="bidang-icon">${icons[kodeUpper] || '📚'}</div>
-                    <div class="bidang-title">${b.nama}</div>
-                    <div class="bidang-subtitle">${subtitles[kodeUpper] || ''}</div>
-                    <div class="bidang-stats">
-                        <div class="bidang-stat">
-                            <div class="bidang-stat-value">${kategoriCount}</div>
-                            <div class="bidang-stat-label">Kategori</div>
-                        </div>
-                        <div class="bidang-stat">
-                            <div class="bidang-stat-value">${materiCount}</div>
-                            <div class="bidang-stat-label">Materi</div>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-        
-        function renderStrukturKurikulum() {
-            const container = $('strukturKurikulum');
-            // Handle variasi AKHLAK/AKHLAQ
-            const triSukses = allBidang.filter(b => 
-                ['ALIM', 'FAQIH', 'AKHLAQ', 'AKHLAK'].includes(b.kode.toUpperCase())
-            );
-            
-            // Deduplicate
-            const seen = {};
-            const uniqueBidang = triSukses.filter(b => {
-                const kodeUpper = b.kode.toUpperCase().replace('AKHLAK', 'AKHLAQ');
-                if (seen[kodeUpper]) return false;
-                seen[kodeUpper] = true;
-                return true;
-            });
-            
-            if (uniqueBidang.length === 0) {
-                container.innerHTML = '<p class="text-muted text-center">Belum ada data struktur kurikulum</p>';
-                return;
-            }
-            
-            let html = '';
-            uniqueBidang.forEach(bidang => {
-                const kategoriBidang = allKategori.filter(k => k.bidang_id === bidang.id);
-                const kodeUpper = bidang.kode.toUpperCase();
-                const cssClass = kodeUpper.replace('AKHLAK', 'AKHLAQ').toLowerCase();
-                const icons = { ALIM: '📖', FAQIH: '🕌', AKHLAQ: '💎', AKHLAK: '💎' };
-                
-                html += `
-                <div class="materi-section">
-                    <div class="materi-header" onclick="toggleSection(this)">
-                        <div class="materi-header-left">
-                            <span class="materi-header-icon">${icons[kodeUpper] || '📚'}</span>
-                            <span class="materi-header-title">${bidang.nama}</span>
-                            <span class="materi-header-count">${kategoriBidang.length} kategori</span>
-                        </div>
-                        <span class="materi-header-arrow">▼</span>
-                    </div>
-                    <div class="materi-body">
-                        ${kategoriBidang.length > 0 ? kategoriBidang.map(k => {
-                            const materiKategori = allMateri.filter(m => m.kategori_id === k.id);
-                            return `
-                            <div class="materi-item">
-                                <div>
-                                    <div class="materi-item-name">${k.nama}</div>
-                                    <div class="materi-item-meta">${k.kode} • ${k.satuan || '-'}</div>
-                                </div>
-                                <span class="badge badge-secondary">${materiKategori.length} materi</span>
-                            </div>`;
-                        }).join('') : '<p class="text-muted text-center py-2">Belum ada kategori</p>'}
-                    </div>
-                </div>`;
-            });
-            
-            container.innerHTML = html || '<p class="text-muted text-center">Tidak ada data</p>';
-        }
-        
-        function toggleSection(header) {
-            header.classList.toggle('open');
-            header.nextElementSibling.classList.toggle('open');
-        }
-        
-        // ==================== 6 THOBIAT LUHUR ====================
-        function renderThobiatGrid() {
-            const grid = $('thobiatGrid');
-            const icons = ['🎯', '🤝', '💪', '🕊️', '🤜🤛', '🤲'];
-            
-            if (allThobiat.length === 0) {
-                grid.innerHTML = '<p class="text-muted text-center">Belum ada data 6 Thobiat Luhur</p>';
-                return;
-            }
-            
-            grid.innerHTML = allThobiat.map((t, i) => `
-                <div class="karakter-card">
-                    <div class="karakter-header">
-                        <span style="font-size:2rem;">${icons[i] || '💎'}</span>
-                        <span class="karakter-badge thobiat">#${t.urutan || (i+1)} Thobiat</span>
-                    </div>
-                    <div class="karakter-title">${t.nama}</div>
-                    <div class="karakter-desc">${t.pengertian || '-'}</div>
-                    ${t.indikator ? `
-                    <div class="karakter-indikator">
-                        <strong>Indikator:</strong> ${t.indikator}
-                    </div>` : ''}
-                    ${t.lawan_sifat ? `
-                    <div style="margin-top:0.5rem;font-size:0.8rem;color:#dc2626;">
-                        <strong>Lawan:</strong> ${t.lawan_sifat}
-                    </div>` : ''}
-                </div>
-            `).join('');
-        }
-        
-        // ==================== 4 TALI KEIMANAN ====================
-        function renderTaliGrid() {
-            const grid = $('taliGrid');
-            const icons = ['🙏', '💪', '✨', '🤲'];
-            
-            if (allTali.length === 0) {
-                grid.innerHTML = '<p class="text-muted text-center">Belum ada data 4 Tali Keimanan</p>';
-                return;
-            }
-            
-            grid.innerHTML = allTali.map((t, i) => `
-                <div class="karakter-card">
-                    <div class="karakter-header">
-                        <span style="font-size:2rem;">${icons[i] || '🔗'}</span>
-                        <span class="karakter-badge tali">#${t.urutan || (i+1)} Tali</span>
-                    </div>
-                    <div class="karakter-title">${t.nama}</div>
-                    <div class="karakter-desc">${t.pengertian || '-'}</div>
-                    ${t.implementasi ? `
-                    <div class="karakter-indikator">
-                        <strong>Implementasi:</strong> ${t.implementasi}
-                    </div>` : ''}
-                    ${t.dalil_rujukan ? `
-                    <div style="margin-top:0.75rem;padding:0.75rem;background:#f5f3ff;border-radius:8px;font-size:0.8rem;color:#5b21b6;">
-                        <strong>📜 Dalil:</strong><br>${t.dalil_rujukan}
-                    </div>` : ''}
-                </div>
-            `).join('');
-        }
-        
-        // ==================== TARGET JENJANG ====================
-        function renderJenjangSelector() {
-            const selector = $('jenjangSelector');
-            
-            // Tampilkan semua jenjang, tidak hanya yang is_aktif
-            const jenjangList = allJenjang.length > 0 ? allJenjang : [];
-            
-            if (jenjangList.length === 0) {
-                selector.innerHTML = '<p class="text-muted">Belum ada data jenjang</p>';
-                return;
-            }
-            
-            selector.innerHTML = jenjangList.map((j, i) => `
-                <button class="jenjang-btn ${i === 0 ? 'active' : ''}" onclick="selectJenjang(${j.id}, this)">
-                    ${j.nama}
-                </button>
-            `).join('');
-            
-            selectedJenjang = jenjangList[0].id;
-            renderTargetTable();
-        }
-        
-        function selectJenjang(id, btn) {
-            document.querySelectorAll('.jenjang-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            selectedJenjang = id;
-            renderTargetTable();
-        }
-        
-        function renderTargetTable() {
-            const tbody = $$('#targetTable tbody');
-            const targets = allTarget.filter(t => t.jenjang_id === selectedJenjang);
-            
-            if (targets.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Tidak ada target untuk jenjang ini</td></tr>';
-                return;
-            }
-            
-            // Group by bidang
-            const grouped = {};
-            targets.forEach(t => {
-                const bidangKode = t.kategori?.bidang?.kode || 'LAIN';
-                if (!grouped[bidangKode]) grouped[bidangKode] = [];
-                grouped[bidangKode].push(t);
-            });
-            
-            let html = '';
-            Object.entries(grouped).forEach(([bidangKode, items]) => {
-                items.forEach((t, i) => {
-                    const cssClass = bidangKode.toLowerCase();
-                    html += `
-                    <tr>
-                        ${i === 0 ? `<td rowspan="${items.length}" style="font-weight:600;background:var(--gray-50);">${t.kategori?.bidang?.nama || bidangKode}</td>` : ''}
-                        <td>${t.kategori?.nama || '-'}</td>
-                        <td><span class="target-value ${cssClass}">${t.target_jumlah || '-'}</span></td>
-                        <td>${t.kategori?.satuan || '-'}</td>
-                        <td style="font-size:0.8rem;color:var(--gray-500);">${t.keterangan || '-'}</td>
-                    </tr>`;
-                });
-            });
-            
-            tbody.innerHTML = html;
+            $(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
         }
         
         // ==================== MATERI ====================
-        function populateFilters() {
-            const filterBidang = $('filterBidang');
-            filterBidang.innerHTML = '<option value="">Semua Bidang</option>' + 
-                allBidang.map(b => `<option value="${b.kode}">${b.nama}</option>`).join('');
+        async function loadMateri() {
+            try {
+                const { data, error } = await db.from('materi_item')
+                    .select('*, kategori:kategori_id(nama, bidang:bidang_id(nama))')
+                    .order('kategori_id')
+                    .order('nomor');
+                
+                if (error) throw error;
+                allMateri = data || [];
+                
+                renderMateriList();
+                
+                // Update filter
+                const filterKategori = $('filterKategori');
+                filterKategori.innerHTML = '<option value="">Semua Kategori</option>' +
+                    allKategori.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
+                    
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
         
-        function renderMateri() {
-            const container = $('materiContainer');
-            const filterBidang = $('filterBidang').value;
+        function renderMateriList() {
+            const container = $('materiList');
+            const filterKategori = $('filterKategori').value;
             
-            let filteredKategori = allKategori;
-            if (filterBidang) {
-                filteredKategori = allKategori.filter(k => k.bidang?.kode === filterBidang);
+            let filtered = allMateri;
+            if (filterKategori) {
+                filtered = allMateri.filter(m => m.kategori_id == filterKategori);
             }
             
-            if (filteredKategori.length === 0) {
-                container.innerHTML = '<p class="text-center text-muted">Tidak ada data</p>';
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center py-4">Tidak ada data materi</p>';
                 return;
             }
             
+            // Group by kategori
+            const grouped = {};
+            filtered.forEach(m => {
+                const katNama = m.kategori?.nama || 'Lainnya';
+                if (!grouped[katNama]) grouped[katNama] = [];
+                grouped[katNama].push(m);
+            });
+            
             let html = '';
-            filteredKategori.forEach(k => {
-                const materiKategori = allMateri.filter(m => m.kategori_id === k.id);
+            Object.keys(grouped).forEach(katNama => {
+                const items = grouped[katNama];
+                const bidangNama = items[0]?.kategori?.bidang?.nama || '';
+                const bidangClass = bidangNama.toLowerCase().includes('alim') ? 'bidang-alim' : 
+                                   bidangNama.toLowerCase().includes('akhlak') ? 'bidang-akhlak' : 'bidang-mandiri';
                 
                 html += `
-                <div class="materi-section">
-                    <div class="materi-header" onclick="toggleSection(this)">
-                        <div class="materi-header-left">
-                            <span class="materi-header-title">${k.nama}</span>
-                            <span class="materi-header-count">${materiKategori.length}</span>
+                    <div class="kategori-header ${bidangClass}">
+                        <div class="kategori-title">
+                            <span>📂 ${katNama}</span>
+                            <span class="badge badge-secondary">${items.length} materi</span>
                         </div>
-                        <span class="materi-header-arrow">▼</span>
                     </div>
-                    <div class="materi-body">
-                        ${materiKategori.length > 0 ? materiKategori.map(m => `
-                        <div class="materi-item">
-                            <div>
-                                <div class="materi-item-name">${m.nama}</div>
-                                <div class="materi-item-meta">${m.kode} • ${m.tipe}</div>
+                `;
+                
+                items.forEach(m => {
+                    html += `
+                        <div class="materi-card">
+                            <div class="materi-info">
+                                <div class="materi-nama">${m.nomor ? m.nomor + '. ' : ''}${m.nama}</div>
+                                <div class="materi-meta">Tipe: ${m.tipe} ${m.deskripsi ? '• ' + m.deskripsi : ''}</div>
                             </div>
-                        </div>`).join('') : '<p class="text-muted text-center">Belum ada materi</p>'}
-                    </div>
-                </div>`;
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline" onclick="editMateri(${m.id})">✏️</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteMateri(${m.id})">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
             });
             
             container.innerHTML = html;
         }
         
-        function loadMateri() {
-            renderMateri();
+        function showMateriModal(id = null) {
+            $('materiModalTitle').textContent = id ? 'Edit Materi' : 'Tambah Materi';
+            $('materiForm').reset();
+            $('materiId').value = id || '';
+            
+            // Populate kategori dropdown
+            $('materiKategori').innerHTML = '<option value="">-- Pilih Kategori --</option>' +
+                allKategori.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
+            
+            showModal('materiModal');
         }
         
-        function filterByBidang(kode) {
-            $('filterBidang').value = kode;
-            switchTab('materi');
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-item')[4].classList.add('active');
-            renderMateri();
+        async function editMateri(id) {
+            const materi = allMateri.find(m => m.id === id);
+            if (!materi) return;
+            
+            showMateriModal(id);
+            
+            const form = $('materiForm');
+            form.querySelector('[name="kategori_id"]').value = materi.kategori_id || '';
+            form.querySelector('[name="tipe"]').value = materi.tipe || '';
+            form.querySelector('[name="nama"]').value = materi.nama || '';
+            form.querySelector('[name="nomor"]').value = materi.nomor || '';
+            form.querySelector('[name="deskripsi"]').value = materi.deskripsi || '';
         }
         
-        // ==================== JENJANG TABLE ====================
-        function renderJenjangTable() {
-            const tbody = $$('#jenjangTable tbody');
-            tbody.innerHTML = allJenjang.map(j => `
+        async function saveMateri() {
+            const formData = getFormData('materiForm');
+            
+            const data = {
+                kategori_id: parseInt(formData.kategori_id),
+                tipe: formData.tipe,
+                nama: formData.nama,
+                nomor: formData.nomor ? parseInt(formData.nomor) : null,
+                deskripsi: formData.deskripsi
+            };
+            
+            try {
+                if (formData.id) {
+                    await db.from('materi_item').update(data).eq('id', formData.id);
+                } else {
+                    await db.from('materi_item').insert(data);
+                }
+                
+                showToast('Materi berhasil disimpan', 'success');
+                hideModal('materiModal');
+                await loadMateri();
+            } catch (error) {
+                showToast('Gagal menyimpan: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteMateri(id) {
+            if (!await confirmDialog('Yakin ingin menghapus materi ini?')) return;
+            
+            try {
+                await db.from('progress_jamaah').delete().eq('materi_item_id', id);
+                await db.from('materi_item').delete().eq('id', id);
+                showToast('Materi berhasil dihapus', 'success');
+                await loadMateri();
+            } catch (error) {
+                showToast('Gagal menghapus: ' + error.message, 'error');
+            }
+        }
+        
+        // ==================== KATEGORI ====================
+        async function loadKategori() {
+            try {
+                const { data } = await db.from('kategori_materi')
+                    .select('*, bidang:bidang_id(nama)')
+                    .order('urutan');
+                
+                allKategori = data || [];
+                renderKategoriTable();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        function renderKategoriTable() {
+            const tbody = $$('#kategoriTable tbody');
+            tbody.innerHTML = allKategori.map((k, i) => `
                 <tr>
-                    <td><strong>${j.kode}</strong></td>
-                    <td>${j.nama}</td>
-                    <td>${j.usia_mulai || '-'} - ${j.usia_sampai || '∞'} tahun</td>
-                    <td><span class="badge badge-primary">${j.target_keaktifan || 20}x/bulan</span></td>
-                    <td><span class="badge ${j.is_aktif ? 'badge-success' : 'badge-secondary'}">${j.is_aktif ? 'Aktif' : 'Nonaktif'}</span></td>
+                    <td>${i + 1}</td>
+                    <td><code>${k.kode}</code></td>
+                    <td><strong>${k.nama}</strong></td>
+                    <td>${k.bidang?.nama || '-'}</td>
+                    <td>${k.urutan}</td>
+                    <td><span class="badge ${k.is_aktif ? 'badge-success' : 'badge-secondary'}">${k.is_aktif ? 'Aktif' : 'Nonaktif'}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-outline" onclick="editJenjang(${j.id})">✏️</button>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline" onclick="editKategori(${k.id})">✏️</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteKategori(${k.id})">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="7" class="text-center text-muted">Tidak ada data</td></tr>';
+        }
+        
+        function showKategoriModal(id = null) {
+            $('kategoriModalTitle').textContent = id ? 'Edit Kategori' : 'Tambah Kategori';
+            $('kategoriForm').reset();
+            $('kategoriId').value = id || '';
+            
+            $('kategoriBidang').innerHTML = '<option value="">-- Pilih Bidang --</option>' +
+                allBidang.map(b => `<option value="${b.id}">${b.nama}</option>`).join('');
+            
+            showModal('kategoriModal');
+        }
+        
+        async function editKategori(id) {
+            const kategori = allKategori.find(k => k.id === id);
+            if (!kategori) return;
+            
+            showKategoriModal(id);
+            setFormData('kategoriForm', kategori);
+            $('kategoriForm').querySelector('[name="is_aktif"]').value = kategori.is_aktif ? 'true' : 'false';
+        }
+        
+        async function saveKategori() {
+            const formData = getFormData('kategoriForm');
+            
+            const data = {
+                bidang_id: parseInt(formData.bidang_id),
+                kode: formData.kode,
+                nama: formData.nama,
+                urutan: parseInt(formData.urutan) || 1,
+                is_aktif: formData.is_aktif === 'true'
+            };
+            
+            try {
+                if (formData.id) {
+                    await db.from('kategori_materi').update(data).eq('id', formData.id);
+                } else {
+                    await db.from('kategori_materi').insert(data);
+                }
+                
+                showToast('Kategori berhasil disimpan', 'success');
+                hideModal('kategoriModal');
+                await loadKategori();
+                await loadMateri();
+            } catch (error) {
+                showToast('Gagal menyimpan: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteKategori(id) {
+            if (!await confirmDialog('Yakin ingin menghapus kategori ini? Semua materi di kategori ini juga akan terhapus.')) return;
+            
+            try {
+                const materiIds = allMateri.filter(m => m.kategori_id === id).map(m => m.id);
+                if (materiIds.length > 0) {
+                    await db.from('progress_jamaah').delete().in('materi_item_id', materiIds);
+                    await db.from('materi_item').delete().eq('kategori_id', id);
+                }
+                await db.from('kategori_materi').delete().eq('id', id);
+                
+                showToast('Kategori berhasil dihapus', 'success');
+                await loadKategori();
+                await loadMateri();
+            } catch (error) {
+                showToast('Gagal menghapus: ' + error.message, 'error');
+            }
+        }
+        
+        // ==================== BIDANG ====================
+        async function loadBidang() {
+            try {
+                const { data } = await db.from('bidang').select('*').order('urutan');
+                allBidang = data || [];
+                renderBidangTable();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        function renderBidangTable() {
+            const tbody = $$('#bidangTable tbody');
+            tbody.innerHTML = allBidang.map((b, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><code>${b.kode}</code></td>
+                    <td><strong>${b.nama}</strong></td>
+                    <td>${b.deskripsi || '-'}</td>
+                    <td>${b.urutan}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline" onclick="editBidang(${b.id})">✏️</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteBidang(${b.id})">🗑️</button>
+                        </div>
                     </td>
                 </tr>
             `).join('') || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
         }
         
-        // ==================== TAHUN AJARAN TABLE ====================
-        function renderTahunAjaranTable() {
-            const tbody = $$('#tahunAjaranTable tbody');
-            tbody.innerHTML = allTahunAjaran.map(t => `
-                <tr>
-                    <td><strong>${t.kode}</strong></td>
-                    <td>${formatTanggal(t.tanggal_mulai)} - ${formatTanggal(t.tanggal_selesai)}</td>
-                    <td><span class="badge ${t.is_aktif ? 'badge-success' : 'badge-secondary'}">${t.is_aktif ? 'Aktif' : 'Nonaktif'}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline" onclick="editTahunAjaran(${t.id})">✏️</button>
-                    </td>
-                </tr>
-            `).join('') || '<tr><td colspan="4" class="text-center text-muted">Tidak ada data</td></tr>';
+        function showBidangModal(id = null) {
+            $('bidangModalTitle').textContent = id ? 'Edit Bidang' : 'Tambah Bidang';
+            $('bidangForm').reset();
+            $('bidangId').value = id || '';
+            showModal('bidangModal');
         }
         
-        // Placeholder functions for modals
-        function showJenjangModal() { showToast('Fitur akan segera tersedia', 'info'); }
-        function editJenjang(id) { showToast('Fitur edit jenjang', 'info'); }
-        function showTahunAjaranModal() { showToast('Fitur akan segera tersedia', 'info'); }
-        function editTahunAjaran(id) { showToast('Fitur edit tahun ajaran', 'info'); }
+        async function editBidang(id) {
+            const bidang = allBidang.find(b => b.id === id);
+            if (!bidang) return;
+            showBidangModal(id);
+            setFormData('bidangForm', bidang);
+        }
+        
+        async function saveBidang() {
+            const formData = getFormData('bidangForm');
+            
+            const data = {
+                kode: formData.kode,
+                nama: formData.nama,
+                deskripsi: formData.deskripsi,
+                urutan: parseInt(formData.urutan) || 1
+            };
+            
+            try {
+                if (formData.id) {
+                    await db.from('bidang').update(data).eq('id', formData.id);
+                } else {
+                    await db.from('bidang').insert(data);
+                }
+                
+                showToast('Bidang berhasil disimpan', 'success');
+                hideModal('bidangModal');
+                await loadBidang();
+            } catch (error) {
+                showToast('Gagal menyimpan: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteBidang(id) {
+            if (!await confirmDialog('Yakin ingin menghapus bidang ini?')) return;
+            
+            try {
+                await db.from('bidang').delete().eq('id', id);
+                showToast('Bidang berhasil dihapus', 'success');
+                await loadBidang();
+            } catch (error) {
+                showToast('Gagal menghapus: ' + error.message, 'error');
+            }
+        }
+        
+        // ==================== JENJANG ====================
+        async function loadJenjang() {
+            try {
+                const { data } = await db.from('jenjang').select('*').order('urutan');
+                allJenjang = data || [];
+                renderJenjangTable();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        function renderJenjangTable() {
+            const tbody = $$('#jenjangTable tbody');
+            tbody.innerHTML = allJenjang.map((j, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><code>${j.kode}</code></td>
+                    <td><strong>${j.nama}</strong></td>
+                    <td>${j.usia_mulai || '?'} - ${j.usia_sampai || '?'} tahun</td>
+                    <td>${j.target_keaktifan || '-'}%</td>
+                    <td>${j.urutan}</td>
+                    <td><span class="badge ${j.is_aktif ? 'badge-success' : 'badge-secondary'}">${j.is_aktif ? 'Aktif' : 'Nonaktif'}</span></td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline" onclick="editJenjang(${j.id})">✏️</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteJenjang(${j.id})">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="8" class="text-center text-muted">Tidak ada data</td></tr>';
+        }
+        
+        function showJenjangModal(id = null) {
+            $('jenjangModalTitle').textContent = id ? 'Edit Jenjang' : 'Tambah Jenjang';
+            $('jenjangForm').reset();
+            $('jenjangId').value = id || '';
+            showModal('jenjangModal');
+        }
+        
+        async function editJenjang(id) {
+            const jenjang = allJenjang.find(j => j.id === id);
+            if (!jenjang) return;
+            showJenjangModal(id);
+            setFormData('jenjangForm', jenjang);
+            $('jenjangForm').querySelector('[name="is_aktif"]').value = jenjang.is_aktif ? 'true' : 'false';
+        }
+        
+        async function saveJenjang() {
+            const formData = getFormData('jenjangForm');
+            
+            const data = {
+                kode: formData.kode,
+                nama: formData.nama,
+                usia_mulai: formData.usia_mulai ? parseInt(formData.usia_mulai) : null,
+                usia_sampai: formData.usia_sampai ? parseInt(formData.usia_sampai) : null,
+                target_keaktifan: formData.target_keaktifan ? parseInt(formData.target_keaktifan) : null,
+                urutan: parseInt(formData.urutan) || 1,
+                is_aktif: formData.is_aktif === 'true'
+            };
+            
+            try {
+                if (formData.id) {
+                    await db.from('jenjang').update(data).eq('id', formData.id);
+                } else {
+                    await db.from('jenjang').insert(data);
+                }
+                
+                showToast('Jenjang berhasil disimpan', 'success');
+                hideModal('jenjangModal');
+                await loadJenjang();
+            } catch (error) {
+                showToast('Gagal menyimpan: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteJenjang(id) {
+            if (!await confirmDialog('Yakin ingin menghapus jenjang ini?')) return;
+            
+            try {
+                await db.from('jenjang').delete().eq('id', id);
+                showToast('Jenjang berhasil dihapus', 'success');
+                await loadJenjang();
+            } catch (error) {
+                showToast('Gagal menghapus: ' + error.message, 'error');
+            }
+        }
+        
+        // ==================== TAHUN AJARAN ====================
+        async function loadTahunAjaran() {
+            try {
+                const { data } = await db.from('tahun_ajaran').select('*').order('kode', { ascending: false });
+                allTahunAjaran = data || [];
+                renderTahunAjaranTable();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        function renderTahunAjaranTable() {
+            const tbody = $$('#tahunAjaranTable tbody');
+            tbody.innerHTML = allTahunAjaran.map((t, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><strong>${t.kode}</strong></td>
+                    <td>${t.tanggal_mulai ? formatTanggal(t.tanggal_mulai) : '-'}</td>
+                    <td>${t.tanggal_selesai ? formatTanggal(t.tanggal_selesai) : '-'}</td>
+                    <td><span class="badge ${t.is_aktif ? 'badge-success' : 'badge-secondary'}">${t.is_aktif ? 'Aktif' : 'Nonaktif'}</span></td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline" onclick="editTahunAjaran(${t.id})">✏️</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteTahunAjaran(${t.id})">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
+        }
+        
+        function showTahunAjaranModal(id = null) {
+            $('tahunAjaranModalTitle').textContent = id ? 'Edit Tahun Ajaran' : 'Tambah Tahun Ajaran';
+            $('tahunAjaranForm').reset();
+            $('tahunAjaranId').value = id || '';
+            showModal('tahunAjaranModal');
+        }
+        
+        async function editTahunAjaran(id) {
+            const ta = allTahunAjaran.find(t => t.id === id);
+            if (!ta) return;
+            showTahunAjaranModal(id);
+            setFormData('tahunAjaranForm', ta);
+            $('tahunAjaranForm').querySelector('[name="is_aktif"]').value = ta.is_aktif ? 'true' : 'false';
+        }
+        
+        async function saveTahunAjaran() {
+            const formData = getFormData('tahunAjaranForm');
+            
+            const data = {
+                kode: formData.kode,
+                tanggal_mulai: formData.tanggal_mulai || null,
+                tanggal_selesai: formData.tanggal_selesai || null,
+                is_aktif: formData.is_aktif === 'true'
+            };
+            
+            try {
+                // If setting as active, deactivate others
+                if (data.is_aktif) {
+                    await db.from('tahun_ajaran').update({ is_aktif: false }).neq('id', formData.id || 0);
+                }
+                
+                if (formData.id) {
+                    await db.from('tahun_ajaran').update(data).eq('id', formData.id);
+                } else {
+                    await db.from('tahun_ajaran').insert(data);
+                }
+                
+                showToast('Tahun Ajaran berhasil disimpan', 'success');
+                hideModal('tahunAjaranModal');
+                await loadTahunAjaran();
+            } catch (error) {
+                showToast('Gagal menyimpan: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteTahunAjaran(id) {
+            if (!await confirmDialog('Yakin ingin menghapus tahun ajaran ini?')) return;
+            
+            try {
+                await db.from('tahun_ajaran').delete().eq('id', id);
+                showToast('Tahun Ajaran berhasil dihapus', 'success');
+                await loadTahunAjaran();
+            } catch (error) {
+                showToast('Gagal menghapus: ' + error.message, 'error');
+            }
+        }
     </script>
 
-    <script src="js/mobile-menu.js"></script>
+
+    <!-- Bottom Navigation for Mobile -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-grid">
+            <a href="dashboard.html" class="bottom-nav-item">
+                <span class="bottom-nav-icon">📊</span>
+                <span class="bottom-nav-label">Home</span>
+            </a>
+            <a href="generus.html" class="bottom-nav-item">
+                <span class="bottom-nav-icon">👶</span>
+                <span class="bottom-nav-label">Generus</span>
+            </a>
+            <a href="presensi.html" class="bottom-nav-item">
+                <span class="bottom-nav-icon">✅</span>
+                <span class="bottom-nav-label">Presensi</span>
+            </a>
+            <a href="progress.html" class="bottom-nav-item">
+                <span class="bottom-nav-icon">📈</span>
+                <span class="bottom-nav-label">Progress</span>
+            </a>
+            <a href="#" class="bottom-nav-item" onclick="toggleSidebar(); return false;">
+                <span class="bottom-nav-icon">☰</span>
+                <span class="bottom-nav-label">Menu</span>
+            </a>
+        </div>
+    </nav>
 </body>
 </html>

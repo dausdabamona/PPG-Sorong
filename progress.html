@@ -13,9 +13,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/mobile-grid.css">
-    <link rel="stylesheet" href="css/pwa-enhanced.css">
-    <link rel="stylesheet" href="css/mobile-menu.css">
 </head>
 <body>
     <div class="app-container">
@@ -31,15 +28,19 @@
             <nav class="sidebar-nav">
                 <div class="nav-section">MENU UTAMA</div>
                 <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
-                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
                 <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
                 <a href="progress.html" class="nav-item active"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
                 <div class="nav-section">LAPORAN</div>
                 <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
                 <div class="nav-section">PENGATURAN</div>
                 <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
                 <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
                 <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
             </nav>
             <div class="sidebar-footer">
@@ -436,6 +437,29 @@
     </script>
 
     <!-- Bottom Navigation for Mobile -->
-    <script src="js/mobile-menu.js"></script>
+    <nav class="bottom-nav">
+        <div class="bottom-nav-grid">
+            <a href="dashboard.html" class="bottom-nav-item">
+                <span class="bottom-nav-icon">📊</span>
+                <span class="bottom-nav-label">Home</span>
+            </a>
+            <a href="generus.html" class="bottom-nav-item">
+                <span class="bottom-nav-icon">👶</span>
+                <span class="bottom-nav-label">Generus</span>
+            </a>
+            <a href="presensi.html" class="bottom-nav-item">
+                <span class="bottom-nav-icon">✅</span>
+                <span class="bottom-nav-label">Presensi</span>
+            </a>
+            <a href="progress.html" class="bottom-nav-item active">
+                <span class="bottom-nav-icon">📈</span>
+                <span class="bottom-nav-label">Progress</span>
+            </a>
+            <a href="#" class="bottom-nav-item" onclick="toggleSidebar(); return false;">
+                <span class="bottom-nav-icon">☰</span>
+                <span class="bottom-nav-label">Menu</span>
+            </a>
+        </div>
+    </nav>
 </body>
 </html>
