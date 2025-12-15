@@ -1,858 +1,170 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#059669">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="manifest.json">
-    <title>Data Generus - PPG Sorong</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/pwa-enhanced.css">
-    <link rel="stylesheet" href="css/mobile-menu.css">
-    <style>
-        /* Grid Layout Optimal */
-        .page-content {
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            height: calc(100vh - 60px);
-            overflow: hidden;
-        }
-        
-        /* Header Compact */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .page-title { font-size: 1.1rem; font-weight: 600; margin: 0; }
-        
-        /* Filter Bar - Horizontal */
-        .filter-bar {
-            display: grid;
-            grid-template-columns: 1fr 1fr 2fr;
-            gap: 0.5rem;
-            background: white;
-            padding: 0.75rem;
-            border-radius: 10px;
-            border: 1px solid var(--gray-200);
-        }
-        .filter-bar select, .filter-bar input {
-            padding: 0.5rem;
-            border: 1px solid var(--gray-300);
-            border-radius: 6px;
-            font-size: 0.8rem;
-        }
-        
-        /* Info Bar */
-        .info-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
-            color: var(--gray-500);
-        }
-        
-        /* Data Container - Scrollable */
-        .data-container {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        
-        /* Jenjang Group - Accordion */
-        .jenjang-group {
-            background: white;
-            border-radius: 10px;
-            border: 1px solid var(--gray-200);
-            overflow: hidden;
-        }
-        .jenjang-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            user-select: none;
-        }
-        .jenjang-title {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        .jenjang-badge {
-            padding: 0.125rem 0.5rem;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            color: white;
-        }
-        .jenjang-arrow { transition: transform 0.2s; }
-        .jenjang-group.collapsed .jenjang-arrow { transform: rotate(-90deg); }
-        .jenjang-group.collapsed .jenjang-body { display: none; }
-        
-        /* Grid Layout untuk Data */
-        .generus-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 0.5rem;
-            padding: 0 0.75rem 0.75rem;
-        }
-        
-        /* Card Item */
-        .generus-card {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.625rem;
-            background: var(--gray-50);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .generus-card:hover { background: #dcfce7; }
-        .generus-card.mismatch { background: #fef3c7; border: 1px solid #f59e0b; }
-        
-        .generus-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            background: #dbeafe;
-            flex-shrink: 0;
-        }
-        .generus-avatar.female { background: #fce7f3; }
-        
-        .generus-info { flex: 1; min-width: 0; }
-        .generus-name {
-            font-weight: 500;
-            font-size: 0.85rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .generus-meta {
-            font-size: 0.7rem;
-            color: var(--gray-500);
-        }
-        
-        .generus-action {
-            padding: 0.375rem;
-            background: white;
-            border: 1px solid var(--gray-300);
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 2rem;
-            color: var(--gray-500);
-        }
-        .empty-icon { font-size: 3rem; margin-bottom: 0.5rem; }
-        
-        /* FAB */
-        .fab {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            width: 50px;
-            height: 50px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 100;
-        }
-        
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        .modal.show { display: flex; }
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .modal-header {
-            padding: 1rem;
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal-title { font-weight: 600; font-size: 1rem; }
-        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
-        .modal-body { padding: 1rem; }
-        .modal-footer { padding: 1rem; border-top: 1px solid var(--gray-200); display: flex; gap: 0.5rem; justify-content: flex-end; }
-        
-        /* Form */
-        .form-group { margin-bottom: 0.75rem; }
-        .form-label { display: block; font-size: 0.8rem; font-weight: 500; margin-bottom: 0.25rem; color: var(--gray-700); }
-        .form-control {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid var(--gray-300);
-            border-radius: 6px;
-            font-size: 0.85rem;
-        }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-        
-        /* Colors by Jenjang */
-        .jenjang-paud { --jc: #f59e0b; }
-        .jenjang-caberawit { --jc: #10b981; }
-        .jenjang-praremaja { --jc: #3b82f6; }
-        .jenjang-remaja { --jc: #8b5cf6; }
-        .jenjang-pranikah { --jc: #ec4899; }
-        
-        /* Mobile */
-        @media (max-width: 768px) {
-            .filter-bar { grid-template-columns: 1fr 1fr; }
-            .filter-bar input { grid-column: 1 / -1; }
-            .generus-grid { grid-template-columns: 1fr; }
-        }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">PPG</div>
-                <div class="sidebar-brand">
-                    <div class="sidebar-title">PPG Sorong</div>
-                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
-                </div>
-                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
-            </div>
-            <nav class="sidebar-nav">
-                <div class="nav-section">MENU UTAMA</div>
-                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
-                <a href="generus.html" class="nav-item active"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
-                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
-                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
-                <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
-                <div class="nav-section">LAPORAN</div>
-                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
-                <div class="nav-section">PENGATURAN</div>
-                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
-                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
-                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
-                <a href="pernikahan.html" class="nav-item" id="menuPernikahan" style="display:none;"><span class="nav-icon">💒</span><span class="nav-text">Data Pernikahan</span></a>
-                <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="sidebar-user">
-                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
-                    <div class="sidebar-user-info">
-                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
-                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
-                    </div>
-                </div>
-                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
-            </div>
-        </aside>
-        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-        
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="header">
-                <div class="header-left">
-                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
-                    <h1 class="header-title">Data Generus</h1>
-                </div>
-                <div class="header-right">
-                    <div class="header-user">
-                        <div class="user-avatar" id="userAvatar">?</div>
-                        <div class="user-info">
-                            <div class="user-name" id="userName">Loading...</div>
-                            <div class="user-role" id="userRole">-</div>
-                        </div>
-                    </div>
-                    <button class="btn-logout-mobile" onclick="logout()">🚪</button>
-                </div>
-            </header>
-            
-            <div class="page-content">
-                <!-- Header -->
-                <div class="page-header">
-                    <div>
-                        <h2 class="page-title">Daftar Generus</h2>
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="showAddModal()">➕ Tambah</button>
-                </div>
-                
-                <!-- Filter Bar -->
-                <div class="filter-bar">
-                    <select id="filterDesa" onchange="onDesaChange()">
-                        <option value="">Semua Desa</option>
-                    </select>
-                    <select id="filterKelompok" onchange="loadGenerus()">
-                        <option value="">Semua Kelompok</option>
-                    </select>
-                    <input type="text" id="searchInput" placeholder="🔍 Cari nama..." oninput="debounceSearch()">
-                </div>
-                
-                <!-- Info Bar -->
-                <div class="info-bar">
-                    <span id="infoTotal">Total: -</span>
-                    <span id="infoMismatch"></span>
-                </div>
-                
-                <!-- Data Container -->
-                <div class="data-container" id="generusContainer">
-                    <div class="empty-state">
-                        <div class="empty-icon">⏳</div>
-                        <div>Memuat data...</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- FAB -->
-            <button class="fab" onclick="showAddModal()">➕</button>
-        </main>
-    </div>
-    
-    <!-- Modal Tambah/Edit -->
-    <div class="modal" id="formModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">Tambah Generus</h3>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="generusForm">
-                    <input type="hidden" id="formId">
-                    <input type="hidden" id="formEnrollmentId">
-                    
-                    <div class="form-group">
-                        <label class="form-label">Nama Lengkap *</label>
-                        <input type="text" class="form-control" id="formNama" required>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Nama Panggilan</label>
-                            <input type="text" class="form-control" id="formPanggilan">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Jenis Kelamin *</label>
-                            <select class="form-control" id="formGender" required>
-                                <option value="">Pilih</option>
-                                <option value="L">Laki-laki</option>
-                                <option value="P">Perempuan</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Tanggal Lahir *</label>
-                            <input type="date" class="form-control" id="formTglLahir" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">No. HP</label>
-                            <input type="tel" class="form-control" id="formPhone">
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Kelompok *</label>
-                            <select class="form-control" id="formKelompok" required>
-                                <option value="">Pilih Kelompok</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Jenjang *</label>
-                            <select class="form-control" id="formJenjang" required>
-                                <option value="">Pilih Jenjang</option>
-                            </select>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal()">Batal</button>
-                <button class="btn btn-primary" onclick="saveGenerus()">Simpan</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/sidebar.js"></script>
-    <script>
-        var db;
-        var allJenjang = [];
-        var allKelompok = [];
-        var allDesa = [];
-        var searchTimeout;
-        
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                
-                var user = await checkAuth();
-                if (!user) {
-                    window.location.href = 'index.html';
-                    return;
-                }
-                
-                updateUserDisplay(user);
-                await loadMasterData();
-                await loadGenerus();
-                
-            } catch (error) {
-                console.error('Init error:', error);
-                showToast('Gagal inisialisasi: ' + error.message, 'error');
-            }
-        });
-        
-        function updateUserDisplay(user) {
-            var name = user.user_metadata?.nama || user.email?.split('@')[0] || 'User';
-            var initial = name.charAt(0).toUpperCase();
-            var role = user.user_metadata?.role || 'user';
-            
-            $('userName').textContent = name;
-            $('userRole').textContent = role;
-            $('userAvatar').textContent = initial;
-            $('sidebarUserName').textContent = name;
-            $('sidebarUserRole').textContent = role;
-            $('sidebarUserAvatar').textContent = initial;
-            
-            if (role === 'admin') {
-                var menu = document.getElementById('menuPernikahan');
-                if (menu) menu.style.display = 'flex';
-            }
-        }
-        
-        async function loadMasterData() {
-            try {
-                // Load Jenjang
-                var { data: jenjangData } = await db
-                    .from('jenjang')
-                    .select('id, nama, kode, urutan, usia_mulai, usia_sampai')
-                    .eq('is_aktif', true)
-                    .order('urutan');
-                allJenjang = jenjangData || [];
-                console.log('Jenjang loaded:', allJenjang.length);
-                
-                // Populate form jenjang
-                $('formJenjang').innerHTML = '<option value="">Pilih Jenjang</option>' +
-                    allJenjang.map(j => '<option value="' + j.id + '">' + j.nama + '</option>').join('');
-                
-                // Load Desa
-                var { data: desaData } = await db
-                    .from('wilayah')
-                    .select('id, nama')
-                    .eq('tingkat', 'desa')
-                    .eq('is_aktif', true)
-                    .order('nama');
-                allDesa = desaData || [];
-                
-                $('filterDesa').innerHTML = '<option value="">Semua Desa</option>' +
-                    allDesa.map(d => '<option value="' + d.id + '">' + d.nama + '</option>').join('');
-                
-                // Load Kelompok
-                var { data: kelompokData } = await db
-                    .from('wilayah')
-                    .select('id, nama, parent_id')
-                    .eq('tingkat', 'kelompok')
-                    .eq('is_aktif', true)
-                    .order('nama');
-                allKelompok = kelompokData || [];
-                
-                $('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' +
-                    allKelompok.map(k => '<option value="' + k.id + '">' + k.nama + '</option>').join('');
-                
-                $('formKelompok').innerHTML = '<option value="">Pilih Kelompok</option>' +
-                    allKelompok.map(k => '<option value="' + k.id + '">' + k.nama + '</option>').join('');
-                    
-            } catch (error) {
-                console.error('Error loading master data:', error);
-            }
-        }
-        
-        function onDesaChange() {
-            var desaId = $('filterDesa').value;
-            if (desaId) {
-                var filtered = allKelompok.filter(k => k.parent_id == desaId);
-                $('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' +
-                    filtered.map(k => '<option value="' + k.id + '">' + k.nama + '</option>').join('');
-            } else {
-                $('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' +
-                    allKelompok.map(k => '<option value="' + k.id + '">' + k.nama + '</option>').join('');
-            }
-            loadGenerus();
-        }
-        
-        function debounceSearch() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(loadGenerus, 300);
-        }
-        
-        async function loadGenerus() {
-            try {
-                var desaId = $('filterDesa').value;
-                var kelompokId = $('filterKelompok').value;
-                var search = $('searchInput').value.toLowerCase().trim();
-                
-                // Query dengan pendekatan lebih sederhana
-                // Ambil semua enrollment aktif dengan data jamaah
-                var { data, error } = await db
-                    .from('enrollment')
-                    .select(`
-                        id,
-                        status,
-                        wilayah_id,
-                        jenjang_id,
-                        jamaah:jamaah_id (
-                            id,
-                            nama,
-                            nama_panggilan,
-                            jenis_kelamin,
-                            tanggal_lahir,
-                            phone,
-                            status_id
-                        ),
-                        wilayah:wilayah_id (id, nama, parent_id),
-                        jenjang:jenjang_id (id, nama)
-                    `)
-                    .eq('status', 'aktif');
-                
-                if (error) {
-                    console.error('Query error:', error);
-                    throw error;
-                }
-                
-                console.log('Raw enrollment data:', data?.length || 0);
-                
-                // Filter yang punya jamaah valid
-                var validData = (data || []).filter(e => e.jamaah && e.jamaah.id);
-                console.log('Valid enrollments:', validData.length);
-                
-                // Transform data
-                var allData = validData.map(e => {
-                    var j = e.jamaah;
-                    var umur = j.tanggal_lahir ? hitungUmur(j.tanggal_lahir) : null;
-                    var jenjangComputed = umur !== null ? getJenjangByUmur(umur) : null;
-                    
-                    return {
-                        id: j.id,
-                        nama: j.nama,
-                        nama_panggilan: j.nama_panggilan,
-                        jenis_kelamin: j.jenis_kelamin,
-                        tanggal_lahir: j.tanggal_lahir,
-                        phone: j.phone,
-                        umur: umur,
-                        kelompok_id: e.wilayah_id,
-                        kelompok_nama: e.wilayah?.nama,
-                        kelompok_parent_id: e.wilayah?.parent_id,
-                        jenjang_id: e.jenjang_id,
-                        jenjang_nama: e.jenjang?.nama,
-                        jenjang_computed: jenjangComputed,
-                        jenjang_computed_nama: jenjangComputed?.nama || 'Tanpa Jenjang',
-                        is_mismatch: jenjangComputed && e.jenjang_id && jenjangComputed.id !== e.jenjang_id,
-                        enrollment_id: e.id
-                    };
-                });
-                
-                // Filter by kelompok
-                if (kelompokId) {
-                    allData = allData.filter(j => j.kelompok_id == kelompokId);
-                } else if (desaId) {
-                    var kelompokInDesa = allKelompok.filter(k => k.parent_id == desaId).map(k => k.id);
-                    allData = allData.filter(j => kelompokInDesa.includes(j.kelompok_id));
-                }
-                
-                // Filter by search
-                if (search) {
-                    allData = allData.filter(j => 
-                        j.nama.toLowerCase().includes(search) ||
-                        (j.nama_panggilan && j.nama_panggilan.toLowerCase().includes(search))
-                    );
-                }
-                
-                // Update info
-                var mismatchCount = allData.filter(j => j.is_mismatch).length;
-                $('infoTotal').textContent = 'Total: ' + allData.length + ' generus';
-                $('infoMismatch').textContent = mismatchCount > 0 ? '⚠️ ' + mismatchCount + ' jenjang tidak sesuai' : '';
-                
-                renderData(allData);
-                
-            } catch (error) {
-                console.error('Error loading generus:', error);
-                showToast('Gagal memuat data: ' + error.message, 'error');
-                $('generusContainer').innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><div>Gagal memuat data</div></div>';
-            }
-        }
-        
-        function hitungUmur(tglLahir) {
-            var today = new Date();
-            var birth = new Date(tglLahir);
-            var age = today.getFullYear() - birth.getFullYear();
-            var m = today.getMonth() - birth.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-                age--;
-            }
-            return age;
-        }
-        
-        function getJenjangByUmur(umur) {
-            for (var j of allJenjang) {
-                if (umur >= j.usia_mulai && umur <= j.usia_sampai) {
-                    return j;
-                }
-            }
-            return null;
-        }
-        
-        function renderData(data) {
-            var container = $('generusContainer');
-            
-            if (!data || !data.length) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon">👶</div><div>Tidak ada data generus</div><div style="font-size:0.8rem;color:var(--gray-400);">Tambahkan generus baru</div></div>';
-                return;
-            }
-            
-            // Group by jenjang computed
-            var groups = {};
-            for (var j of data) {
-                var key = j.jenjang_computed_nama;
-                if (!groups[key]) groups[key] = [];
-                groups[key].push(j);
-            }
-            
-            // Sort by jenjang order
-            var jenjangOrder = allJenjang.map(j => j.nama);
-            jenjangOrder.push('Tanpa Jenjang');
-            var sortedKeys = Object.keys(groups).sort((a, b) => {
-                return jenjangOrder.indexOf(a) - jenjangOrder.indexOf(b);
-            });
-            
-            var colors = {
-                'PAUD': '#f59e0b',
-                'Caberawit': '#10b981',
-                'Praremaja': '#3b82f6',
-                'Remaja': '#8b5cf6',
-                'Pra Nikah': '#ec4899',
-                'Pranikah': '#ec4899',
-                'Tanpa Jenjang': '#6b7280'
-            };
+AUD': '#f59e0b', 'Caberawit': '#10b981', 'Praremaja': '#3b82f6', 'Remaja': '#8b5cf6', 'Pra Nikah': '#ec4899', 'Pranikah': '#ec4899', 'Tanpa Jenjang': '#6b7280' };
             
             var html = '';
-            
             for (var key of sortedKeys) {
-                var members = groups[key];
-                var color = colors[key] || '#059669';
-                var mismatchCount = members.filter(m => m.is_mismatch).length;
-                
-                html += '<div class="jenjang-group">';
-                html += '<div class="jenjang-header" onclick="this.parentElement.classList.toggle(\'collapsed\')" style="border-left:4px solid ' + color + ';">';
-                html += '<div class="jenjang-title">';
-                html += '<span style="color:' + color + '">📚 ' + key + '</span>';
-                html += '<span class="jenjang-badge" style="background:' + color + '">' + members.length + '</span>';
-                if (mismatchCount > 0) {
-                    html += '<span class="jenjang-badge" style="background:#fef3c7;color:#92400e;">⚠' + mismatchCount + '</span>';
-                }
-                html += '</div>';
-                html += '<span class="jenjang-arrow">▼</span>';
-                html += '</div>';
-                
-                html += '<div class="jenjang-body"><div class="generus-grid">';
-                
+                var members = groups[key], color = colors[key] || '#059669', mismatchCount = members.filter(m => m.is_mismatch).length;
+                html += '<div class="jenjang-group"><div class="jenjang-header" onclick="this.parentElement.classList.toggle(\'collapsed\')" style="border-left:4px solid ' + color + ';"><div class="jenjang-title"><span style="color:' + color + '">📚 ' + key + '</span><span class="jenjang-badge" style="background:' + color + '">' + members.length + '</span>';
+                if (mismatchCount > 0) html += '<span class="jenjang-badge" style="background:#fef3c7;color:#92400e;">⚠' + mismatchCount + '</span>';
+                html += '</div><span class="jenjang-arrow">▼</span></div><div class="jenjang-body"><div class="generus-grid">';
                 for (var g of members) {
-                    html += '<div class="generus-card' + (g.is_mismatch ? ' mismatch' : '') + '" onclick="editGenerus(' + g.id + ')">';
-                    html += '<div class="generus-avatar' + (g.jenis_kelamin === 'P' ? ' female' : '') + '">';
-                    html += g.jenis_kelamin === 'L' ? '👦' : '👧';
-                    html += '</div>';
-                    html += '<div class="generus-info">';
-                    html += '<div class="generus-name">' + g.nama + (g.is_mismatch ? ' 🔶' : '') + '</div>';
-                    html += '<div class="generus-meta">' + (g.umur !== null ? g.umur + ' th' : '-') + ' • ' + (g.kelompok_nama || '-') + '</div>';
-                    html += '</div>';
-                    html += '<button class="generus-action" onclick="event.stopPropagation();editGenerus(' + g.id + ')">✏️</button>';
-                    html += '</div>';
+                    html += '<div class="generus-card' + (g.is_mismatch ? ' mismatch' : '') + '" onclick="editGenerus(' + g.id + ')"><div class="generus-avatar' + (g.jenis_kelamin === 'P' ? ' female' : '') + '">' + (g.jenis_kelamin === 'L' ? '👦' : '👧') + '</div><div class="generus-info"><div class="generus-name">' + g.nama + (g.is_mismatch ? ' 🔶' : '') + '</div><div class="generus-meta">' + (g.umur !== null ? g.umur + ' th' : '-') + ' • ' + (g.kelompok_nama || '-') + '</div></div><button class="generus-action" onclick="event.stopPropagation();editGenerus(' + g.id + ')">✏️</button></div>';
                 }
-                
                 html += '</div></div></div>';
             }
-            
             container.innerHTML = html;
         }
         
-        // ========== MODAL FUNCTIONS ==========
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            $('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+        }
+        
         function showAddModal() {
-            $('modalTitle').textContent = 'Tambah Generus';
+            isEditMode = false; currentEditId = null;
+            $('modalTitle').textContent = '➕ Tambah Generus Baru';
+            $('modalTabs').style.display = 'none';
             $('generusForm').reset();
-            $('formId').value = '';
-            $('formEnrollmentId').value = '';
+            $('formId').value = ''; $('formEnrollmentId').value = ''; $('formUmur').textContent = '-';
+            $('selectedAyah').innerHTML = ''; $('selectedIbu').innerHTML = '';
+            $('formAyahId').value = ''; $('formIbuId').value = '';
+            $('btnDelete').style.display = 'none';
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            $('tabPribadi').classList.add('active');
             $('formModal').classList.add('show');
         }
         
-        function closeModal() {
-            $('formModal').classList.remove('show');
-        }
+        function closeModal() { $('formModal').classList.remove('show'); }
         
         async function editGenerus(id) {
             try {
-                // Get jamaah data
-                var { data: jamaah, error } = await db
-                    .from('jamaah')
-                    .select('*')
-                    .eq('id', id)
-                    .single();
-                
+                isEditMode = true; currentEditId = id;
+                var { data: jamaah, error } = await db.from('jamaah').select('*, ayah:ayah_id(id, nama), ibu:ibu_id(id, nama), status:status_id(id, kode, nama)').eq('id', id).single();
                 if (error) throw error;
                 
-                // Get enrollment
-                var { data: enrollment } = await db
-                    .from('enrollment')
-                    .select('*')
-                    .eq('jamaah_id', id)
-                    .eq('status', 'aktif')
-                    .single();
+                var { data: enrollment } = await db.from('enrollment').select('*, wilayah:wilayah_id(id, nama), jenjang:jenjang_id(id, nama)').eq('jamaah_id', id).eq('status', 'aktif').single();
                 
-                // Populate form
-                $('formId').value = jamaah.id;
-                $('formEnrollmentId').value = enrollment?.id || '';
-                $('formNama').value = jamaah.nama || '';
-                $('formPanggilan').value = jamaah.nama_panggilan || '';
-                $('formGender').value = jamaah.jenis_kelamin || '';
-                $('formTglLahir').value = jamaah.tanggal_lahir || '';
+                $('formId').value = jamaah.id; $('formEnrollmentId').value = enrollment?.id || '';
+                $('formNama').value = jamaah.nama || ''; $('formPanggilan').value = jamaah.nama_panggilan || '';
+                $('formGender').value = jamaah.jenis_kelamin || ''; $('formTglLahir').value = jamaah.tanggal_lahir || '';
                 $('formPhone').value = jamaah.phone || '';
+                
+                var umur = jamaah.tanggal_lahir ? hitungUmur(jamaah.tanggal_lahir) : null;
+                $('formUmur').textContent = umur !== null ? umur + ' tahun' : '-';
+                
+                $('formAyahId').value = jamaah.ayah_id || ''; $('formIbuId').value = jamaah.ibu_id || '';
+                $('selectedAyah').innerHTML = jamaah.ayah ? '<div class="selected-person"><span>👨 ' + jamaah.ayah.nama + '</span><span class="remove" onclick="clearParent(\'ayah\')">✕</span></div>' : '';
+                $('selectedIbu').innerHTML = jamaah.ibu ? '<div class="selected-person"><span>👩 ' + jamaah.ibu.nama + '</span><span class="remove" onclick="clearParent(\'ibu\')">✕</span></div>' : '';
+                
+                $('currentStatus').innerHTML = jamaah.status ? '<span class="status-badge aktif">' + jamaah.status.nama + '</span>' : '<span class="text-muted">Belum diset</span>';
+                $('formStatus').value = jamaah.status_id || '';
+                
+                $('currentKelompok').innerHTML = enrollment?.wilayah ? '<strong>' + enrollment.wilayah.nama + '</strong> - ' + (enrollment.jenjang?.nama || '-') : '<span class="text-muted">Belum terdaftar</span>';
                 $('formKelompok').value = enrollment?.wilayah_id || '';
                 $('formJenjang').value = enrollment?.jenjang_id || '';
                 
-                $('modalTitle').textContent = 'Edit Generus';
-                $('formModal').classList.add('show');
+                var jenjangComputed = umur !== null ? getJenjangByUmur(umur) : null;
+                if (jenjangComputed && enrollment?.jenjang_id && jenjangComputed.id !== enrollment.jenjang_id) {
+                    $('suggestedJenjang').textContent = jenjangComputed.nama;
+                    $('jenjangSuggestion').style.display = 'block';
+                } else { $('jenjangSuggestion').style.display = 'none'; }
                 
+                await loadKelompokHistory(id);
+                
+                $('modalTitle').textContent = '✏️ Edit: ' + jamaah.nama;
+                $('modalTabs').style.display = 'flex';
+                $('btnDelete').style.display = 'inline-flex';
+                document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+                document.querySelectorAll('.tab-content').forEach((c, i) => c.classList.toggle('active', i === 0));
+                $('formModal').classList.add('show');
             } catch (error) {
-                console.error('Error loading generus:', error);
-                showToast('Gagal memuat data: ' + error.message, 'error');
+                console.error('Error:', error);
+                showToast('Gagal memuat: ' + error.message, 'error');
             }
         }
+        
+        async function loadKelompokHistory(jamaahId) {
+            try {
+                var { data } = await db.from('enrollment').select('tanggal_masuk, tanggal_keluar, status, wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)').eq('jamaah_id', jamaahId).order('tanggal_masuk', { ascending: false });
+                if (!data || !data.length) { $('kelompokHistory').innerHTML = '<p class="text-muted text-sm">Belum ada riwayat</p>'; return; }
+                $('kelompokHistory').innerHTML = data.map(e => '<div class="history-item"><div><strong>' + (e.wilayah?.nama || '-') + '</strong> - ' + (e.jenjang?.nama || '-') + '<div style="font-size:0.7rem;color:var(--gray-500);">' + formatDate(e.tanggal_masuk) + ' - ' + (e.tanggal_keluar ? formatDate(e.tanggal_keluar) : 'sekarang') + '</div></div><span class="status-badge ' + (e.status === 'aktif' ? 'aktif' : 'tidak-aktif') + '">' + e.status + '</span></div>').join('');
+            } catch (error) { console.error('Error:', error); }
+        }
+        
+        var searchOrtuTimeout;
+        async function searchOrangTua(type) {
+            clearTimeout(searchOrtuTimeout);
+            var input = $(type === 'ayah' ? 'searchAyah' : 'searchIbu'), resultsDiv = $(type === 'ayah' ? 'resultsAyah' : 'resultsIbu'), query = input.value.trim();
+            if (query.length < 2) { resultsDiv.classList.remove('show'); return; }
+            searchOrtuTimeout = setTimeout(async () => {
+                var gender = type === 'ayah' ? 'L' : 'P';
+                var { data } = await db.from('jamaah').select('id, nama').eq('jenis_kelamin', gender).ilike('nama', '%' + query + '%').limit(10);
+                if (data && data.length > 0) {
+                    resultsDiv.innerHTML = data.map(j => '<div class="search-result-item" onclick="selectParent(\'' + type + '\', ' + j.id + ', \'' + j.nama.replace(/'/g, "\\'") + '\')">' + j.nama + '</div>').join('');
+                } else { resultsDiv.innerHTML = '<div class="search-result-item" style="color:var(--gray-500);">Tidak ditemukan</div>'; }
+                resultsDiv.classList.add('show');
+            }, 300);
+        }
+        
+        function selectParent(type, id, nama) {
+            var icon = type === 'ayah' ? '👨' : '👩';
+            $(type === 'ayah' ? 'selectedAyah' : 'selectedIbu').innerHTML = '<div class="selected-person"><span>' + icon + ' ' + nama + '</span><span class="remove" onclick="clearParent(\'' + type + '\')">✕</span></div>';
+            $(type === 'ayah' ? 'formAyahId' : 'formIbuId').value = id;
+            $(type === 'ayah' ? 'searchAyah' : 'searchIbu').value = '';
+            $(type === 'ayah' ? 'resultsAyah' : 'resultsIbu').classList.remove('show');
+        }
+        
+        function clearParent(type) {
+            $(type === 'ayah' ? 'selectedAyah' : 'selectedIbu').innerHTML = '';
+            $(type === 'ayah' ? 'formAyahId' : 'formIbuId').value = '';
+        }
+        
+        document.addEventListener('click', function(e) { if (!e.target.closest('.search-select')) document.querySelectorAll('.search-results').forEach(r => r.classList.remove('show')); });
         
         async function saveGenerus() {
             try {
-                var id = $('formId').value;
-                var enrollmentId = $('formEnrollmentId').value;
+                var id = $('formId').value, enrollmentId = $('formEnrollmentId').value;
+                var jamaahData = { nama: $('formNama').value.trim(), nama_panggilan: $('formPanggilan').value.trim() || null, jenis_kelamin: $('formGender').value, tanggal_lahir: $('formTglLahir').value, phone: $('formPhone').value.trim() || null, ayah_id: $('formAyahId').value || null, ibu_id: $('formIbuId').value || null };
+                var newStatusId = $('formStatus').value;
+                if (newStatusId) jamaahData.status_id = newStatusId;
                 
-                var jamaahData = {
-                    nama: $('formNama').value.trim(),
-                    nama_panggilan: $('formPanggilan').value.trim() || null,
-                    jenis_kelamin: $('formGender').value,
-                    tanggal_lahir: $('formTglLahir').value,
-                    phone: $('formPhone').value.trim() || null
-                };
-                
-                if (!jamaahData.nama || !jamaahData.jenis_kelamin || !jamaahData.tanggal_lahir) {
-                    showToast('Lengkapi data wajib!', 'error');
-                    return;
-                }
-                
-                var kelompokId = $('formKelompok').value;
-                var jenjangId = $('formJenjang').value;
-                
-                if (!kelompokId || !jenjangId) {
-                    showToast('Pilih kelompok dan jenjang!', 'error');
-                    return;
-                }
+                if (!jamaahData.nama || !jamaahData.jenis_kelamin || !jamaahData.tanggal_lahir) { showToast('Lengkapi data wajib!', 'error'); return; }
+                var kelompokId = $('formKelompok').value, jenjangId = $('formJenjang').value;
+                if (!kelompokId || !jenjangId) { showToast('Pilih kelompok dan jenjang!', 'error'); return; }
                 
                 if (id) {
-                    // Update
-                    var { error: updateError } = await db
-                        .from('jamaah')
-                        .update(jamaahData)
-                        .eq('id', id);
-                    
+                    var { error: updateError } = await db.from('jamaah').update(jamaahData).eq('id', id);
                     if (updateError) throw updateError;
-                    
-                    // Update enrollment
                     if (enrollmentId) {
-                        var { error: enrollError } = await db
-                            .from('enrollment')
-                            .update({ wilayah_id: kelompokId, jenjang_id: jenjangId })
-                            .eq('id', enrollmentId);
-                        
+                        var { error: enrollError } = await db.from('enrollment').update({ wilayah_id: kelompokId, jenjang_id: jenjangId }).eq('id', enrollmentId);
                         if (enrollError) throw enrollError;
                     }
-                    
                     showToast('Data berhasil diperbarui', 'success');
-                    
                 } else {
-                    // Insert jamaah
-                    var { data: newJamaah, error: insertError } = await db
-                        .from('jamaah')
-                        .insert(jamaahData)
-                        .select()
-                        .single();
-                    
+                    var { data: newJamaah, error: insertError } = await db.from('jamaah').insert(jamaahData).select().single();
                     if (insertError) throw insertError;
-                    
-                    // Insert enrollment
-                    var { error: enrollError } = await db
-                        .from('enrollment')
-                        .insert({
-                            jamaah_id: newJamaah.id,
-                            wilayah_id: kelompokId,
-                            jenjang_id: jenjangId,
-                            status: 'aktif',
-                            tanggal_masuk: new Date().toISOString().split('T')[0]
-                        });
-                    
+                    var { error: enrollError } = await db.from('enrollment').insert({ jamaah_id: newJamaah.id, wilayah_id: kelompokId, jenjang_id: jenjangId, status: 'aktif', tanggal_masuk: new Date().toISOString().split('T')[0] });
                     if (enrollError) throw enrollError;
-                    
                     showToast('Generus berhasil ditambahkan', 'success');
                 }
-                
-                closeModal();
-                loadGenerus();
-                
-            } catch (error) {
-                console.error('Error saving:', error);
-                showToast('Gagal menyimpan: ' + error.message, 'error');
-            }
+                closeModal(); loadGenerus();
+            } catch (error) { console.error('Error:', error); showToast('Gagal menyimpan: ' + error.message, 'error'); }
         }
         
-        function showToast(message, type) {
-            var toast = document.createElement('div');
-            toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);padding:0.75rem 1.5rem;border-radius:8px;color:white;font-size:0.85rem;z-index:9999;';
-            toast.style.background = type === 'error' ? '#ef4444' : '#10b981';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(function() { toast.remove(); }, 3000);
+        async function deleteGenerus() {
+            if (!currentEditId || !confirm('Yakin ingin menghapus?')) return;
+            try {
+                await db.from('enrollment').delete().eq('jamaah_id', currentEditId);
+                var { error } = await db.from('jamaah').delete().eq('id', currentEditId);
+                if (error) throw error;
+                showToast('Berhasil dihapus', 'success');
+                closeModal(); loadGenerus();
+            } catch (error) { console.error('Error:', error); showToast('Gagal menghapus: ' + error.message, 'error'); }
         }
         
+        function formatDate(dateStr) { return dateStr ? new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'; }
+        function showToast(message, type) { var toast = document.createElement('div'); toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);padding:0.75rem 1.5rem;border-radius:8px;color:white;font-size:0.85rem;z-index:9999;max-width:90%;text-align:center;'; toast.style.background = type === 'error' ? '#ef4444' : '#10b981'; toast.textContent = message; document.body.appendChild(toast); setTimeout(function() { toast.remove(); }, 3000); }
         function $(id) { return document.getElementById(id); }
     </script>
 </body>
