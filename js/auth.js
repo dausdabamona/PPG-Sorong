@@ -367,6 +367,112 @@ function getUserWilayahIds() {
         .map(ur => ur.wilayah_id);
 }
 
+// Get user roles dengan detail wilayah
+function getUserRolesWithWilayah() {
+    return userRoles.map(ur => ({
+        role_kode: ur.role?.kode,
+        role_nama: ur.role?.nama,
+        role_level: ur.role?.level,
+        wilayah_id: ur.wilayah_id,
+        wilayah_nama: ur.wilayah?.nama,
+        wilayah_tingkat: ur.wilayah?.tingkat
+    }));
+}
+
+// Get tingkat akses tertinggi user (daerah > desa > kelompok)
+function getUserAccessLevel() {
+    var levels = ['daerah', 'desa', 'kelompok'];
+    for (var i = 0; i < levels.length; i++) {
+        if (userRoles.some(ur => ur.wilayah?.tingkat === levels[i])) {
+            return levels[i];
+        }
+    }
+    return 'kelompok'; // default paling rendah
+}
+
+// Cek apakah user punya akses ke wilayah tertentu
+// Admin/Operator bisa akses semua
+// Daerah bisa akses semua desa dan kelompok di bawahnya
+// Desa bisa akses semua kelompok di bawahnya
+// Kelompok hanya bisa akses kelompoknya sendiri
+async function canAccessWilayah(wilayahId, db) {
+    // Admin dan operator bisa akses semua
+    if (isAdmin() || isOperator()) return true;
+    
+    var userWilayahIds = getUserWilayahIds();
+    
+    // Cek langsung
+    if (userWilayahIds.includes(wilayahId)) return true;
+    
+    // Cek hirarki - ambil wilayah dan cek parent
+    try {
+        var { data: wilayah } = await db.from('wilayah').select('id, parent_id, tingkat').eq('id', wilayahId).single();
+        if (!wilayah) return false;
+        
+        // Cek apakah parent ada di userWilayahIds
+        if (wilayah.parent_id && userWilayahIds.includes(wilayah.parent_id)) return true;
+        
+        // Cek grandparent (untuk kelompok -> desa -> daerah)
+        if (wilayah.parent_id) {
+            var { data: parent } = await db.from('wilayah').select('id, parent_id').eq('id', wilayah.parent_id).single();
+            if (parent && parent.parent_id && userWilayahIds.includes(parent.parent_id)) return true;
+        }
+    } catch (e) {
+        console.error('Error checking wilayah access:', e);
+    }
+    
+    return false;
+}
+
+// Get filter wilayah untuk query berdasarkan role user
+// Mengembalikan array wilayah_id yang bisa diakses
+async function getAccessibleWilayahIds(db, tingkat) {
+    // Admin dan operator bisa akses semua
+    if (isAdmin() || isOperator()) return null; // null = semua
+    
+    var userWilayahIds = getUserWilayahIds();
+    if (!userWilayahIds.length) return []; // tidak ada akses
+    
+    var accessibleIds = [];
+    
+    for (var i = 0; i < userWilayahIds.length; i++) {
+        var wid = userWilayahIds[i];
+        
+        // Ambil info wilayah user
+        var { data: userWilayah } = await db.from('wilayah').select('id, tingkat').eq('id', wid).single();
+        if (!userWilayah) continue;
+        
+        if (tingkat === 'kelompok') {
+            if (userWilayah.tingkat === 'kelompok') {
+                // User level kelompok - hanya kelompoknya
+                accessibleIds.push(wid);
+            } else if (userWilayah.tingkat === 'desa') {
+                // User level desa - semua kelompok di desa
+                var { data: kelompoks } = await db.from('wilayah').select('id').eq('parent_id', wid).eq('tingkat', 'kelompok');
+                if (kelompoks) accessibleIds = accessibleIds.concat(kelompoks.map(k => k.id));
+            } else if (userWilayah.tingkat === 'daerah') {
+                // User level daerah - semua kelompok di semua desa
+                var { data: desas } = await db.from('wilayah').select('id').eq('parent_id', wid).eq('tingkat', 'desa');
+                if (desas) {
+                    for (var j = 0; j < desas.length; j++) {
+                        var { data: kelompoks } = await db.from('wilayah').select('id').eq('parent_id', desas[j].id).eq('tingkat', 'kelompok');
+                        if (kelompoks) accessibleIds = accessibleIds.concat(kelompoks.map(k => k.id));
+                    }
+                }
+            }
+        } else if (tingkat === 'desa') {
+            if (userWilayah.tingkat === 'desa') {
+                accessibleIds.push(wid);
+            } else if (userWilayah.tingkat === 'daerah') {
+                var { data: desas } = await db.from('wilayah').select('id').eq('parent_id', wid).eq('tingkat', 'desa');
+                if (desas) accessibleIds = accessibleIds.concat(desas.map(d => d.id));
+            }
+        }
+    }
+    
+    return [...new Set(accessibleIds)]; // unique
+}
+
 // Get active role in test mode
 function getActiveTestRole() {
     return testActiveRole;
