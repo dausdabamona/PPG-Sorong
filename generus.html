@@ -1,83 +1,602 @@
-AUD': '#f59e0b', 'Caberawit': '#10b981', 'Praremaja': '#3b82f6', 'Remaja': '#8b5cf6', 'Pra Nikah': '#ec4899', 'Pranikah': '#ec4899', 'Tanpa Jenjang': '#6b7280' };
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>Data Generus - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-enhanced.css">
+    <link rel="stylesheet" href="css/mobile-menu.css">
+    <style>
+        .page-content{padding:1rem;display:flex;flex-direction:column;gap:0.75rem;height:calc(100vh - 60px);overflow:hidden}
+        .page-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem}
+        .page-title{font-size:1.1rem;font-weight:600;margin:0}
+        .filter-bar{display:grid;grid-template-columns:1fr 1fr 2fr;gap:0.5rem;background:#fff;padding:0.75rem;border-radius:10px;border:1px solid #e2e8f0}
+        .filter-bar select,.filter-bar input{padding:0.5rem;border:1px solid #cbd5e1;border-radius:6px;font-size:0.8rem}
+        .info-bar{display:flex;justify-content:space-between;font-size:0.8rem;color:#64748b}
+        .data-container{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:0.75rem}
+        .jenjang-group{background:#fff;border-radius:10px;border:1px solid #e2e8f0;overflow:hidden}
+        .jenjang-header{display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;cursor:pointer}
+        .jenjang-title{display:flex;align-items:center;gap:0.5rem;font-weight:600;font-size:0.9rem}
+        .jenjang-badge{padding:0.125rem 0.5rem;border-radius:10px;font-size:0.7rem;color:#fff}
+        .jenjang-arrow{transition:transform 0.2s}
+        .jenjang-group.collapsed .jenjang-arrow{transform:rotate(-90deg)}
+        .jenjang-group.collapsed .jenjang-body{display:none}
+        .generus-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.5rem;padding:0 0.75rem 0.75rem}
+        .generus-card{display:flex;align-items:center;gap:0.75rem;padding:0.625rem;background:#f8fafc;border-radius:8px;cursor:pointer;transition:all 0.15s}
+        .generus-card:hover{background:#dcfce7}
+        .generus-card.mismatch{background:#fef3c7;border:1px solid #f59e0b}
+        .generus-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;background:#dbeafe;flex-shrink:0}
+        .generus-avatar.female{background:#fce7f3}
+        .generus-info{flex:1;min-width:0}
+        .generus-name{font-weight:500;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .generus-meta{font-size:0.7rem;color:#64748b}
+        .generus-action{padding:0.375rem;background:#fff;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;font-size:0.9rem}
+        .empty-state{text-align:center;padding:2rem;color:#64748b}
+        .empty-icon{font-size:3rem;margin-bottom:0.5rem}
+        .fab{position:fixed;bottom:1.5rem;right:1.5rem;width:50px;height:50px;background:#059669;color:#fff;border:none;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);z-index:100}
+        .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:1rem}
+        .modal.show{display:flex}
+        .modal-content{background:#fff;border-radius:12px;width:100%;max-width:600px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+        .modal-header{padding:1rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+        .modal-title{font-weight:600;font-size:1rem}
+        .modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer}
+        .modal-body{padding:0;overflow-y:auto;flex:1}
+        .modal-footer{padding:1rem;border-top:1px solid #e2e8f0;display:flex;gap:0.5rem;justify-content:flex-end;flex-shrink:0}
+        .tabs{display:flex;border-bottom:2px solid #e2e8f0;background:#f8fafc;overflow-x:auto}
+        .tab{padding:0.75rem 1rem;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:500;color:#64748b;white-space:nowrap;font-size:0.8rem;transition:all 0.2s}
+        .tab:hover{color:#059669}
+        .tab.active{border-bottom-color:#059669;color:#059669;background:#fff}
+        .tab-content{display:none;padding:1rem}
+        .tab-content.active{display:block}
+        .form-group{margin-bottom:0.75rem}
+        .form-label{display:block;font-size:0.8rem;font-weight:500;margin-bottom:0.25rem;color:#374151}
+        .form-control{width:100%;padding:0.5rem;border:1px solid #cbd5e1;border-radius:6px;font-size:0.85rem;box-sizing:border-box}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+        .form-hint{font-size:0.7rem;color:#64748b;margin-top:0.25rem}
+        .search-select{position:relative}
+        .search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #cbd5e1;border-radius:6px;max-height:150px;overflow-y:auto;z-index:10;display:none;box-shadow:0 4px 6px rgba(0,0,0,0.1)}
+        .search-results.show{display:block}
+        .search-result-item{padding:0.5rem;cursor:pointer;font-size:0.8rem;border-bottom:1px solid #f1f5f9}
+        .search-result-item:hover{background:#dcfce7}
+        .selected-person{background:#dcfce7;padding:0.5rem;border-radius:6px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem}
+        .selected-person .remove{cursor:pointer;color:#ef4444}
+        .status-badge{display:inline-block;padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500}
+        .status-badge.aktif{background:#dcfce7;color:#166534}
+        .status-badge.tidak-aktif{background:#fee2e2;color:#991b1b}
+        .info-box{background:#f0f9ff;border-left:3px solid #0ea5e9;padding:0.75rem;border-radius:0 6px 6px 0;font-size:0.8rem;margin-bottom:1rem}
+        .info-box.warning{background:#fef3c7;border-color:#f59e0b}
+        .history-list{max-height:200px;overflow-y:auto}
+        .history-item{display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-bottom:1px solid #f1f5f9;font-size:0.8rem}
+        .history-item:last-child{border-bottom:none}
+        @media(max-width:768px){.filter-bar{grid-template-columns:1fr 1fr}.filter-bar input{grid-column:1/-1}.generus-grid{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.tab{padding:0.5rem 0.75rem;font-size:0.75rem}}
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item active"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
+                <a href="hafalan-dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard Hafalan</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="pernikahan.html" class="nav-item" id="menuPernikahan" style="display:none;"><span class="nav-icon">💒</span><span class="nav-text">Data Pernikahan</span></a>
+                <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Data Generus</h1>
+                </div>
+                <div class="header-right">
+                    <div class="header-user">
+                        <div class="user-avatar" id="userAvatar">?</div>
+                        <div class="user-info">
+                            <div class="user-name" id="userName">Loading...</div>
+                            <div class="user-role" id="userRole">-</div>
+                        </div>
+                    </div>
+                    <button class="btn-logout-mobile" onclick="logout()">🚪</button>
+                </div>
+            </header>
+            
+            <div class="page-content">
+                <div class="page-header">
+                    <div><h2 class="page-title">Daftar Generus</h2></div>
+                    <button class="btn btn-primary btn-sm" onclick="showAddModal()">➕ Tambah</button>
+                </div>
+                
+                <div class="filter-bar">
+                    <select id="filterDesa" onchange="onDesaChange()"><option value="">Semua Desa</option></select>
+                    <select id="filterKelompok" onchange="loadGenerus()"><option value="">Semua Kelompok</option></select>
+                    <input type="text" id="searchInput" placeholder="🔍 Cari nama..." oninput="debounceSearch()">
+                </div>
+                
+                <div class="info-bar">
+                    <span id="infoTotal">Total: -</span>
+                    <span id="infoMismatch"></span>
+                </div>
+                
+                <div class="data-container" id="generusContainer">
+                    <div class="empty-state">
+                        <div class="empty-icon">⏳</div>
+                        <div>Memuat data...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="fab" onclick="showAddModal()">➕</button>
+        </main>
+    </div>
+    
+    <!-- Modal Edit dengan Tabs -->
+    <div class="modal" id="formModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Edit Generus</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <div class="tabs" id="modalTabs">
+                <div class="tab active" data-tab="pribadi">👤 Pribadi</div>
+                <div class="tab" data-tab="ortu">👨‍👩‍👧 Orang Tua</div>
+                <div class="tab" data-tab="status">📋 Status</div>
+                <div class="tab" data-tab="kelompok">🏠 Kelompok</div>
+            </div>
+            
+            <div class="modal-body">
+                <form id="generusForm">
+                    <input type="hidden" id="formId">
+                    <input type="hidden" id="formEnrollmentId">
+                    
+                    <!-- Tab Pribadi -->
+                    <div class="tab-content active" id="tabPribadi">
+                        <div class="form-group">
+                            <label class="form-label">Nama Lengkap *</label>
+                            <input type="text" class="form-control" id="formNama" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Nama Panggilan</label>
+                                <input type="text" class="form-control" id="formPanggilan">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Jenis Kelamin *</label>
+                                <select class="form-control" id="formGender" required>
+                                    <option value="">Pilih</option>
+                                    <option value="L">Laki-laki</option>
+                                    <option value="P">Perempuan</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Tanggal Lahir *</label>
+                                <input type="date" class="form-control" id="formTglLahir" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">No. HP</label>
+                                <input type="tel" class="form-control" id="formPhone">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Umur</label>
+                            <div id="formUmur" style="padding:0.5rem;background:#f1f5f9;border-radius:6px;font-size:0.85rem;">-</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Orang Tua -->
+                    <div class="tab-content" id="tabOrtu">
+                        <div class="info-box">ℹ️ Pilih ayah dan ibu dari daftar jamaah yang sudah terdaftar.</div>
+                        <div class="form-group">
+                            <label class="form-label">Ayah</label>
+                            <div class="search-select">
+                                <input type="text" class="form-control" id="searchAyah" placeholder="Ketik nama ayah..." oninput="searchOrangTua('ayah')">
+                                <div class="search-results" id="resultsAyah"></div>
+                            </div>
+                            <div id="selectedAyah" style="margin-top:0.5rem;"></div>
+                            <input type="hidden" id="formAyahId">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ibu</label>
+                            <div class="search-select">
+                                <input type="text" class="form-control" id="searchIbu" placeholder="Ketik nama ibu..." oninput="searchOrangTua('ibu')">
+                                <div class="search-results" id="resultsIbu"></div>
+                            </div>
+                            <div id="selectedIbu" style="margin-top:0.5rem;"></div>
+                            <input type="hidden" id="formIbuId">
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Status -->
+                    <div class="tab-content" id="tabStatus">
+                        <div class="form-group">
+                            <label class="form-label">Status Saat Ini</label>
+                            <div id="currentStatus" style="margin-bottom:1rem;">-</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ubah Status</label>
+                            <select class="form-control" id="formStatus">
+                                <option value="">-- Pilih Status --</option>
+                            </select>
+                            <div class="form-hint">⚠️ Perubahan status akan tercatat</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Kelompok -->
+                    <div class="tab-content" id="tabKelompok">
+                        <div class="form-group">
+                            <label class="form-label">Kelompok Saat Ini</label>
+                            <div id="currentKelompok" style="margin-bottom:1rem;">-</div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Kelompok *</label>
+                                <select class="form-control" id="formKelompok" required>
+                                    <option value="">Pilih Kelompok</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Jenjang *</label>
+                                <select class="form-control" id="formJenjang" required>
+                                    <option value="">Pilih Jenjang</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" id="jenjangSuggestion" style="display:none;">
+                            <div class="info-box warning">⚠️ Berdasarkan umur, jenjang seharusnya: <strong id="suggestedJenjang">-</strong></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Riwayat Kelompok</label>
+                            <div class="history-list" id="kelompokHistory">
+                                <p style="color:#64748b;font-size:0.8rem;">Belum ada riwayat</p>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+                <button class="btn btn-danger" id="btnDelete" onclick="deleteGenerus()" style="display:none;">🗑️ Hapus</button>
+                <button class="btn btn-primary" onclick="saveGenerus()">💾 Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script>
+        var db, allJenjang = [], allKelompok = [], allDesa = [], allStatus = [];
+        var searchTimeout, currentEditId = null, isEditMode = false;
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                var tabName = this.dataset.tab;
+                document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+                document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+                this.classList.add('active');
+                document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+            });
+        });
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                var user = await checkAuth();
+                if (!user) { window.location.href = 'index.html'; return; }
+                updateUserDisplay(user);
+                await loadMasterData();
+                await loadGenerus();
+            } catch (error) {
+                console.error('Init error:', error);
+                showToast('Gagal inisialisasi: ' + error.message, 'error');
+            }
+        });
+        
+        function updateUserDisplay(user) {
+            var name = user.user_metadata?.nama || user.email?.split('@')[0] || 'User';
+            var initial = name.charAt(0).toUpperCase();
+            var role = user.user_metadata?.role || 'user';
+            document.getElementById('userName').textContent = name;
+            document.getElementById('userRole').textContent = role;
+            document.getElementById('userAvatar').textContent = initial;
+            document.getElementById('sidebarUserName').textContent = name;
+            document.getElementById('sidebarUserRole').textContent = role;
+            document.getElementById('sidebarUserAvatar').textContent = initial;
+            if (role === 'admin') {
+                var menu = document.getElementById('menuPernikahan');
+                if (menu) menu.style.display = 'flex';
+            }
+        }
+        
+        async function loadMasterData() {
+            try {
+                var { data: jenjangData } = await db.from('jenjang').select('id, nama, kode, urutan, usia_mulai, usia_sampai').eq('is_aktif', true).order('urutan');
+                allJenjang = jenjangData || [];
+                document.getElementById('formJenjang').innerHTML = '<option value="">Pilih Jenjang</option>' + allJenjang.map(function(j) { return '<option value="' + j.id + '">' + j.nama + '</option>'; }).join('');
+                
+                var { data: statusData } = await db.from('status_jamaah').select('id, kode, nama').eq('is_aktif', true).order('urutan');
+                allStatus = statusData || [];
+                document.getElementById('formStatus').innerHTML = '<option value="">-- Pilih Status --</option>' + allStatus.map(function(s) { return '<option value="' + s.id + '">' + s.nama + '</option>'; }).join('');
+                
+                var { data: desaData } = await db.from('wilayah').select('id, nama').eq('tingkat', 'desa').eq('is_aktif', true).order('nama');
+                allDesa = desaData || [];
+                document.getElementById('filterDesa').innerHTML = '<option value="">Semua Desa</option>' + allDesa.map(function(d) { return '<option value="' + d.id + '">' + d.nama + '</option>'; }).join('');
+                
+                var { data: kelompokData } = await db.from('wilayah').select('id, nama, parent_id').eq('tingkat', 'kelompok').eq('is_aktif', true).order('nama');
+                allKelompok = kelompokData || [];
+                document.getElementById('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' + allKelompok.map(function(k) { return '<option value="' + k.id + '">' + k.nama + '</option>'; }).join('');
+                document.getElementById('formKelompok').innerHTML = '<option value="">Pilih Kelompok</option>' + allKelompok.map(function(k) { return '<option value="' + k.id + '">' + k.nama + '</option>'; }).join('');
+            } catch (error) {
+                console.error('Error loading master data:', error);
+            }
+        }
+        
+        function onDesaChange() {
+            var desaId = document.getElementById('filterDesa').value;
+            var filtered = desaId ? allKelompok.filter(function(k) { return k.parent_id == desaId; }) : allKelompok;
+            document.getElementById('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' + filtered.map(function(k) { return '<option value="' + k.id + '">' + k.nama + '</option>'; }).join('');
+            loadGenerus();
+        }
+        
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(loadGenerus, 300);
+        }
+        
+        async function loadGenerus() {
+            try {
+                var desaId = document.getElementById('filterDesa').value;
+                var kelompokId = document.getElementById('filterKelompok').value;
+                var search = document.getElementById('searchInput').value.toLowerCase().trim();
+                
+                var { data, error } = await db.from('enrollment').select('id, status, wilayah_id, jenjang_id, jamaah:jamaah_id (id, nama, nama_panggilan, jenis_kelamin, tanggal_lahir, phone, status_id), wilayah:wilayah_id (id, nama, parent_id), jenjang:jenjang_id (id, nama)').eq('status', 'aktif');
+                
+                if (error) throw error;
+                
+                var validData = (data || []).filter(function(e) { return e.jamaah && e.jamaah.id; });
+                
+                var allData = validData.map(function(e) {
+                    var j = e.jamaah;
+                    var umur = j.tanggal_lahir ? hitungUmur(j.tanggal_lahir) : null;
+                    var jenjangComputed = umur !== null ? getJenjangByUmur(umur) : null;
+                    return {
+                        id: j.id,
+                        nama: j.nama,
+                        nama_panggilan: j.nama_panggilan,
+                        jenis_kelamin: j.jenis_kelamin,
+                        tanggal_lahir: j.tanggal_lahir,
+                        umur: umur,
+                        kelompok_id: e.wilayah_id,
+                        kelompok_nama: e.wilayah ? e.wilayah.nama : null,
+                        kelompok_parent_id: e.wilayah ? e.wilayah.parent_id : null,
+                        jenjang_id: e.jenjang_id,
+                        jenjang_nama: e.jenjang ? e.jenjang.nama : null,
+                        jenjang_computed: jenjangComputed,
+                        jenjang_computed_nama: jenjangComputed ? jenjangComputed.nama : 'Tanpa Jenjang',
+                        is_mismatch: jenjangComputed && e.jenjang_id && jenjangComputed.id !== e.jenjang_id,
+                        enrollment_id: e.id
+                    };
+                });
+                
+                if (kelompokId) {
+                    allData = allData.filter(function(j) { return j.kelompok_id == kelompokId; });
+                } else if (desaId) {
+                    var kelompokInDesa = allKelompok.filter(function(k) { return k.parent_id == desaId; }).map(function(k) { return k.id; });
+                    allData = allData.filter(function(j) { return kelompokInDesa.indexOf(j.kelompok_id) !== -1; });
+                }
+                
+                if (search) {
+                    allData = allData.filter(function(j) {
+                        return j.nama.toLowerCase().indexOf(search) !== -1 || (j.nama_panggilan && j.nama_panggilan.toLowerCase().indexOf(search) !== -1);
+                    });
+                }
+                
+                var mismatchCount = allData.filter(function(j) { return j.is_mismatch; }).length;
+                document.getElementById('infoTotal').textContent = 'Total: ' + allData.length + ' generus';
+                document.getElementById('infoMismatch').textContent = mismatchCount > 0 ? '⚠️ ' + mismatchCount + ' jenjang tidak sesuai' : '';
+                
+                renderData(allData);
+            } catch (error) {
+                console.error('Error loading generus:', error);
+                showToast('Gagal memuat data: ' + error.message, 'error');
+                document.getElementById('generusContainer').innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><div>Gagal memuat data</div></div>';
+            }
+        }
+        
+        function hitungUmur(tglLahir) {
+            var today = new Date();
+            var birth = new Date(tglLahir);
+            var age = today.getFullYear() - birth.getFullYear();
+            var m = today.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+            return age;
+        }
+        
+        function getJenjangByUmur(umur) {
+            for (var i = 0; i < allJenjang.length; i++) {
+                var j = allJenjang[i];
+                if (umur >= j.usia_mulai && umur <= j.usia_sampai) return j;
+            }
+            return null;
+        }
+        
+        function renderData(data) {
+            var container = document.getElementById('generusContainer');
+            
+            if (!data || !data.length) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">👶</div><div>Tidak ada data generus</div></div>';
+                return;
+            }
+            
+            var groups = {};
+            for (var i = 0; i < data.length; i++) {
+                var j = data[i];
+                var key = j.jenjang_computed_nama;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(j);
+            }
+            
+            var jenjangOrder = allJenjang.map(function(j) { return j.nama; });
+            jenjangOrder.push('Tanpa Jenjang');
+            
+            var sortedKeys = Object.keys(groups).sort(function(a, b) {
+                return jenjangOrder.indexOf(a) - jenjangOrder.indexOf(b);
+            });
+            
+            var colors = { 'PAUD': '#f59e0b', 'Caberawit': '#10b981', 'Praremaja': '#3b82f6', 'Remaja': '#8b5cf6', 'Pra Nikah': '#ec4899', 'Pranikah': '#ec4899', 'Tanpa Jenjang': '#6b7280' };
             
             var html = '';
-            for (var key of sortedKeys) {
-                var members = groups[key], color = colors[key] || '#059669', mismatchCount = members.filter(m => m.is_mismatch).length;
-                html += '<div class="jenjang-group"><div class="jenjang-header" onclick="this.parentElement.classList.toggle(\'collapsed\')" style="border-left:4px solid ' + color + ';"><div class="jenjang-title"><span style="color:' + color + '">📚 ' + key + '</span><span class="jenjang-badge" style="background:' + color + '">' + members.length + '</span>';
+            for (var k = 0; k < sortedKeys.length; k++) {
+                var key = sortedKeys[k];
+                var members = groups[key];
+                var color = colors[key] || '#059669';
+                var mismatchCount = members.filter(function(m) { return m.is_mismatch; }).length;
+                
+                html += '<div class="jenjang-group">';
+                html += '<div class="jenjang-header" onclick="this.parentElement.classList.toggle(\'collapsed\')" style="border-left:4px solid ' + color + ';">';
+                html += '<div class="jenjang-title">';
+                html += '<span style="color:' + color + '">📚 ' + key + '</span>';
+                html += '<span class="jenjang-badge" style="background:' + color + '">' + members.length + '</span>';
                 if (mismatchCount > 0) html += '<span class="jenjang-badge" style="background:#fef3c7;color:#92400e;">⚠' + mismatchCount + '</span>';
-                html += '</div><span class="jenjang-arrow">▼</span></div><div class="jenjang-body"><div class="generus-grid">';
-                for (var g of members) {
-                    html += '<div class="generus-card' + (g.is_mismatch ? ' mismatch' : '') + '" onclick="editGenerus(' + g.id + ')"><div class="generus-avatar' + (g.jenis_kelamin === 'P' ? ' female' : '') + '">' + (g.jenis_kelamin === 'L' ? '👦' : '👧') + '</div><div class="generus-info"><div class="generus-name">' + g.nama + (g.is_mismatch ? ' 🔶' : '') + '</div><div class="generus-meta">' + (g.umur !== null ? g.umur + ' th' : '-') + ' • ' + (g.kelompok_nama || '-') + '</div></div><button class="generus-action" onclick="event.stopPropagation();editGenerus(' + g.id + ')">✏️</button></div>';
+                html += '</div>';
+                html += '<span class="jenjang-arrow">▼</span>';
+                html += '</div>';
+                html += '<div class="jenjang-body"><div class="generus-grid">';
+                
+                for (var m = 0; m < members.length; m++) {
+                    var g = members[m];
+                    html += '<div class="generus-card' + (g.is_mismatch ? ' mismatch' : '') + '" onclick="editGenerus(' + g.id + ')">';
+                    html += '<div class="generus-avatar' + (g.jenis_kelamin === 'P' ? ' female' : '') + '">' + (g.jenis_kelamin === 'L' ? '👦' : '👧') + '</div>';
+                    html += '<div class="generus-info">';
+                    html += '<div class="generus-name">' + g.nama + (g.is_mismatch ? ' 🔶' : '') + '</div>';
+                    html += '<div class="generus-meta">' + (g.umur !== null ? g.umur + ' th' : '-') + ' • ' + (g.kelompok_nama || '-') + '</div>';
+                    html += '</div>';
+                    html += '<button class="generus-action" onclick="event.stopPropagation();editGenerus(' + g.id + ')">✏️</button>';
+                    html += '</div>';
                 }
+                
                 html += '</div></div></div>';
             }
+            
             container.innerHTML = html;
         }
         
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
-            $('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
-        }
-        
         function showAddModal() {
-            isEditMode = false; currentEditId = null;
-            $('modalTitle').textContent = '➕ Tambah Generus Baru';
-            $('modalTabs').style.display = 'none';
-            $('generusForm').reset();
-            $('formId').value = ''; $('formEnrollmentId').value = ''; $('formUmur').textContent = '-';
-            $('selectedAyah').innerHTML = ''; $('selectedIbu').innerHTML = '';
-            $('formAyahId').value = ''; $('formIbuId').value = '';
-            $('btnDelete').style.display = 'none';
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            $('tabPribadi').classList.add('active');
-            $('formModal').classList.add('show');
+            isEditMode = false;
+            currentEditId = null;
+            document.getElementById('modalTitle').textContent = '➕ Tambah Generus Baru';
+            document.getElementById('modalTabs').style.display = 'none';
+            document.getElementById('generusForm').reset();
+            document.getElementById('formId').value = '';
+            document.getElementById('formEnrollmentId').value = '';
+            document.getElementById('formUmur').textContent = '-';
+            document.getElementById('selectedAyah').innerHTML = '';
+            document.getElementById('selectedIbu').innerHTML = '';
+            document.getElementById('formAyahId').value = '';
+            document.getElementById('formIbuId').value = '';
+            document.getElementById('btnDelete').style.display = 'none';
+            
+            document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+            document.getElementById('tabPribadi').classList.add('active');
+            document.getElementById('formModal').classList.add('show');
         }
         
-        function closeModal() { $('formModal').classList.remove('show'); }
+        function closeModal() {
+            document.getElementById('formModal').classList.remove('show');
+        }
         
         async function editGenerus(id) {
             try {
-                isEditMode = true; currentEditId = id;
+                isEditMode = true;
+                currentEditId = id;
+                
                 var { data: jamaah, error } = await db.from('jamaah').select('*, ayah:ayah_id(id, nama), ibu:ibu_id(id, nama), status:status_id(id, kode, nama)').eq('id', id).single();
                 if (error) throw error;
                 
                 var { data: enrollment } = await db.from('enrollment').select('*, wilayah:wilayah_id(id, nama), jenjang:jenjang_id(id, nama)').eq('jamaah_id', id).eq('status', 'aktif').single();
                 
-                $('formId').value = jamaah.id; $('formEnrollmentId').value = enrollment?.id || '';
-                $('formNama').value = jamaah.nama || ''; $('formPanggilan').value = jamaah.nama_panggilan || '';
-                $('formGender').value = jamaah.jenis_kelamin || ''; $('formTglLahir').value = jamaah.tanggal_lahir || '';
-                $('formPhone').value = jamaah.phone || '';
+                document.getElementById('formId').value = jamaah.id;
+                document.getElementById('formEnrollmentId').value = enrollment ? enrollment.id : '';
+                document.getElementById('formNama').value = jamaah.nama || '';
+                document.getElementById('formPanggilan').value = jamaah.nama_panggilan || '';
+                document.getElementById('formGender').value = jamaah.jenis_kelamin || '';
+                document.getElementById('formTglLahir').value = jamaah.tanggal_lahir || '';
+                document.getElementById('formPhone').value = jamaah.phone || '';
                 
                 var umur = jamaah.tanggal_lahir ? hitungUmur(jamaah.tanggal_lahir) : null;
-                $('formUmur').textContent = umur !== null ? umur + ' tahun' : '-';
+                document.getElementById('formUmur').textContent = umur !== null ? umur + ' tahun' : '-';
                 
-                $('formAyahId').value = jamaah.ayah_id || ''; $('formIbuId').value = jamaah.ibu_id || '';
-                $('selectedAyah').innerHTML = jamaah.ayah ? '<div class="selected-person"><span>👨 ' + jamaah.ayah.nama + '</span><span class="remove" onclick="clearParent(\'ayah\')">✕</span></div>' : '';
-                $('selectedIbu').innerHTML = jamaah.ibu ? '<div class="selected-person"><span>👩 ' + jamaah.ibu.nama + '</span><span class="remove" onclick="clearParent(\'ibu\')">✕</span></div>' : '';
+                document.getElementById('formAyahId').value = jamaah.ayah_id || '';
+                document.getElementById('formIbuId').value = jamaah.ibu_id || '';
+                document.getElementById('selectedAyah').innerHTML = jamaah.ayah ? '<div class="selected-person"><span>👨 ' + jamaah.ayah.nama + '</span><span class="remove" onclick="clearParent(\'ayah\')">✕</span></div>' : '';
+                document.getElementById('selectedIbu').innerHTML = jamaah.ibu ? '<div class="selected-person"><span>👩 ' + jamaah.ibu.nama + '</span><span class="remove" onclick="clearParent(\'ibu\')">✕</span></div>' : '';
                 
-                $('currentStatus').innerHTML = jamaah.status ? '<span class="status-badge aktif">' + jamaah.status.nama + '</span>' : '<span class="text-muted">Belum diset</span>';
-                $('formStatus').value = jamaah.status_id || '';
+                document.getElementById('currentStatus').innerHTML = jamaah.status ? '<span class="status-badge aktif">' + jamaah.status.nama + '</span>' : '<span style="color:#64748b;">Belum diset</span>';
+                document.getElementById('formStatus').value = jamaah.status_id || '';
                 
-                $('currentKelompok').innerHTML = enrollment?.wilayah ? '<strong>' + enrollment.wilayah.nama + '</strong> - ' + (enrollment.jenjang?.nama || '-') : '<span class="text-muted">Belum terdaftar</span>';
-                $('formKelompok').value = enrollment?.wilayah_id || '';
-                $('formJenjang').value = enrollment?.jenjang_id || '';
+                document.getElementById('currentKelompok').innerHTML = enrollment && enrollment.wilayah ? '<strong>' + enrollment.wilayah.nama + '</strong> - ' + (enrollment.jenjang ? enrollment.jenjang.nama : '-') : '<span style="color:#64748b;">Belum terdaftar</span>';
+                document.getElementById('formKelompok').value = enrollment ? enrollment.wilayah_id : '';
+                document.getElementById('formJenjang').value = enrollment ? enrollment.jenjang_id : '';
                 
                 var jenjangComputed = umur !== null ? getJenjangByUmur(umur) : null;
-                if (jenjangComputed && enrollment?.jenjang_id && jenjangComputed.id !== enrollment.jenjang_id) {
-                    $('suggestedJenjang').textContent = jenjangComputed.nama;
-                    $('jenjangSuggestion').style.display = 'block';
-                } else { $('jenjangSuggestion').style.display = 'none'; }
+                if (jenjangComputed && enrollment && enrollment.jenjang_id && jenjangComputed.id !== enrollment.jenjang_id) {
+                    document.getElementById('suggestedJenjang').textContent = jenjangComputed.nama;
+                    document.getElementById('jenjangSuggestion').style.display = 'block';
+                } else {
+                    document.getElementById('jenjangSuggestion').style.display = 'none';
+                }
                 
                 await loadKelompokHistory(id);
                 
-                $('modalTitle').textContent = '✏️ Edit: ' + jamaah.nama;
-                $('modalTabs').style.display = 'flex';
-                $('btnDelete').style.display = 'inline-flex';
-                document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === 0));
-                document.querySelectorAll('.tab-content').forEach((c, i) => c.classList.toggle('active', i === 0));
-                $('formModal').classList.add('show');
+                document.getElementById('modalTitle').textContent = '✏️ Edit: ' + jamaah.nama;
+                document.getElementById('modalTabs').style.display = 'flex';
+                document.getElementById('btnDelete').style.display = 'inline-flex';
+                
+                document.querySelectorAll('.tab').forEach(function(t, i) { t.classList.toggle('active', i === 0); });
+                document.querySelectorAll('.tab-content').forEach(function(c, i) { c.classList.toggle('active', i === 0); });
+                
+                document.getElementById('formModal').classList.add('show');
             } catch (error) {
                 console.error('Error:', error);
                 showToast('Gagal memuat: ' + error.message, 'error');
@@ -87,55 +606,103 @@ AUD': '#f59e0b', 'Caberawit': '#10b981', 'Praremaja': '#3b82f6', 'Remaja': '#8b5
         async function loadKelompokHistory(jamaahId) {
             try {
                 var { data } = await db.from('enrollment').select('tanggal_masuk, tanggal_keluar, status, wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)').eq('jamaah_id', jamaahId).order('tanggal_masuk', { ascending: false });
-                if (!data || !data.length) { $('kelompokHistory').innerHTML = '<p class="text-muted text-sm">Belum ada riwayat</p>'; return; }
-                $('kelompokHistory').innerHTML = data.map(e => '<div class="history-item"><div><strong>' + (e.wilayah?.nama || '-') + '</strong> - ' + (e.jenjang?.nama || '-') + '<div style="font-size:0.7rem;color:var(--gray-500);">' + formatDate(e.tanggal_masuk) + ' - ' + (e.tanggal_keluar ? formatDate(e.tanggal_keluar) : 'sekarang') + '</div></div><span class="status-badge ' + (e.status === 'aktif' ? 'aktif' : 'tidak-aktif') + '">' + e.status + '</span></div>').join('');
-            } catch (error) { console.error('Error:', error); }
+                
+                if (!data || !data.length) {
+                    document.getElementById('kelompokHistory').innerHTML = '<p style="color:#64748b;font-size:0.8rem;">Belum ada riwayat</p>';
+                    return;
+                }
+                
+                var html = data.map(function(e) {
+                    return '<div class="history-item"><div><strong>' + (e.wilayah ? e.wilayah.nama : '-') + '</strong> - ' + (e.jenjang ? e.jenjang.nama : '-') + '<div style="font-size:0.7rem;color:#64748b;">' + formatDate(e.tanggal_masuk) + ' - ' + (e.tanggal_keluar ? formatDate(e.tanggal_keluar) : 'sekarang') + '</div></div><span class="status-badge ' + (e.status === 'aktif' ? 'aktif' : 'tidak-aktif') + '">' + e.status + '</span></div>';
+                }).join('');
+                
+                document.getElementById('kelompokHistory').innerHTML = html;
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
         
         var searchOrtuTimeout;
         async function searchOrangTua(type) {
             clearTimeout(searchOrtuTimeout);
-            var input = $(type === 'ayah' ? 'searchAyah' : 'searchIbu'), resultsDiv = $(type === 'ayah' ? 'resultsAyah' : 'resultsIbu'), query = input.value.trim();
-            if (query.length < 2) { resultsDiv.classList.remove('show'); return; }
-            searchOrtuTimeout = setTimeout(async () => {
+            var input = document.getElementById(type === 'ayah' ? 'searchAyah' : 'searchIbu');
+            var resultsDiv = document.getElementById(type === 'ayah' ? 'resultsAyah' : 'resultsIbu');
+            var query = input.value.trim();
+            
+            if (query.length < 2) {
+                resultsDiv.classList.remove('show');
+                return;
+            }
+            
+            searchOrtuTimeout = setTimeout(async function() {
                 var gender = type === 'ayah' ? 'L' : 'P';
                 var { data } = await db.from('jamaah').select('id, nama').eq('jenis_kelamin', gender).ilike('nama', '%' + query + '%').limit(10);
+                
                 if (data && data.length > 0) {
-                    resultsDiv.innerHTML = data.map(j => '<div class="search-result-item" onclick="selectParent(\'' + type + '\', ' + j.id + ', \'' + j.nama.replace(/'/g, "\\'") + '\')">' + j.nama + '</div>').join('');
-                } else { resultsDiv.innerHTML = '<div class="search-result-item" style="color:var(--gray-500);">Tidak ditemukan</div>'; }
+                    resultsDiv.innerHTML = data.map(function(j) {
+                        return '<div class="search-result-item" onclick="selectParent(\'' + type + '\', ' + j.id + ', \'' + j.nama.replace(/'/g, "\\'") + '\')">' + j.nama + '</div>';
+                    }).join('');
+                } else {
+                    resultsDiv.innerHTML = '<div class="search-result-item" style="color:#64748b;">Tidak ditemukan</div>';
+                }
                 resultsDiv.classList.add('show');
             }, 300);
         }
         
         function selectParent(type, id, nama) {
             var icon = type === 'ayah' ? '👨' : '👩';
-            $(type === 'ayah' ? 'selectedAyah' : 'selectedIbu').innerHTML = '<div class="selected-person"><span>' + icon + ' ' + nama + '</span><span class="remove" onclick="clearParent(\'' + type + '\')">✕</span></div>';
-            $(type === 'ayah' ? 'formAyahId' : 'formIbuId').value = id;
-            $(type === 'ayah' ? 'searchAyah' : 'searchIbu').value = '';
-            $(type === 'ayah' ? 'resultsAyah' : 'resultsIbu').classList.remove('show');
+            document.getElementById(type === 'ayah' ? 'selectedAyah' : 'selectedIbu').innerHTML = '<div class="selected-person"><span>' + icon + ' ' + nama + '</span><span class="remove" onclick="clearParent(\'' + type + '\')">✕</span></div>';
+            document.getElementById(type === 'ayah' ? 'formAyahId' : 'formIbuId').value = id;
+            document.getElementById(type === 'ayah' ? 'searchAyah' : 'searchIbu').value = '';
+            document.getElementById(type === 'ayah' ? 'resultsAyah' : 'resultsIbu').classList.remove('show');
         }
         
         function clearParent(type) {
-            $(type === 'ayah' ? 'selectedAyah' : 'selectedIbu').innerHTML = '';
-            $(type === 'ayah' ? 'formAyahId' : 'formIbuId').value = '';
+            document.getElementById(type === 'ayah' ? 'selectedAyah' : 'selectedIbu').innerHTML = '';
+            document.getElementById(type === 'ayah' ? 'formAyahId' : 'formIbuId').value = '';
         }
         
-        document.addEventListener('click', function(e) { if (!e.target.closest('.search-select')) document.querySelectorAll('.search-results').forEach(r => r.classList.remove('show')); });
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-select')) {
+                document.querySelectorAll('.search-results').forEach(function(r) { r.classList.remove('show'); });
+            }
+        });
         
         async function saveGenerus() {
             try {
-                var id = $('formId').value, enrollmentId = $('formEnrollmentId').value;
-                var jamaahData = { nama: $('formNama').value.trim(), nama_panggilan: $('formPanggilan').value.trim() || null, jenis_kelamin: $('formGender').value, tanggal_lahir: $('formTglLahir').value, phone: $('formPhone').value.trim() || null, ayah_id: $('formAyahId').value || null, ibu_id: $('formIbuId').value || null };
-                var newStatusId = $('formStatus').value;
+                var id = document.getElementById('formId').value;
+                var enrollmentId = document.getElementById('formEnrollmentId').value;
+                
+                var jamaahData = {
+                    nama: document.getElementById('formNama').value.trim(),
+                    nama_panggilan: document.getElementById('formPanggilan').value.trim() || null,
+                    jenis_kelamin: document.getElementById('formGender').value,
+                    tanggal_lahir: document.getElementById('formTglLahir').value,
+                    phone: document.getElementById('formPhone').value.trim() || null,
+                    ayah_id: document.getElementById('formAyahId').value || null,
+                    ibu_id: document.getElementById('formIbuId').value || null
+                };
+                
+                var newStatusId = document.getElementById('formStatus').value;
                 if (newStatusId) jamaahData.status_id = newStatusId;
                 
-                if (!jamaahData.nama || !jamaahData.jenis_kelamin || !jamaahData.tanggal_lahir) { showToast('Lengkapi data wajib!', 'error'); return; }
-                var kelompokId = $('formKelompok').value, jenjangId = $('formJenjang').value;
-                if (!kelompokId || !jenjangId) { showToast('Pilih kelompok dan jenjang!', 'error'); return; }
+                if (!jamaahData.nama || !jamaahData.jenis_kelamin || !jamaahData.tanggal_lahir) {
+                    showToast('Lengkapi data wajib!', 'error');
+                    return;
+                }
+                
+                var kelompokId = document.getElementById('formKelompok').value;
+                var jenjangId = document.getElementById('formJenjang').value;
+                
+                if (!kelompokId || !jenjangId) {
+                    showToast('Pilih kelompok dan jenjang!', 'error');
+                    return;
+                }
                 
                 if (id) {
                     var { error: updateError } = await db.from('jamaah').update(jamaahData).eq('id', id);
                     if (updateError) throw updateError;
+                    
                     if (enrollmentId) {
                         var { error: enrollError } = await db.from('enrollment').update({ wilayah_id: kelompokId, jenjang_id: jenjangId }).eq('id', enrollmentId);
                         if (enrollError) throw enrollError;
@@ -144,28 +711,56 @@ AUD': '#f59e0b', 'Caberawit': '#10b981', 'Praremaja': '#3b82f6', 'Remaja': '#8b5
                 } else {
                     var { data: newJamaah, error: insertError } = await db.from('jamaah').insert(jamaahData).select().single();
                     if (insertError) throw insertError;
-                    var { error: enrollError } = await db.from('enrollment').insert({ jamaah_id: newJamaah.id, wilayah_id: kelompokId, jenjang_id: jenjangId, status: 'aktif', tanggal_masuk: new Date().toISOString().split('T')[0] });
+                    
+                    var { error: enrollError } = await db.from('enrollment').insert({
+                        jamaah_id: newJamaah.id,
+                        wilayah_id: kelompokId,
+                        jenjang_id: jenjangId,
+                        status: 'aktif',
+                        tanggal_masuk: new Date().toISOString().split('T')[0]
+                    });
                     if (enrollError) throw enrollError;
                     showToast('Generus berhasil ditambahkan', 'success');
                 }
-                closeModal(); loadGenerus();
-            } catch (error) { console.error('Error:', error); showToast('Gagal menyimpan: ' + error.message, 'error'); }
+                
+                closeModal();
+                loadGenerus();
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal menyimpan: ' + error.message, 'error');
+            }
         }
         
         async function deleteGenerus() {
-            if (!currentEditId || !confirm('Yakin ingin menghapus?')) return;
+            if (!currentEditId || !confirm('Yakin ingin menghapus data generus ini?')) return;
+            
             try {
                 await db.from('enrollment').delete().eq('jamaah_id', currentEditId);
                 var { error } = await db.from('jamaah').delete().eq('id', currentEditId);
                 if (error) throw error;
-                showToast('Berhasil dihapus', 'success');
-                closeModal(); loadGenerus();
-            } catch (error) { console.error('Error:', error); showToast('Gagal menghapus: ' + error.message, 'error'); }
+                
+                showToast('Data berhasil dihapus', 'success');
+                closeModal();
+                loadGenerus();
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal menghapus: ' + error.message, 'error');
+            }
         }
         
-        function formatDate(dateStr) { return dateStr ? new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'; }
-        function showToast(message, type) { var toast = document.createElement('div'); toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);padding:0.75rem 1.5rem;border-radius:8px;color:white;font-size:0.85rem;z-index:9999;max-width:90%;text-align:center;'; toast.style.background = type === 'error' ? '#ef4444' : '#10b981'; toast.textContent = message; document.body.appendChild(toast); setTimeout(function() { toast.remove(); }, 3000); }
-        function $(id) { return document.getElementById(id); }
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+        
+        function showToast(message, type) {
+            var toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);padding:0.75rem 1.5rem;border-radius:8px;color:white;font-size:0.85rem;z-index:9999;max-width:90%;text-align:center;';
+            toast.style.background = type === 'error' ? '#ef4444' : '#10b981';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 3000);
+        }
     </script>
 </body>
 </html>
