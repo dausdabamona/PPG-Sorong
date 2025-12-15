@@ -397,11 +397,6 @@
                             </select>
                         </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Alamat</label>
-                        <textarea class="form-control" id="formAlamat" rows="2"></textarea>
-                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -548,7 +543,6 @@
                             jenis_kelamin,
                             tanggal_lahir,
                             phone,
-                            alamat,
                             status_id
                         ),
                         wilayah:wilayah_id (id, nama, parent_id),
@@ -580,7 +574,6 @@
                         jenis_kelamin: j.jenis_kelamin,
                         tanggal_lahir: j.tanggal_lahir,
                         phone: j.phone,
-                        alamat: j.alamat,
                         umur: umur,
                         kelompok_id: e.wilayah_id,
                         kelompok_nama: e.wilayah?.nama,
@@ -757,7 +750,6 @@
                 $('formGender').value = jamaah.jenis_kelamin || '';
                 $('formTglLahir').value = jamaah.tanggal_lahir || '';
                 $('formPhone').value = jamaah.phone || '';
-                $('formAlamat').value = jamaah.alamat || '';
                 $('formKelompok').value = enrollment?.wilayah_id || '';
                 $('formJenjang').value = enrollment?.jenjang_id || '';
                 
@@ -780,8 +772,7 @@
                     nama_panggilan: $('formPanggilan').value.trim() || null,
                     jenis_kelamin: $('formGender').value,
                     tanggal_lahir: $('formTglLahir').value,
-                    phone: $('formPhone').value.trim() || null,
-                    alamat: $('formAlamat').value.trim() || null
+                    phone: $('formPhone').value.trim() || null
                 };
                 
                 if (!jamaahData.nama || !jamaahData.jenis_kelamin || !jamaahData.tanggal_lahir) {
