@@ -97,37 +97,48 @@
                                 <option value="">Semua Kelompok</option>
                             </select>
                         </div>
-                        <div style="margin-top:8px;">
-                            <input type="text" class="form-control" id="searchInput" placeholder="🔍 Cari nama..." oninput="debounceSearch()">
+                        <div style="margin-top:8px; display:flex; gap:8px;">
+                            <input type="text" class="form-control" id="searchInput" placeholder="🔍 Cari nama..." oninput="debounceSearch()" style="flex:1;">
+                            <select class="form-control" id="groupBy" onchange="loadGenerus()" style="width:auto;">
+                                <option value="">Tanpa Group</option>
+                                <option value="kelompok">Group by Kelompok</option>
+                                <option value="jenjang">Group by Jenjang</option>
+                            </select>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Data Table -->
-                <div class="card">
-                    <div class="card-header">
-                        <span id="infoTotal">Total: -</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table" id="generusTable">
-                                <thead>
-                                    <tr>
-                                        <th width="35">NO</th>
-                                        <th>NAMA</th>
-                                        <th width="45">L/P</th>
-                                        <th width="45">UMUR</th>
-                                        <th width="70">JENJANG</th>
-                                        <th>KELOMPOK</th>
-                                        <th width="50" id="colAksi" style="display:none;">AKSI</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr><td colspan="7" class="text-center text-muted py-4">Memuat...</td></tr>
-                                </tbody>
-                            </table>
+                <!-- Data Container (Table or Grouped) -->
+                <div id="dataContainer">
+                    <!-- Data Table (default) -->
+                    <div class="card" id="tableView">
+                        <div class="card-header">
+                            <span id="infoTotal">Total: -</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table" id="generusTable">
+                                    <thead>
+                                        <tr>
+                                            <th width="35">NO</th>
+                                            <th>NAMA</th>
+                                            <th width="45">L/P</th>
+                                            <th width="45">UMUR</th>
+                                            <th width="70">JENJANG</th>
+                                            <th>KELOMPOK</th>
+                                            <th width="50" id="colAksi" style="display:none;">AKSI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td colspan="7" class="text-center text-muted py-4">Memuat...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
+                    
+                    <!-- Grouped View (hidden by default) -->
+                    <div id="groupedView" style="display:none;"></div>
                 </div>
             </div>
             
@@ -464,6 +475,27 @@
         }
         
         function renderTable(data) {
+            var groupByEl = $('groupBy');
+            var groupBy = groupByEl ? groupByEl.value : '';
+            
+            var tableView = $('tableView');
+            var groupedView = $('groupedView');
+            
+            // Determine view mode
+            if (groupBy && data && data.length > 0) {
+                // Grouped View
+                if (tableView) tableView.style.display = 'none';
+                if (groupedView) groupedView.style.display = 'block';
+                renderGroupedView(data, groupBy);
+            } else {
+                // Table View
+                if (tableView) tableView.style.display = 'block';
+                if (groupedView) groupedView.style.display = 'none';
+                renderTableView(data);
+            }
+        }
+        
+        function renderTableView(data) {
             var tbody = $$('#generusTable tbody');
             if (!tbody) return;
             
@@ -505,6 +537,87 @@
                 html += '</tr>';
             }
             tbody.innerHTML = html;
+        }
+        
+        function renderGroupedView(data, groupBy) {
+            var container = $('groupedView');
+            if (!container) return;
+            
+            var canEditData = userRoles && userRoles.some(function(r) {
+                var kode = r.role && r.role.kode ? r.role.kode.toLowerCase() : '';
+                return ['admin', 'mubaligh', 'mubaligh_daerah', 'mubaligh_desa', 'imam_kelompok'].includes(kode);
+            });
+            
+            // Group data
+            var groups = {};
+            var groupKey = groupBy === 'kelompok' ? 'kelompok_nama' : 'jenjang_nama';
+            var groupIcon = groupBy === 'kelompok' ? '🏠' : '📚';
+            
+            data.forEach(function(g) {
+                var key = g[groupKey] || 'Tidak Ada ' + (groupBy === 'kelompok' ? 'Kelompok' : 'Jenjang');
+                if (!groups[key]) {
+                    groups[key] = [];
+                }
+                groups[key].push(g);
+            });
+            
+            // Sort group keys
+            var sortedKeys = Object.keys(groups).sort();
+            
+            var html = '';
+            sortedKeys.forEach(function(groupName) {
+                var members = groups[groupName];
+                var maleCount = members.filter(function(m) { return m.jenis_kelamin === 'L'; }).length;
+                var femaleCount = members.filter(function(m) { return m.jenis_kelamin === 'P'; }).length;
+                
+                html += '<div class="card mb-sm">';
+                html += '<div class="card-header" style="background:#f0fdf4; cursor:pointer;" onclick="toggleGroup(this)">';
+                html += '<div style="display:flex; justify-content:space-between; align-items:center;">';
+                html += '<span>' + groupIcon + ' <strong>' + escapeHtml(groupName) + '</strong></span>';
+                html += '<span class="badge badge-primary">' + members.length + ' orang';
+                html += ' <small style="opacity:0.8;">(L:' + maleCount + ' P:' + femaleCount + ')</small>';
+                html += '</span>';
+                html += '</div>';
+                html += '</div>';
+                html += '<div class="card-body group-content">';
+                
+                // Render members as compact list
+                html += '<div class="generus-list">';
+                members.forEach(function(g, idx) {
+                    var nama = escapeHtml(g.nama || '-');
+                    var namaPanggilan = g.nama_panggilan ? ' (' + escapeHtml(g.nama_panggilan) + ')' : '';
+                    var jk = g.jenis_kelamin === 'L' ? '👦' : '👧';
+                    var umur = g.tanggal_lahir ? hitungUmur(g.tanggal_lahir) + ' th' : '-';
+                    var subInfo = groupBy === 'kelompok' ? (g.jenjang_nama || '-') : (g.kelompok_nama || '-');
+                    
+                    html += '<div class="generus-item" style="display:flex; align-items:center; padding:0.5rem 0; border-bottom:1px solid #f1f5f9;">';
+                    html += '<span style="width:30px; text-align:center; color:#6b7280;">' + (idx + 1) + '</span>';
+                    html += '<span style="font-size:1.25rem; margin-right:0.5rem;">' + jk + '</span>';
+                    html += '<div style="flex:1; min-width:0;">';
+                    html += '<div style="font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + nama + namaPanggilan + '</div>';
+                    html += '<div style="font-size:0.7rem; color:#6b7280;">' + subInfo + ' • ' + umur + '</div>';
+                    html += '</div>';
+                    if (canEditData) {
+                        html += '<button class="btn btn-sm btn-outline" onclick="editGenerus(' + g.jamaah_id + ')" style="padding:0.25rem 0.5rem;">✏️</button>';
+                    }
+                    html += '</div>';
+                });
+                html += '</div>';
+                
+                html += '</div>';
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function toggleGroup(header) {
+            var content = header.nextElementSibling;
+            if (content) {
+                var isHidden = content.style.display === 'none';
+                content.style.display = isHidden ? 'block' : 'none';
+                // Change arrow indicator if needed
+            }
         }
         
         // ========== EDIT ==========

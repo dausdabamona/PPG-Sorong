@@ -15,11 +15,26 @@
  */
 function handleApiError(error, customMessage = 'Terjadi kesalahan') {
     console.error('API Error:', error);
-    const message = error?.message || error || 'Unknown error';
-    if (typeof showToast === 'function') {
-        showToast(`${customMessage}: ${message}`, 'error');
+    var message = '';
+    if (error && error.message) {
+        message = error.message;
+    } else if (error && error.details) {
+        message = error.details;
+    } else if (typeof error === 'string') {
+        message = error;
+    } else {
+        message = 'Unknown error';
     }
-    throw error;
+    
+    // Log full error for debugging
+    console.error('Full error object:', JSON.stringify(error, null, 2));
+    
+    if (typeof showToast === 'function') {
+        showToast(customMessage + ': ' + message, 'error');
+    }
+    
+    // Don't re-throw, just return the error for handling
+    return { error: true, message: message };
 }
 
 /**
@@ -171,7 +186,7 @@ const jamaahApi = {
     update: async function(id, jamaahData) {
         try {
             // Filter hanya field yang valid untuk tabel jamaah
-            const validFields = [
+            var validFields = [
                 'nama', 'nama_panggilan', 'jenis_kelamin', 'tempat_lahir',
                 'tanggal_lahir', 'golongan_darah', 'phone', 'email',
                 'alamat_lengkap', 'status_domisili', 'nomor_kk',
@@ -179,22 +194,35 @@ const jamaahApi = {
                 'foto_url', 'status_aktif', 'keterangan'
             ];
             
-            const updateData = {};
-            validFields.forEach(field => {
+            var updateData = {};
+            validFields.forEach(function(field) {
                 if (jamaahData[field] !== undefined) {
                     updateData[field] = jamaahData[field];
                 }
             });
             updateData.updated_at = new Date().toISOString();
             
-            const { error } = await db
+            console.log('Updating jamaah ID:', id, 'Data:', updateData);
+            
+            var result = await db
                 .from('jamaah')
                 .update(updateData)
-                .eq('id', safeInt(id));
+                .eq('id', safeInt(id))
+                .select();
             
-            if (error) throw error;
+            console.log('Update result:', result);
+            
+            if (result.error) {
+                console.error('Update error:', result.error);
+                if (typeof showToast === 'function') {
+                    showToast('Gagal update: ' + (result.error.message || result.error.details || 'Unknown error'), 'error');
+                }
+                return false;
+            }
+            
             return true;
         } catch (error) {
+            console.error('Update exception:', error);
             handleApiError(error, 'Gagal mengupdate jamaah');
             return false;
         }
