@@ -340,8 +340,10 @@
                 if (persenKeaktifanEl) persenKeaktifanEl.textContent = (presensiRekap?.persentase_hadir || 0) + '%';
                 if (progressBarEl) progressBarEl.style.width = (presensiRekap?.persentase_hadir || 0) + '%';
                 
-                // Progress per bidang (bukan kategori)
-                var progressBidang = await progressApi.getSummaryByBidang(jamaahId);
+                // Progress per bidang sesuai jenjang santri
+                // Ambil jenjang_id dari jamaah (view v_jamaah_lengkap)
+                var jenjangId = jamaah.jenjang_id || null;
+                var progressBidang = await progressApi.getSummaryByBidang(jamaahId, jenjangId);
                 
                 var progressHtml = '';
                 if (progressBidang && progressBidang.length > 0) {
