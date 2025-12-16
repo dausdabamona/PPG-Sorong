@@ -1931,6 +1931,41 @@ const tanggalSkipApi = {
 };
 
 // ============================================================================
+// JENJANG API (Wrapper untuk masterApi.getJenjang)
+// ============================================================================
+
+const jenjangApi = {
+    /**
+     * Get semua jenjang aktif
+     * @returns {Promise<Array>}
+     */
+    getAll: async function() {
+        return await masterApi.getJenjang();
+    },
+    
+    /**
+     * Get jenjang by ID
+     * @param {number} id
+     * @returns {Promise<Object|null>}
+     */
+    getById: async function(id) {
+        try {
+            const { data, error } = await db
+                .from('jenjang')
+                .select('*')
+                .eq('id', safeInt(id))
+                .single();
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat jenjang');
+            return null;
+        }
+    }
+};
+
+// ============================================================================
 // EXPORT - Make APIs available globally
 // ============================================================================
 
@@ -1947,6 +1982,7 @@ window.dashboardApi = dashboardApi;
 window.pernikahanApi = pernikahanApi;
 window.jadwalRutinApi = jadwalRutinApi;
 window.tanggalSkipApi = tanggalSkipApi;
+window.jenjangApi = jenjangApi;
 
 // Export helper juga
 window.safeInt = safeInt;
