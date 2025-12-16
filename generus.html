@@ -202,9 +202,14 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Tanggal Lahir</label>
-                            <input type="date" class="form-control" id="editTanggalLahir" onchange="showUmur()">
+                            <input type="date" class="form-control" id="editTanggalLahir" onchange="onTanggalLahirChange()">
                             <small id="editUmurInfo" class="text-muted"></small>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Jenjang</label>
+                        <select class="form-control" id="editJenjang"></select>
+                        <small id="editJenjangInfo" class="text-muted"></small>
                     </div>
                     <div class="form-group">
                         <label class="form-label">No. HP/WA</label>
@@ -253,7 +258,7 @@
                     <!-- Form Menikah -->
                     <div id="formMenikah" style="display:none;">
                         <div class="info-box">
-                            💍 Pilih pasangan dari daftar jamaah yang sudah ada
+                            💍 Cari pasangan dari daftar jamaah, atau tambah baru jika belum ada
                         </div>
                         <div class="form-group search-select">
                             <label class="form-label">Cari Pasangan:</label>
@@ -262,6 +267,47 @@
                         </div>
                         <input type="hidden" id="pasanganJamaahId">
                         <div id="selectedPasangan"></div>
+                        
+                        <!-- Tombol Tambah Pasangan Baru -->
+                        <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px dashed #cbd5e1;">
+                            <button type="button" class="btn btn-outline btn-sm w-100" onclick="showTambahPasanganForm()">
+                                ➕ Pasangan Tidak Ada? Tambah Baru
+                            </button>
+                        </div>
+                        
+                        <!-- Form Tambah Pasangan Baru (hidden by default) -->
+                        <div id="formTambahPasangan" style="display:none;margin-top:1rem;padding:1rem;background:#f8fafc;border-radius:0.5rem;">
+                            <h4 style="font-size:0.9rem;margin-bottom:0.75rem;">📝 Data Pasangan Baru</h4>
+                            <div class="form-group">
+                                <label class="form-label">Nama Lengkap *</label>
+                                <input type="text" class="form-control" id="pasanganNama" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Jenis Kelamin</label>
+                                    <select class="form-control" id="pasanganJK" disabled>
+                                        <option value="L">Laki-laki</option>
+                                        <option value="P">Perempuan</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Tanggal Lahir</label>
+                                    <input type="date" class="form-control" id="pasanganTglLahir">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">No. HP</label>
+                                <input type="text" class="form-control" id="pasanganPhone">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Kelompok *</label>
+                                <select class="form-control" id="pasanganKelompok"></select>
+                            </div>
+                            <div style="display:flex;gap:0.5rem;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="hideTambahPasanganForm()">Batal</button>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="simpanPasanganBaru()">💾 Simpan & Pilih</button>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Form Non-aktif -->
@@ -288,6 +334,8 @@
         var generusData = [];
         var daerahList = [];
         var kelompokList = [];
+        var allJenjang = [];
+        var allKelompok = [];
         var currentEditData = null;
         var allGroupsExpanded = false;
         var searchTimeout = null;
@@ -298,6 +346,9 @@
             // Setup mobile/desktop view
             setupResponsiveView();
             window.addEventListener('resize', setupResponsiveView);
+            
+            // Load jenjang untuk form edit
+            await loadJenjangOptions();
             
             await Promise.all([
                 loadFilterData(),
@@ -342,6 +393,33 @@
                 }
             } catch (error) {
                 console.error('Error load filter:', error);
+            }
+        }
+        
+        async function loadJenjangOptions() {
+            try {
+                allJenjang = await jenjangApi.getAll() || [];
+                var editJenjang = $('editJenjang');
+                if (editJenjang) {
+                    var html = '<option value="">-- Pilih Jenjang --</option>';
+                    allJenjang.forEach(function(j) {
+                        html += '<option value="' + j.id + '" data-usia-min="' + (j.usia_mulai || 0) + '" data-usia-max="' + (j.usia_sampai || 99) + '">' + escapeHtml(j.nama) + '</option>';
+                    });
+                    editJenjang.innerHTML = html;
+                }
+                
+                // Load kelompok untuk form pasangan baru
+                allKelompok = await wilayahApi.getKelompok() || [];
+                var pasanganKelompok = $('pasanganKelompok');
+                if (pasanganKelompok) {
+                    var html = '<option value="">-- Pilih Kelompok --</option>';
+                    allKelompok.forEach(function(k) {
+                        html += '<option value="' + k.id + '">' + escapeHtml(k.nama) + '</option>';
+                    });
+                    pasanganKelompok.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error load jenjang:', error);
             }
         }
         
@@ -557,7 +635,14 @@
                 if ($('editTanggalLahir')) $('editTanggalLahir').value = jamaah.tanggal_lahir || '';
                 if ($('editPhone')) $('editPhone').value = jamaah.phone || '';
                 if ($('editAlamat')) $('editAlamat').value = jamaah.alamat_lengkap || '';
-                showUmur();
+                
+                // Set jenjang dari enrollment
+                if ($('editJenjang') && enrollment) {
+                    $('editJenjang').value = enrollment.jenjang_id || '';
+                }
+                
+                // Update umur dan jenjang info
+                onTanggalLahirChange();
                 
                 // Tab 2 - Kelompok
                 if ($('editEnrollmentId')) $('editEnrollmentId').value = enrollment ? enrollment.id : '';
@@ -573,6 +658,19 @@
                 if ($('newStatus')) $('newStatus').value = '';
                 if ($('formMenikah')) $('formMenikah').style.display = 'none';
                 if ($('formNonaktif')) $('formNonaktif').style.display = 'none';
+                if ($('formTambahPasangan')) $('formTambahPasangan').style.display = 'none';
+                
+                // Set jenis kelamin pasangan (kebalikan dari jamaah saat ini)
+                var oppositeGender = jamaah.jenis_kelamin === 'L' ? 'P' : 'L';
+                if ($('pasanganJK')) $('pasanganJK').value = oppositeGender;
+                
+                // Set kelompok default pasangan sama dengan jamaah
+                if ($('pasanganKelompok') && enrollment) {
+                    $('pasanganKelompok').value = enrollment.wilayah_id || '';
+                }
+                
+                // Clear selected pasangan
+                clearPasangan();
                 
                 // Show modal
                 $('editModal').classList.add('show');
@@ -614,12 +712,44 @@
             $(tabId).classList.add('active');
         }
         
-        function showUmur() {
+        function onTanggalLahirChange() {
             var tgl = $('editTanggalLahir')?.value;
-            var info = $('editUmurInfo');
-            if (info) {
-                info.innerHTML = tgl ? '<strong>Umur: ' + hitungUmur(tgl) + ' tahun</strong>' : '';
+            var infoUmur = $('editUmurInfo');
+            var infoJenjang = $('editJenjangInfo');
+            var selectJenjang = $('editJenjang');
+            
+            if (!tgl) {
+                if (infoUmur) infoUmur.innerHTML = '';
+                if (infoJenjang) infoJenjang.innerHTML = '';
+                return;
             }
+            
+            var umur = hitungUmur(tgl);
+            if (infoUmur) infoUmur.innerHTML = '<strong>Umur: ' + umur + ' tahun</strong>';
+            
+            // Auto select jenjang berdasarkan umur
+            var matchedJenjang = null;
+            for (var i = 0; i < allJenjang.length; i++) {
+                var j = allJenjang[i];
+                var usiaMin = j.usia_mulai || 0;
+                var usiaMax = j.usia_sampai || 99;
+                if (umur >= usiaMin && umur <= usiaMax) {
+                    matchedJenjang = j;
+                    break;
+                }
+            }
+            
+            if (matchedJenjang && selectJenjang) {
+                selectJenjang.value = matchedJenjang.id;
+                if (infoJenjang) infoJenjang.innerHTML = '<span style="color:#059669;">✓ Rekomendasi: ' + matchedJenjang.nama + '</span>';
+            } else if (infoJenjang) {
+                infoJenjang.innerHTML = '<span style="color:#f59e0b;">⚠ Pilih jenjang manual</span>';
+            }
+        }
+        
+        // Alias untuk backward compatibility
+        function showUmur() {
+            onTanggalLahirChange();
         }
         
         // ========== SAVE DATA ==========
@@ -649,6 +779,17 @@
                 var success = await jamaahApi.update(id, jamaahData);
                 
                 if (success) {
+                    // Update jenjang jika berubah
+                    var newJenjangId = $('editJenjang')?.value;
+                    var enrollmentId = $('editEnrollmentId')?.value;
+                    if (newJenjangId && enrollmentId && currentEditData?.enrollment) {
+                        var currentJenjangId = currentEditData.enrollment.jenjang_id;
+                        if (newJenjangId != currentJenjangId) {
+                            // Update jenjang di enrollment
+                            await enrollmentApi.updateJenjang(enrollmentId, newJenjangId);
+                        }
+                    }
+                    
                     showToast('Data berhasil disimpan!', 'success');
                     closeEditModal();
                     loadGenerus();
@@ -785,6 +926,101 @@
                 }
             } catch (error) {
                 console.error('Save status error:', error);
+                showToast('Gagal: ' + (error.message || error), 'error');
+            }
+        }
+        
+        // ========== TAMBAH PASANGAN BARU ==========
+        function showTambahPasanganForm() {
+            $('formTambahPasangan').style.display = 'block';
+            // Reset form
+            $('pasanganNama').value = '';
+            $('pasanganTglLahir').value = '';
+            $('pasanganPhone').value = '';
+            // JK sudah di-set otomatis (kebalikan dari jamaah saat ini)
+            // Kelompok sudah di-set default dari jamaah saat ini
+        }
+        
+        function hideTambahPasanganForm() {
+            $('formTambahPasangan').style.display = 'none';
+        }
+        
+        async function simpanPasanganBaru() {
+            var nama = $('pasanganNama')?.value;
+            var jk = $('pasanganJK')?.value;
+            var tglLahir = $('pasanganTglLahir')?.value;
+            var phone = $('pasanganPhone')?.value;
+            var kelompokId = $('pasanganKelompok')?.value;
+            
+            if (!nama) {
+                showToast('Nama pasangan harus diisi', 'error');
+                return;
+            }
+            if (!kelompokId) {
+                showToast('Pilih kelompok untuk pasangan', 'error');
+                return;
+            }
+            
+            try {
+                // Cari jenjang Pra Nikah atau yang sesuai umur
+                var jenjangId = null;
+                if (tglLahir) {
+                    var umur = hitungUmur(tglLahir);
+                    for (var i = 0; i < allJenjang.length; i++) {
+                        var j = allJenjang[i];
+                        if (j.nama.toLowerCase().includes('pra nikah') || j.nama.toLowerCase().includes('pranikah')) {
+                            jenjangId = j.id;
+                            break;
+                        }
+                        var usiaMin = j.usia_mulai || 0;
+                        var usiaMax = j.usia_sampai || 99;
+                        if (umur >= usiaMin && umur <= usiaMax) {
+                            jenjangId = j.id;
+                        }
+                    }
+                }
+                
+                // Jika tidak ketemu jenjang, cari Pra Nikah
+                if (!jenjangId) {
+                    for (var i = 0; i < allJenjang.length; i++) {
+                        if (allJenjang[i].nama.toLowerCase().includes('pra nikah') || allJenjang[i].nama.toLowerCase().includes('pranikah')) {
+                            jenjangId = allJenjang[i].id;
+                            break;
+                        }
+                    }
+                }
+                
+                // Masih tidak ketemu, ambil jenjang pertama
+                if (!jenjangId && allJenjang.length > 0) {
+                    jenjangId = allJenjang[allJenjang.length - 1].id; // Ambil yang terakhir (biasanya Pra Nikah)
+                }
+                
+                var jamaahData = {
+                    nama: nama,
+                    jenis_kelamin: jk,
+                    tanggal_lahir: tglLahir || null,
+                    phone: phone || null,
+                    status_aktif: 'aktif',
+                    kelompok_id: kelompokId,
+                    jenjang_id: jenjangId
+                };
+                
+                console.log('Creating new pasangan:', jamaahData);
+                var newId = await jamaahApi.create(jamaahData);
+                
+                if (newId) {
+                    showToast('Pasangan berhasil ditambahkan!', 'success');
+                    
+                    // Pilih pasangan yang baru dibuat
+                    selectPasangan(newId, nama);
+                    
+                    // Sembunyikan form
+                    hideTambahPasanganForm();
+                } else {
+                    showToast('Gagal menambah pasangan', 'error');
+                }
+            } catch (error) {
+                console.error('Error tambah pasangan:', error);
                 showToast('Gagal: ' + (error.message || error), 'error');
             }
         }
