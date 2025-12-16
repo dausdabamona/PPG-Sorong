@@ -5,56 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#059669">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
-    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
     <title>Kurikulum - PPG Sorong</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .tabs-container { border-bottom: 1px solid var(--gray-200); margin-bottom: 1.5rem; }
-        .tabs { display: flex; gap: 0; border-bottom: none; margin-bottom: 0; overflow-x: auto; }
-        .tab-item { 
-            padding: 0.75rem 1.25rem; 
-            white-space: nowrap;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -1px;
-        }
-        .materi-card {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            transition: all 0.2s;
-        }
-        .materi-card:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
-        .materi-info { flex: 1; }
-        .materi-nama { font-weight: 600; margin-bottom: 0.25rem; }
-        .materi-meta { font-size: 0.8rem; color: var(--gray-500); }
-        .kategori-header {
-            background: var(--gray-100);
-            padding: 0.75rem 1rem;
-            border-radius: var(--radius-md);
-            margin-bottom: 0.75rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .kategori-title { font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
-        .bidang-alim { border-left: 4px solid var(--primary); }
-        .bidang-akhlak { border-left: 4px solid var(--success); }
-        .bidang-mandiri { border-left: 4px solid var(--warning); }
+        .tabs { display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 1rem; overflow-x: auto; }
+        .tab-btn { padding: 0.75rem 1rem; border: none; background: none; cursor: pointer; font-weight: 500; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; font-size: 0.85rem; }
+        .tab-btn:hover { color: #059669; }
+        .tab-btn.active { color: #059669; border-bottom-color: #059669; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+        .stat-card { background: white; border-radius: 0.75rem; padding: 0.75rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-card.primary { border-left: 4px solid #059669; }
+        .stat-card.warning { border-left: 4px solid #f59e0b; }
+        .stat-card.danger { border-left: 4px solid #ef4444; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: #1f2937; }
+        .stat-label { font-size: 0.7rem; color: #6b7280; }
+        .materi-card { background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .materi-card:hover { border-color: #059669; }
+        .materi-card.orphan { border-left: 4px solid #ef4444; }
+        .materi-card.empty { border-left: 4px solid #f59e0b; }
+        .materi-info { flex: 1; min-width: 0; }
+        .materi-nama { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .materi-meta { font-size: 0.75rem; color: #6b7280; }
+        .materi-actions { display: flex; gap: 0.25rem; flex-shrink: 0; }
+        .kategori-group { margin-bottom: 1rem; }
+        .kategori-header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 0.6rem 1rem; border-radius: 0.5rem 0.5rem 0 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .kategori-header h4 { margin: 0; font-size: 0.9rem; }
+        .kategori-header .badge { background: rgba(255,255,255,0.25); }
+        .kategori-body { background: white; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 0.5rem 0.5rem; padding: 0.5rem; }
+        .kategori-body.collapsed { display: none; }
+        .bulk-bar { background: #f8fafc; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+        .checkbox-item { margin-right: 0.5rem; }
     </style>
 </head>
 <body>
     <div class="app-container">
-                <aside class="sidebar" id="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">PPG</div>
                 <div class="sidebar-brand">
@@ -67,16 +56,16 @@
                 <div class="nav-section">MENU UTAMA</div>
                 <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
                 <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
-                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
                 <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
                 <div class="nav-section">LAPORAN</div>
                 <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
-                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
                 <div class="nav-section">PENGATURAN</div>
                 <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
                 <a href="kurikulum.html" class="nav-item active"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
                 <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
             </nav>
             <div class="sidebar-footer">
@@ -94,194 +83,124 @@
         
         <main class="main-content">
             <header class="header">
-                <div class="header-left"><h1 class="header-title">Kurikulum</h1></div>
-                </header>
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">📚 Kurikulum</h1>
+                </div>
+            </header>
             
             <div class="page-content">
-                <!-- Access Denied -->
-                <div class="card" id="accessDenied" style="display:none;">
-                    <div class="card-body">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🔒</div>
-                            <div class="empty-state-title">Akses Ditolak</div>
-                            <p class="text-muted">Halaman ini hanya dapat diakses oleh Admin</p>
-                            <a href="dashboard.html" class="btn btn-primary mt-md">Kembali ke Dashboard</a>
-                        </div>
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card primary"><div class="stat-value" id="statMateri">0</div><div class="stat-label">Total Materi</div></div>
+                    <div class="stat-card primary"><div class="stat-value" id="statKategori">0</div><div class="stat-label">Kategori</div></div>
+                    <div class="stat-card primary"><div class="stat-value" id="statJenjang">0</div><div class="stat-label">Jenjang</div></div>
+                    <div class="stat-card warning"><div class="stat-value" id="statKosong">0</div><div class="stat-label">Kat. Kosong</div></div>
+                    <div class="stat-card danger"><div class="stat-value" id="statOrphan">0</div><div class="stat-label">Orphan</div></div>
+                </div>
+                
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('materi', this)">📚 Materi</button>
+                    <button class="tab-btn" onclick="switchTab('kategori', this)">📁 Kategori</button>
+                    <button class="tab-btn" onclick="switchTab('bidang', this)">📊 Bidang</button>
+                    <button class="tab-btn" onclick="switchTab('jenjang', this)">🎓 Jenjang</button>
+                    <button class="tab-btn" onclick="switchTab('tahun', this)">📅 Tahun Ajaran</button>
+                    <button class="tab-btn" onclick="switchTab('cleanup', this)">🧹 Cleanup</button>
+                </div>
+                
+                <!-- Tab: Materi -->
+                <div class="tab-content active" id="tabMateri">
+                    <div class="bulk-bar">
+                        <select class="form-control" id="filterKategoriMateri" onchange="renderMateriList()" style="width:auto;min-width:180px;">
+                            <option value="">Semua Kategori</option>
+                        </select>
+                        <input type="text" class="form-control" id="searchMateri" placeholder="Cari materi..." oninput="renderMateriList()" style="width:auto;min-width:150px;">
+                        <button class="btn btn-primary btn-sm" onclick="showMateriModal()">➕ Tambah</button>
+                    </div>
+                    <div id="materiList"><div class="text-center py-4 text-muted">Memuat...</div></div>
+                </div>
+                
+                <!-- Tab: Kategori -->
+                <div class="tab-content" id="tabKategori">
+                    <div class="bulk-bar">
+                        <select class="form-control" id="filterBidang" onchange="renderKategoriTable()" style="width:auto;">
+                            <option value="">Semua Bidang</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" onclick="showKategoriModal()">➕ Tambah</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table" id="kategoriTable">
+                            <thead><tr><th>No</th><th>Kode</th><th>Nama</th><th>Bidang</th><th>Materi</th><th>Status</th><th>Aksi</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
                 
-                <!-- Main Content (Admin Only) -->
-                <div id="adminContent" style="display:none;">
-                    <div class="page-header">
-                        <div>
-                            <div class="breadcrumb"><a href="dashboard.html">Dashboard</a><span>/</span><span>Kurikulum</span></div>
-                            <h2 class="page-title">Kelola Kurikulum & Materi</h2>
-                        </div>
+                <!-- Tab: Bidang -->
+                <div class="tab-content" id="tabBidang">
+                    <div class="bulk-bar">
+                        <button class="btn btn-primary btn-sm" onclick="showBidangModal()">➕ Tambah Bidang</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table" id="bidangTable">
+                            <thead><tr><th>No</th><th>Kode</th><th>Nama</th><th>Deskripsi</th><th>Urutan</th><th>Aksi</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Tab: Jenjang -->
+                <div class="tab-content" id="tabJenjang">
+                    <div class="bulk-bar">
+                        <button class="btn btn-primary btn-sm" onclick="showJenjangModal()">➕ Tambah Jenjang</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table" id="jenjangTable">
+                            <thead><tr><th>No</th><th>Kode</th><th>Nama</th><th>Usia</th><th>Target</th><th>Status</th><th>Aksi</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Tab: Tahun Ajaran -->
+                <div class="tab-content" id="tabTahun">
+                    <div class="bulk-bar">
+                        <button class="btn btn-primary btn-sm" onclick="showTahunModal()">➕ Tambah Tahun Ajaran</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table" id="tahunTable">
+                            <thead><tr><th>No</th><th>Kode</th><th>Periode</th><th>Status</th><th>Aksi</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Tab: Cleanup -->
+                <div class="tab-content" id="tabCleanup">
+                    <div class="tabs" style="margin-bottom:1rem;">
+                        <button class="tab-btn active" onclick="switchCleanupTab('orphan', this)">🔴 Materi Orphan</button>
+                        <button class="tab-btn" onclick="switchCleanupTab('kosong', this)">🟡 Kategori Kosong</button>
                     </div>
                     
-                    <!-- Stats -->
-                    <div class="stats-grid mb-lg">
-                        <div class="stat-card">
-                            <div class="stat-icon primary">📖</div>
-                            <div class="stat-content">
-                                <div class="stat-value" id="totalMateri">0</div>
-                                <div class="stat-label">Total Materi</div>
-                            </div>
+                    <!-- Sub-tab Orphan -->
+                    <div id="subOrphan">
+                        <div class="bulk-bar">
+                            <label><input type="checkbox" id="selectAllOrphan" onchange="toggleSelectAll('orphan')"> Pilih Semua</label>
+                            <button class="btn btn-danger btn-sm" onclick="bulkDeleteOrphan()">🗑️ Hapus Terpilih</button>
+                            <button class="btn btn-outline btn-sm" onclick="loadOrphanMateri()">🔄 Refresh</button>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon success">📂</div>
-                            <div class="stat-content">
-                                <div class="stat-value" id="totalKategori">0</div>
-                                <div class="stat-label">Kategori</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon warning">🎯</div>
-                            <div class="stat-content">
-                                <div class="stat-value" id="totalJenjang">0</div>
-                                <div class="stat-label">Jenjang</div>
-                            </div>
-                        </div>
+                        <div id="orphanList"><div class="text-center py-4 text-muted">Memuat...</div></div>
                     </div>
                     
-                    <!-- Tabs -->
-                    <div class="tabs-container">
-                        <div class="tabs">
-                            <div class="tab-item active" onclick="switchTab('materi')">📖 Materi</div>
-                            <div class="tab-item" onclick="switchTab('kategori')">📂 Kategori</div>
-                            <div class="tab-item" onclick="switchTab('bidang')">🎯 Bidang</div>
-                            <div class="tab-item" onclick="switchTab('jenjang')">📊 Jenjang</div>
-                            <div class="tab-item" onclick="switchTab('tahunAjaran')">📅 Tahun Ajaran</div>
+                    <!-- Sub-tab Kosong -->
+                    <div id="subKosong" style="display:none;">
+                        <div class="bulk-bar">
+                            <label><input type="checkbox" id="selectAllKosong" onchange="toggleSelectAll('kosong')"> Pilih Semua</label>
+                            <button class="btn btn-danger btn-sm" onclick="bulkDeleteKosong()">🗑️ Hapus Terpilih</button>
+                            <button class="btn btn-outline btn-sm" onclick="loadKategoriKosong()">🔄 Refresh</button>
                         </div>
-                    </div>
-                    
-                    <!-- Tab: Materi -->
-                    <div class="tab-content active" id="tabMateri">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Daftar Materi</h3>
-                                <div class="btn-group">
-                                    <select class="form-control" id="filterKategori" onchange="loadMateri()" style="width:200px;">
-                                        <option value="">Semua Kategori</option>
-                                    </select>
-                                    <button class="btn btn-primary" onclick="showMateriModal()">➕ Tambah Materi</button>
-                                </div>
-                            </div>
-                            <div class="card-body" id="materiList">
-                                <p class="text-muted">Memuat data...</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Tab: Kategori -->
-                    <div class="tab-content" id="tabKategori">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Kategori Materi</h3>
-                                <button class="btn btn-primary" onclick="showKategoriModal()">➕ Tambah Kategori</button>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-container">
-                                    <table class="table" id="kategoriTable">
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Kode</th>
-                                                <th>Nama</th>
-                                                <th>Bidang</th>
-                                                <th>Urutan</th>
-                                                <th>Status</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Tab: Bidang -->
-                    <div class="tab-content" id="tabBidang">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Bidang (Tri Sukses)</h3>
-                                <button class="btn btn-primary" onclick="showBidangModal()">➕ Tambah Bidang</button>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-container">
-                                    <table class="table" id="bidangTable">
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Kode</th>
-                                                <th>Nama</th>
-                                                <th>Deskripsi</th>
-                                                <th>Urutan</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Tab: Jenjang -->
-                    <div class="tab-content" id="tabJenjang">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Jenjang Pendidikan</h3>
-                                <button class="btn btn-primary" onclick="showJenjangModal()">➕ Tambah Jenjang</button>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-container">
-                                    <table class="table" id="jenjangTable">
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Kode</th>
-                                                <th>Nama</th>
-                                                <th>Usia</th>
-                                                <th>Target Keaktifan</th>
-                                                <th>Urutan</th>
-                                                <th>Status</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Tab: Tahun Ajaran -->
-                    <div class="tab-content" id="tabTahunAjaran">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Tahun Ajaran</h3>
-                                <button class="btn btn-primary" onclick="showTahunAjaranModal()">➕ Tambah Tahun Ajaran</button>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-container">
-                                    <table class="table" id="tahunAjaranTable">
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Kode</th>
-                                                <th>Tanggal Mulai</th>
-                                                <th>Tanggal Selesai</th>
-                                                <th>Status</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                        <div id="kosongList"><div class="text-center py-4 text-muted">Memuat...</div></div>
                     </div>
                 </div>
             </div>
@@ -291,55 +210,35 @@
     <!-- Modal Materi -->
     <div class="modal" id="materiModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="materiModalTitle">Tambah Materi</h3>
-                <button class="modal-close" onclick="hideModal('materiModal')">&times;</button>
-            </div>
+            <div class="modal-header"><h3 id="materiModalTitle">Tambah Materi</h3><button class="modal-close" onclick="hideModal('materiModal')">&times;</button></div>
             <div class="modal-body">
-                <form id="materiForm">
-                    <input type="hidden" name="id" id="materiId">
-                    <div class="form-group">
-                        <label class="form-label required">Kategori</label>
-                        <select class="form-control" name="kategori_id" id="materiKategori" required>
-                            <option value="">-- Pilih Kategori --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label required">Tipe</label>
-                        <select class="form-control" name="tipe" required>
-                            <option value="">-- Pilih Tipe --</option>
+                <form id="materiForm" onsubmit="saveMateri(event)">
+                    <input type="hidden" id="materiId">
+                    <div class="form-group"><label class="form-label">Kategori *</label><select class="form-control" id="materiKategori" required></select></div>
+                    <div class="form-group"><label class="form-label">Tipe *</label>
+                        <select class="form-control" id="materiTipe" required>
+                            <option value="">-- Pilih --</option>
                             <option value="surat">Surat</option>
                             <option value="doa">Doa</option>
                             <option value="dalil">Dalil</option>
-                            <option value="kitab_hadits">Kitab Hadits</option>
+                            <option value="hadits">Hadits</option>
                             <option value="juz">Juz</option>
                             <option value="iqro">Iqro</option>
                             <option value="akhlak">Akhlak</option>
                             <option value="kemandirian">Kemandirian</option>
                             <option value="sholat">Sholat</option>
-                            <option value="asad">ASAD</option>
+                            <option value="praktek">Praktek</option>
                             <option value="nasehat">Nasehat</option>
+                            <option value="lainnya">Lainnya</option>
                         </select>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label required">Nama</label>
-                            <input type="text" class="form-control" name="nama" required placeholder="Contoh: Al-Fatihah">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Nomor Urut</label>
-                            <input type="number" class="form-control" name="nomor" min="1" placeholder="Opsional">
-                        </div>
+                        <div class="form-group"><label class="form-label">Nama *</label><input type="text" class="form-control" id="materiNama" required></div>
+                        <div class="form-group"><label class="form-label">Nomor</label><input type="number" class="form-control" id="materiNomor" min="1"></div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Deskripsi</label>
-                        <textarea class="form-control" name="deskripsi" rows="2" placeholder="Opsional"></textarea>
-                    </div>
+                    <div class="form-group"><label class="form-label">Deskripsi</label><textarea class="form-control" id="materiDeskripsi" rows="2"></textarea></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
                 </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="hideModal('materiModal')">Batal</button>
-                <button class="btn btn-primary" onclick="saveMateri()">Simpan</button>
             </div>
         </div>
     </div>
@@ -347,45 +246,19 @@
     <!-- Modal Kategori -->
     <div class="modal" id="kategoriModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="kategoriModalTitle">Tambah Kategori</h3>
-                <button class="modal-close" onclick="hideModal('kategoriModal')">&times;</button>
-            </div>
+            <div class="modal-header"><h3 id="kategoriModalTitle">Tambah Kategori</h3><button class="modal-close" onclick="hideModal('kategoriModal')">&times;</button></div>
             <div class="modal-body">
-                <form id="kategoriForm">
-                    <input type="hidden" name="id" id="kategoriId">
-                    <div class="form-group">
-                        <label class="form-label required">Bidang</label>
-                        <select class="form-control" name="bidang_id" id="kategoriBidang" required>
-                            <option value="">-- Pilih Bidang --</option>
-                        </select>
-                    </div>
+                <form id="kategoriForm" onsubmit="saveKategori(event)">
+                    <input type="hidden" id="kategoriId">
+                    <div class="form-group"><label class="form-label">Bidang *</label><select class="form-control" id="kategoriBidang" required></select></div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label required">Kode</label>
-                            <input type="text" class="form-control" name="kode" required placeholder="Contoh: hafalan_surat">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Urutan</label>
-                            <input type="number" class="form-control" name="urutan" min="1" value="1">
-                        </div>
+                        <div class="form-group"><label class="form-label">Kode</label><input type="text" class="form-control" id="kategoriKode"></div>
+                        <div class="form-group"><label class="form-label">Urutan</label><input type="number" class="form-control" id="kategoriUrutan" value="1" min="1"></div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label required">Nama</label>
-                        <input type="text" class="form-control" name="nama" required placeholder="Contoh: Hafalan Surat">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Status</label>
-                        <select class="form-control" name="is_aktif">
-                            <option value="true">Aktif</option>
-                            <option value="false">Nonaktif</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label class="form-label">Nama *</label><input type="text" class="form-control" id="kategoriNama" required></div>
+                    <div class="form-group"><label class="form-label">Status</label><select class="form-control" id="kategoriAktif"><option value="true">Aktif</option><option value="false">Nonaktif</option></select></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
                 </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="hideModal('kategoriModal')">Batal</button>
-                <button class="btn btn-primary" onclick="saveKategori()">Simpan</button>
             </div>
         </div>
     </div>
@@ -393,36 +266,18 @@
     <!-- Modal Bidang -->
     <div class="modal" id="bidangModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="bidangModalTitle">Tambah Bidang</h3>
-                <button class="modal-close" onclick="hideModal('bidangModal')">&times;</button>
-            </div>
+            <div class="modal-header"><h3 id="bidangModalTitle">Tambah Bidang</h3><button class="modal-close" onclick="hideModal('bidangModal')">&times;</button></div>
             <div class="modal-body">
-                <form id="bidangForm">
-                    <input type="hidden" name="id" id="bidangId">
+                <form id="bidangForm" onsubmit="saveBidang(event)">
+                    <input type="hidden" id="bidangId">
                     <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label required">Kode</label>
-                            <input type="text" class="form-control" name="kode" required placeholder="Contoh: alim">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Urutan</label>
-                            <input type="number" class="form-control" name="urutan" min="1" value="1">
-                        </div>
+                        <div class="form-group"><label class="form-label">Kode</label><input type="text" class="form-control" id="bidangKode"></div>
+                        <div class="form-group"><label class="form-label">Urutan</label><input type="number" class="form-control" id="bidangUrutan" value="1" min="1"></div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label required">Nama</label>
-                        <input type="text" class="form-control" name="nama" required placeholder="Contoh: Alim Faqih">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Deskripsi</label>
-                        <textarea class="form-control" name="deskripsi" rows="2" placeholder="Opsional"></textarea>
-                    </div>
+                    <div class="form-group"><label class="form-label">Nama *</label><input type="text" class="form-control" id="bidangNama" required></div>
+                    <div class="form-group"><label class="form-label">Deskripsi</label><textarea class="form-control" id="bidangDeskripsi" rows="2"></textarea></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
                 </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="hideModal('bidangModal')">Batal</button>
-                <button class="btn btn-primary" onclick="saveBidang()">Simpan</button>
             </div>
         </div>
     </div>
@@ -430,93 +285,42 @@
     <!-- Modal Jenjang -->
     <div class="modal" id="jenjangModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="jenjangModalTitle">Tambah Jenjang</h3>
-                <button class="modal-close" onclick="hideModal('jenjangModal')">&times;</button>
-            </div>
+            <div class="modal-header"><h3 id="jenjangModalTitle">Tambah Jenjang</h3><button class="modal-close" onclick="hideModal('jenjangModal')">&times;</button></div>
             <div class="modal-body">
-                <form id="jenjangForm">
-                    <input type="hidden" name="id" id="jenjangId">
+                <form id="jenjangForm" onsubmit="saveJenjang(event)">
+                    <input type="hidden" id="jenjangId">
                     <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label required">Kode</label>
-                            <input type="text" class="form-control" name="kode" required placeholder="Contoh: paud">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Urutan</label>
-                            <input type="number" class="form-control" name="urutan" min="1" value="1">
-                        </div>
+                        <div class="form-group"><label class="form-label">Kode</label><input type="text" class="form-control" id="jenjangKode"></div>
+                        <div class="form-group"><label class="form-label">Urutan</label><input type="number" class="form-control" id="jenjangUrutan" value="1" min="1"></div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label required">Nama</label>
-                        <input type="text" class="form-control" name="nama" required placeholder="Contoh: PAUD">
-                    </div>
+                    <div class="form-group"><label class="form-label">Nama *</label><input type="text" class="form-control" id="jenjangNama" required></div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Usia Mulai</label>
-                            <input type="number" class="form-control" name="usia_mulai" min="0" placeholder="Tahun">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Usia Sampai</label>
-                            <input type="number" class="form-control" name="usia_sampai" min="0" placeholder="Tahun">
-                        </div>
+                        <div class="form-group"><label class="form-label">Usia Mulai</label><input type="number" class="form-control" id="jenjangUsiaMulai" min="0"></div>
+                        <div class="form-group"><label class="form-label">Usia Sampai</label><input type="number" class="form-control" id="jenjangUsiaSampai" min="0"></div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Target Keaktifan (%)</label>
-                        <input type="number" class="form-control" name="target_keaktifan" min="0" max="100" placeholder="Contoh: 80">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Status</label>
-                        <select class="form-control" name="is_aktif">
-                            <option value="true">Aktif</option>
-                            <option value="false">Nonaktif</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label class="form-label">Target Keaktifan (%)</label><input type="number" class="form-control" id="jenjangTarget" min="0" max="100" value="75"></div>
+                    <div class="form-group"><label class="form-label">Status</label><select class="form-control" id="jenjangAktif"><option value="true">Aktif</option><option value="false">Nonaktif</option></select></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
                 </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="hideModal('jenjangModal')">Batal</button>
-                <button class="btn btn-primary" onclick="saveJenjang()">Simpan</button>
             </div>
         </div>
     </div>
     
     <!-- Modal Tahun Ajaran -->
-    <div class="modal" id="tahunAjaranModal">
+    <div class="modal" id="tahunModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="tahunAjaranModalTitle">Tambah Tahun Ajaran</h3>
-                <button class="modal-close" onclick="hideModal('tahunAjaranModal')">&times;</button>
-            </div>
+            <div class="modal-header"><h3 id="tahunModalTitle">Tambah Tahun Ajaran</h3><button class="modal-close" onclick="hideModal('tahunModal')">&times;</button></div>
             <div class="modal-body">
-                <form id="tahunAjaranForm">
-                    <input type="hidden" name="id" id="tahunAjaranId">
-                    <div class="form-group">
-                        <label class="form-label required">Kode</label>
-                        <input type="text" class="form-control" name="kode" required placeholder="Contoh: 2024/2025">
-                    </div>
+                <form id="tahunForm" onsubmit="saveTahun(event)">
+                    <input type="hidden" id="tahunId">
+                    <div class="form-group"><label class="form-label">Kode *</label><input type="text" class="form-control" id="tahunKode" required placeholder="2024/2025"></div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Tanggal Mulai</label>
-                            <input type="date" class="form-control" name="tanggal_mulai">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Tanggal Selesai</label>
-                            <input type="date" class="form-control" name="tanggal_selesai">
-                        </div>
+                        <div class="form-group"><label class="form-label">Tanggal Mulai</label><input type="date" class="form-control" id="tahunMulai"></div>
+                        <div class="form-group"><label class="form-label">Tanggal Selesai</label><input type="date" class="form-control" id="tahunSelesai"></div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Status</label>
-                        <select class="form-control" name="is_aktif">
-                            <option value="true">Aktif</option>
-                            <option value="false">Nonaktif</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label class="form-label">Status</label><select class="form-control" id="tahunAktif"><option value="true">Aktif</option><option value="false">Nonaktif</option></select></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
                 </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="hideModal('tahunAjaranModal')">Batal</button>
-                <button class="btn btn-primary" onclick="saveTahunAjaran()">Simpan</button>
             </div>
         </div>
     </div>
@@ -527,588 +331,532 @@
     <script src="js/auth.js"></script>
     <script src="js/api.js"></script>
     <script src="js/sidebar.js"></script>
-    
     <script>
-        let allMateri = [];
-        let allKategori = [];
-        let allBidang = [];
-        let allJenjang = [];
-        let allTahunAjaran = [];
-        let currentTab = 'materi';
+        var allMateri = [], allKategori = [], allBidang = [], allJenjang = [], allTahun = [];
+        var orphanMateri = [], kategoriKosong = [];
+        var materiCount = {};
         
-        
-        function toggleSidebar() {
-            var sidebar = $('sidebar');
-            var overlay = $('sidebarOverlay');
-            if (sidebar) sidebar.classList.toggle('show');
-            if (overlay) overlay.classList.toggle('show');
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', async function() {
             if (!await requireAuth()) return;
-            updateSidebarUserInfo();
-            initSidebar();
-            updateUserUI();
-            
-            var accessDeniedEl = $('accessDenied');
-            var adminContentEl = $('adminContent');
-            
-            // Check admin access
-            if (!isAdmin()) {
-                if (accessDeniedEl) accessDeniedEl.style.display = 'block';
-                if (adminContentEl) adminContentEl.style.display = 'none';
-                return;
-            }
-            
-            if (accessDeniedEl) accessDeniedEl.style.display = 'none';
-            if (adminContentEl) adminContentEl.style.display = 'block';
-            
             await loadAllData();
         });
         
-        function updateUserUI() {
-            if (!currentUserData) return;
-            
-            var userNameEl = $('userName');
-            var userAvatarEl = $('userAvatar');
-            var userRoleEl = $('userRole');
-            
-            if (userNameEl) userNameEl.textContent = currentUserData.nama || currentUserData.email || 'User';
-            if (userAvatarEl) userAvatarEl.textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
-            if (userRoleEl && userRoles && userRoles.length > 0) {
-                userRoleEl.textContent = userRoles[0].role?.nama || '-';
+        async function loadAllData() {
+            try {
+                // Load bidang
+                var r1 = await db.from('bidang').select('*').order('urutan');
+                allBidang = r1.data || [];
+                
+                // Load kategori
+                var r2 = await db.from('kategori_materi').select('*, bidang:bidang_id(nama)').order('urutan');
+                allKategori = r2.data || [];
+                
+                // Load materi
+                var r3 = await db.from('materi_item').select('*, kategori:kategori_id(nama, bidang:bidang_id(nama))').order('kategori_id').order('nomor');
+                allMateri = r3.data || [];
+                
+                // Load jenjang
+                var r4 = await db.from('jenjang').select('*').order('urutan');
+                allJenjang = r4.data || [];
+                
+                // Load tahun ajaran
+                var r5 = await db.from('tahun_ajaran').select('*').order('kode', { ascending: false });
+                allTahun = r5.data || [];
+                
+                // Count materi per kategori
+                materiCount = {};
+                allMateri.forEach(function(m) {
+                    var kid = m.kategori_id || 0;
+                    materiCount[kid] = (materiCount[kid] || 0) + 1;
+                });
+                
+                // Calculate orphan & kosong
+                var katIds = allKategori.map(function(k) { return k.id; });
+                orphanMateri = allMateri.filter(function(m) { return !m.kategori_id || katIds.indexOf(m.kategori_id) === -1; });
+                
+                var katWithMateri = [...new Set(allMateri.map(function(m) { return m.kategori_id; }))];
+                kategoriKosong = allKategori.filter(function(k) { return katWithMateri.indexOf(k.id) === -1; });
+                
+                // Update stats
+                $('statMateri').textContent = allMateri.length;
+                $('statKategori').textContent = allKategori.length;
+                $('statJenjang').textContent = allJenjang.length;
+                $('statOrphan').textContent = orphanMateri.length;
+                $('statKosong').textContent = kategoriKosong.length;
+                
+                // Populate filters
+                populateFilters();
+                
+                // Render default tab
+                renderMateriList();
+                
+            } catch (e) {
+                console.error('Error load data:', e);
+                showToast('Gagal memuat data', 'error');
             }
         }
         
-        async function loadAllData() {
-            await Promise.all([
-                loadBidang(),
-                loadKategori(),
-                loadMateri(),
-                loadJenjang(),
-                loadTahunAjaran()
-            ]);
+        function populateFilters() {
+            // Filter kategori untuk materi
+            var html = '<option value="">Semua Kategori</option>';
+            allKategori.forEach(function(k) {
+                html += '<option value="' + k.id + '">' + escapeHtml(k.nama) + '</option>';
+            });
+            $('filterKategoriMateri').innerHTML = html;
+            $('materiKategori').innerHTML = '<option value="">-- Pilih --</option>' + html.replace('Semua Kategori', '-- Pilih --');
             
-            // Update stats
-            $('totalMateri').textContent = allMateri.length;
-            $('totalKategori').textContent = allKategori.length;
-            $('totalJenjang').textContent = allJenjang.length;
+            // Filter bidang untuk kategori
+            var bidangHtml = '<option value="">Semua Bidang</option>';
+            allBidang.forEach(function(b) {
+                bidangHtml += '<option value="' + b.id + '">' + escapeHtml(b.nama) + '</option>';
+            });
+            $('filterBidang').innerHTML = bidangHtml;
+            $('kategoriBidang').innerHTML = '<option value="">-- Pilih --</option>' + bidangHtml.replace('Semua Bidang', '-- Pilih --');
         }
         
-        function switchTab(tab) {
-            currentTab = tab;
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.tabs > .tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+            btn.classList.add('active');
+            $('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
             
-            // Update tab UI
-            $$$('.tab-item').forEach(t => t.classList.remove('active'));
-            $$$('.tab-content').forEach(t => t.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            $(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+            if (tab === 'materi') renderMateriList();
+            else if (tab === 'kategori') renderKategoriTable();
+            else if (tab === 'bidang') renderBidangTable();
+            else if (tab === 'jenjang') renderJenjangTable();
+            else if (tab === 'tahun') renderTahunTable();
+            else if (tab === 'cleanup') loadOrphanMateri();
+        }
+        
+        function switchCleanupTab(sub, btn) {
+            document.querySelectorAll('#tabCleanup .tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            $('subOrphan').style.display = sub === 'orphan' ? 'block' : 'none';
+            $('subKosong').style.display = sub === 'kosong' ? 'block' : 'none';
+            if (sub === 'orphan') loadOrphanMateri();
+            else loadKategoriKosong();
         }
         
         // ==================== MATERI ====================
-        async function loadMateri() {
-            try {
-                const { data, error } = await db.from('materi_item')
-                    .select('*, kategori:kategori_id(nama, bidang:bidang_id(nama))')
-                    .order('kategori_id')
-                    .order('nomor');
-                
-                if (error) throw error;
-                allMateri = data || [];
-                
-                renderMateriList();
-                
-                // Update filter
-                const filterKategori = $('filterKategori');
-                filterKategori.innerHTML = '<option value="">Semua Kategori</option>' +
-                    allKategori.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
-                    
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-        
         function renderMateriList() {
-            const container = $('materiList');
-            const filterKategori = $('filterKategori').value;
+            var container = $('materiList');
+            var filterKat = $('filterKategoriMateri').value;
+            var search = ($('searchMateri').value || '').toLowerCase();
             
-            let filtered = allMateri;
-            if (filterKategori) {
-                filtered = allMateri.filter(m => m.kategori_id == filterKategori);
-            }
+            var filtered = allMateri.filter(function(m) {
+                if (filterKat && m.kategori_id != filterKat) return false;
+                if (search && !(m.nama || '').toLowerCase().includes(search)) return false;
+                return true;
+            });
             
-            if (filtered.length === 0) {
-                container.innerHTML = '<p class="text-muted text-center py-4">Tidak ada data materi</p>';
+            if (!filtered.length) {
+                container.innerHTML = '<div class="text-center py-4 text-muted">Tidak ada data</div>';
                 return;
             }
             
             // Group by kategori
-            const grouped = {};
-            filtered.forEach(m => {
-                const katNama = m.kategori?.nama || 'Lainnya';
+            var grouped = {};
+            filtered.forEach(function(m) {
+                var katNama = m.kategori?.nama || 'Tanpa Kategori';
                 if (!grouped[katNama]) grouped[katNama] = [];
                 grouped[katNama].push(m);
             });
             
-            let html = '';
-            Object.keys(grouped).forEach(katNama => {
-                const items = grouped[katNama];
-                const bidangNama = items[0]?.kategori?.bidang?.nama || '';
-                const bidangClass = bidangNama.toLowerCase().includes('alim') ? 'bidang-alim' : 
-                                   bidangNama.toLowerCase().includes('akhlak') ? 'bidang-akhlak' : 'bidang-mandiri';
-                
-                html += `
-                    <div class="kategori-header ${bidangClass}">
-                        <div class="kategori-title">
-                            <span>📂 ${katNama}</span>
-                            <span class="badge badge-secondary">${items.length} materi</span>
-                        </div>
-                    </div>
-                `;
-                
-                items.forEach(m => {
-                    html += `
-                        <div class="materi-card">
-                            <div class="materi-info">
-                                <div class="materi-nama">${m.nomor ? m.nomor + '. ' : ''}${m.nama}</div>
-                                <div class="materi-meta">Tipe: ${m.tipe} ${m.deskripsi ? '• ' + m.deskripsi : ''}</div>
-                            </div>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-outline" onclick="editMateri(${m.id})">✏️</button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteMateri(${m.id})">🗑️</button>
-                            </div>
-                        </div>
-                    `;
+            var html = '';
+            Object.keys(grouped).sort().forEach(function(katNama, idx) {
+                var items = grouped[katNama];
+                html += '<div class="kategori-group">';
+                html += '<div class="kategori-header" onclick="toggleKatGroup(' + idx + ')"><h4>📁 ' + escapeHtml(katNama) + '</h4><span class="badge">' + items.length + '</span></div>';
+                html += '<div class="kategori-body" id="katBody' + idx + '">';
+                items.forEach(function(m) {
+                    html += '<div class="materi-card"><div class="materi-info">';
+                    html += '<div class="materi-nama">' + escapeHtml(m.nama) + '</div>';
+                    html += '<div class="materi-meta">Tipe: ' + (m.tipe || '-') + ' | No: ' + (m.nomor || '-') + '</div>';
+                    html += '</div><div class="materi-actions">';
+                    html += '<button class="btn btn-sm btn-outline" onclick="editMateri(' + m.id + ')">✏️</button>';
+                    html += '<button class="btn btn-sm btn-danger" onclick="deleteMateri(' + m.id + ')">🗑️</button>';
+                    html += '</div></div>';
                 });
+                html += '</div></div>';
             });
-            
             container.innerHTML = html;
         }
         
-        function showMateriModal(id = null) {
+        function toggleKatGroup(idx) {
+            var body = $('katBody' + idx);
+            if (body) body.classList.toggle('collapsed');
+        }
+        
+        function showMateriModal(id) {
             $('materiModalTitle').textContent = id ? 'Edit Materi' : 'Tambah Materi';
             $('materiForm').reset();
             $('materiId').value = id || '';
-            
-            // Populate kategori dropdown
-            $('materiKategori').innerHTML = '<option value="">-- Pilih Kategori --</option>' +
-                allKategori.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
-            
             showModal('materiModal');
         }
         
-        async function editMateri(id) {
-            const materi = allMateri.find(m => m.id === id);
-            if (!materi) return;
-            
+        function editMateri(id) {
+            var m = allMateri.find(function(x) { return x.id === id; }) || orphanMateri.find(function(x) { return x.id === id; });
+            if (!m) return;
             showMateriModal(id);
-            
-            const form = $('materiForm');
-            form.querySelector('[name="kategori_id"]').value = materi.kategori_id || '';
-            form.querySelector('[name="tipe"]').value = materi.tipe || '';
-            form.querySelector('[name="nama"]').value = materi.nama || '';
-            form.querySelector('[name="nomor"]').value = materi.nomor || '';
-            form.querySelector('[name="deskripsi"]').value = materi.deskripsi || '';
+            $('materiKategori').value = m.kategori_id || '';
+            $('materiTipe').value = m.tipe || '';
+            $('materiNama').value = m.nama || '';
+            $('materiNomor').value = m.nomor || '';
+            $('materiDeskripsi').value = m.deskripsi || '';
         }
         
-        async function saveMateri() {
-            const formData = getFormData('materiForm');
-            
-            const data = {
-                kategori_id: parseInt(formData.kategori_id),
-                tipe: formData.tipe,
-                nama: formData.nama,
-                nomor: formData.nomor ? parseInt(formData.nomor) : null,
-                deskripsi: formData.deskripsi
+        async function saveMateri(e) {
+            e.preventDefault();
+            var id = $('materiId').value;
+            var data = {
+                kategori_id: parseInt($('materiKategori').value) || null,
+                tipe: $('materiTipe').value || null,
+                nama: $('materiNama').value,
+                nomor: parseInt($('materiNomor').value) || null,
+                deskripsi: $('materiDeskripsi').value || null
             };
-            
             try {
-                if (formData.id) {
-                    await db.from('materi_item').update(data).eq('id', formData.id);
-                } else {
-                    await db.from('materi_item').insert(data);
-                }
-                
-                showToast('Materi berhasil disimpan', 'success');
+                if (id) await db.from('materi_item').update(data).eq('id', parseInt(id));
+                else await db.from('materi_item').insert(data);
+                showToast('Berhasil!', 'success');
                 hideModal('materiModal');
-                await loadMateri();
-            } catch (error) {
-                showToast('Gagal menyimpan: ' + error.message, 'error');
-            }
+                await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
         }
         
         async function deleteMateri(id) {
-            if (!await confirmDialog('Yakin ingin menghapus materi ini?')) return;
-            
+            if (!confirm('Hapus materi ini?')) return;
             try {
                 await db.from('progress_jamaah').delete().eq('materi_item_id', id);
                 await db.from('materi_item').delete().eq('id', id);
-                showToast('Materi berhasil dihapus', 'success');
-                await loadMateri();
-            } catch (error) {
-                showToast('Gagal menghapus: ' + error.message, 'error');
-            }
+                showToast('Dihapus', 'success');
+                await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
         }
         
         // ==================== KATEGORI ====================
-        async function loadKategori() {
-            try {
-                const { data } = await db.from('kategori_materi')
-                    .select('*, bidang:bidang_id(nama)')
-                    .order('urutan');
-                
-                allKategori = data || [];
-                renderKategoriTable();
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-        
         function renderKategoriTable() {
-            const tbody = $$('#kategoriTable tbody');
-            tbody.innerHTML = allKategori.map((k, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td><code>${k.kode}</code></td>
-                    <td><strong>${k.nama}</strong></td>
-                    <td>${k.bidang?.nama || '-'}</td>
-                    <td>${k.urutan}</td>
-                    <td><span class="badge ${k.is_aktif ? 'badge-success' : 'badge-secondary'}">${k.is_aktif ? 'Aktif' : 'Nonaktif'}</span></td>
-                    <td>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline" onclick="editKategori(${k.id})">✏️</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteKategori(${k.id})">🗑️</button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('') || '<tr><td colspan="7" class="text-center text-muted">Tidak ada data</td></tr>';
+            var filterBid = $('filterBidang').value;
+            var filtered = filterBid ? allKategori.filter(function(k) { return k.bidang_id == filterBid; }) : allKategori;
+            
+            var html = '';
+            filtered.forEach(function(k, i) {
+                var count = materiCount[k.id] || 0;
+                html += '<tr><td>' + (i + 1) + '</td><td><code>' + (k.kode || '-') + '</code></td>';
+                html += '<td><strong>' + escapeHtml(k.nama) + '</strong></td>';
+                html += '<td>' + (k.bidang?.nama || '-') + '</td>';
+                html += '<td>' + count + '</td>';
+                html += '<td><span class="badge ' + (k.is_aktif ? 'badge-success' : 'badge-secondary') + '">' + (k.is_aktif ? 'Aktif' : 'Off') + '</span></td>';
+                html += '<td><button class="btn btn-sm btn-outline" onclick="editKategori(' + k.id + ')">✏️</button> ';
+                html += '<button class="btn btn-sm btn-danger" onclick="deleteKategori(' + k.id + ')">🗑️</button></td></tr>';
+            });
+            document.querySelector('#kategoriTable tbody').innerHTML = html || '<tr><td colspan="7" class="text-center text-muted">Tidak ada data</td></tr>';
         }
         
-        function showKategoriModal(id = null) {
+        function showKategoriModal(id) {
             $('kategoriModalTitle').textContent = id ? 'Edit Kategori' : 'Tambah Kategori';
             $('kategoriForm').reset();
             $('kategoriId').value = id || '';
-            
-            $('kategoriBidang').innerHTML = '<option value="">-- Pilih Bidang --</option>' +
-                allBidang.map(b => `<option value="${b.id}">${b.nama}</option>`).join('');
-            
             showModal('kategoriModal');
         }
         
-        async function editKategori(id) {
-            const kategori = allKategori.find(k => k.id === id);
-            if (!kategori) return;
-            
+        function editKategori(id) {
+            var k = allKategori.find(function(x) { return x.id === id; }) || kategoriKosong.find(function(x) { return x.id === id; });
+            if (!k) return;
             showKategoriModal(id);
-            setFormData('kategoriForm', kategori);
-            $('kategoriForm').querySelector('[name="is_aktif"]').value = kategori.is_aktif ? 'true' : 'false';
+            $('kategoriBidang').value = k.bidang_id || '';
+            $('kategoriKode').value = k.kode || '';
+            $('kategoriUrutan').value = k.urutan || 1;
+            $('kategoriNama').value = k.nama || '';
+            $('kategoriAktif').value = k.is_aktif ? 'true' : 'false';
         }
         
-        async function saveKategori() {
-            const formData = getFormData('kategoriForm');
-            
-            const data = {
-                bidang_id: parseInt(formData.bidang_id),
-                kode: formData.kode,
-                nama: formData.nama,
-                urutan: parseInt(formData.urutan) || 1,
-                is_aktif: formData.is_aktif === 'true'
+        async function saveKategori(e) {
+            e.preventDefault();
+            var id = $('kategoriId').value;
+            var data = {
+                bidang_id: parseInt($('kategoriBidang').value) || null,
+                kode: $('kategoriKode').value || null,
+                urutan: parseInt($('kategoriUrutan').value) || 1,
+                nama: $('kategoriNama').value,
+                is_aktif: $('kategoriAktif').value === 'true'
             };
-            
             try {
-                if (formData.id) {
-                    await db.from('kategori_materi').update(data).eq('id', formData.id);
-                } else {
-                    await db.from('kategori_materi').insert(data);
-                }
-                
-                showToast('Kategori berhasil disimpan', 'success');
+                if (id) await db.from('kategori_materi').update(data).eq('id', parseInt(id));
+                else await db.from('kategori_materi').insert(data);
+                showToast('Berhasil!', 'success');
                 hideModal('kategoriModal');
-                await loadKategori();
-                await loadMateri();
-            } catch (error) {
-                showToast('Gagal menyimpan: ' + error.message, 'error');
-            }
+                await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
         }
         
         async function deleteKategori(id) {
-            if (!await confirmDialog('Yakin ingin menghapus kategori ini? Semua materi di kategori ini juga akan terhapus.')) return;
-            
+            if (!confirm('Hapus kategori ini?')) return;
             try {
-                const materiIds = allMateri.filter(m => m.kategori_id === id).map(m => m.id);
-                if (materiIds.length > 0) {
+                var materiIds = allMateri.filter(function(m) { return m.kategori_id === id; }).map(function(m) { return m.id; });
+                if (materiIds.length) {
                     await db.from('progress_jamaah').delete().in('materi_item_id', materiIds);
                     await db.from('materi_item').delete().eq('kategori_id', id);
                 }
                 await db.from('kategori_materi').delete().eq('id', id);
-                
-                showToast('Kategori berhasil dihapus', 'success');
-                await loadKategori();
-                await loadMateri();
-            } catch (error) {
-                showToast('Gagal menghapus: ' + error.message, 'error');
-            }
+                showToast('Dihapus', 'success');
+                await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
         }
         
         // ==================== BIDANG ====================
-        async function loadBidang() {
-            try {
-                const { data } = await db.from('bidang').select('*').order('urutan');
-                allBidang = data || [];
-                renderBidangTable();
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-        
         function renderBidangTable() {
-            const tbody = $$('#bidangTable tbody');
-            tbody.innerHTML = allBidang.map((b, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td><code>${b.kode}</code></td>
-                    <td><strong>${b.nama}</strong></td>
-                    <td>${b.deskripsi || '-'}</td>
-                    <td>${b.urutan}</td>
-                    <td>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline" onclick="editBidang(${b.id})">✏️</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteBidang(${b.id})">🗑️</button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('') || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
+            var html = '';
+            allBidang.forEach(function(b, i) {
+                html += '<tr><td>' + (i + 1) + '</td><td><code>' + (b.kode || '-') + '</code></td>';
+                html += '<td><strong>' + escapeHtml(b.nama) + '</strong></td>';
+                html += '<td>' + (b.deskripsi || '-') + '</td>';
+                html += '<td>' + (b.urutan || '-') + '</td>';
+                html += '<td><button class="btn btn-sm btn-outline" onclick="editBidang(' + b.id + ')">✏️</button> ';
+                html += '<button class="btn btn-sm btn-danger" onclick="deleteBidang(' + b.id + ')">🗑️</button></td></tr>';
+            });
+            document.querySelector('#bidangTable tbody').innerHTML = html || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
         }
         
-        function showBidangModal(id = null) {
+        function showBidangModal(id) {
             $('bidangModalTitle').textContent = id ? 'Edit Bidang' : 'Tambah Bidang';
             $('bidangForm').reset();
             $('bidangId').value = id || '';
             showModal('bidangModal');
         }
         
-        async function editBidang(id) {
-            const bidang = allBidang.find(b => b.id === id);
-            if (!bidang) return;
+        function editBidang(id) {
+            var b = allBidang.find(function(x) { return x.id === id; });
+            if (!b) return;
             showBidangModal(id);
-            setFormData('bidangForm', bidang);
+            $('bidangKode').value = b.kode || '';
+            $('bidangUrutan').value = b.urutan || 1;
+            $('bidangNama').value = b.nama || '';
+            $('bidangDeskripsi').value = b.deskripsi || '';
         }
         
-        async function saveBidang() {
-            const formData = getFormData('bidangForm');
-            
-            const data = {
-                kode: formData.kode,
-                nama: formData.nama,
-                deskripsi: formData.deskripsi,
-                urutan: parseInt(formData.urutan) || 1
-            };
-            
+        async function saveBidang(e) {
+            e.preventDefault();
+            var id = $('bidangId').value;
+            var data = { kode: $('bidangKode').value || null, urutan: parseInt($('bidangUrutan').value) || 1, nama: $('bidangNama').value, deskripsi: $('bidangDeskripsi').value || null };
             try {
-                if (formData.id) {
-                    await db.from('bidang').update(data).eq('id', formData.id);
-                } else {
-                    await db.from('bidang').insert(data);
-                }
-                
-                showToast('Bidang berhasil disimpan', 'success');
+                if (id) await db.from('bidang').update(data).eq('id', parseInt(id));
+                else await db.from('bidang').insert(data);
+                showToast('Berhasil!', 'success');
                 hideModal('bidangModal');
-                await loadBidang();
-            } catch (error) {
-                showToast('Gagal menyimpan: ' + error.message, 'error');
-            }
+                await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
         }
         
         async function deleteBidang(id) {
-            if (!await confirmDialog('Yakin ingin menghapus bidang ini?')) return;
-            
+            if (!confirm('Hapus bidang ini? Semua kategori & materi terkait juga terhapus!')) return;
             try {
+                var katIds = allKategori.filter(function(k) { return k.bidang_id === id; }).map(function(k) { return k.id; });
+                if (katIds.length) {
+                    var matIds = allMateri.filter(function(m) { return katIds.indexOf(m.kategori_id) !== -1; }).map(function(m) { return m.id; });
+                    if (matIds.length) {
+                        await db.from('progress_jamaah').delete().in('materi_item_id', matIds);
+                        await db.from('materi_item').delete().in('kategori_id', katIds);
+                    }
+                    await db.from('kategori_materi').delete().in('id', katIds);
+                }
                 await db.from('bidang').delete().eq('id', id);
-                showToast('Bidang berhasil dihapus', 'success');
-                await loadBidang();
-            } catch (error) {
-                showToast('Gagal menghapus: ' + error.message, 'error');
-            }
+                showToast('Dihapus', 'success');
+                await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
         }
         
         // ==================== JENJANG ====================
-        async function loadJenjang() {
-            try {
-                const { data } = await db.from('jenjang').select('*').order('urutan');
-                allJenjang = data || [];
-                renderJenjangTable();
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-        
         function renderJenjangTable() {
-            const tbody = $$('#jenjangTable tbody');
-            tbody.innerHTML = allJenjang.map((j, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td><code>${j.kode}</code></td>
-                    <td><strong>${j.nama}</strong></td>
-                    <td>${j.usia_mulai || '?'} - ${j.usia_sampai || '?'} tahun</td>
-                    <td>${j.target_keaktifan || '-'}%</td>
-                    <td>${j.urutan}</td>
-                    <td><span class="badge ${j.is_aktif ? 'badge-success' : 'badge-secondary'}">${j.is_aktif ? 'Aktif' : 'Nonaktif'}</span></td>
-                    <td>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline" onclick="editJenjang(${j.id})">✏️</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteJenjang(${j.id})">🗑️</button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('') || '<tr><td colspan="8" class="text-center text-muted">Tidak ada data</td></tr>';
+            var html = '';
+            allJenjang.forEach(function(j, i) {
+                html += '<tr><td>' + (i + 1) + '</td><td><code>' + (j.kode || '-') + '</code></td>';
+                html += '<td><strong>' + escapeHtml(j.nama) + '</strong></td>';
+                html += '<td>' + (j.usia_mulai || 0) + ' - ' + (j.usia_sampai || 99) + ' th</td>';
+                html += '<td>' + (j.target_keaktifan || 75) + '%</td>';
+                html += '<td><span class="badge ' + (j.is_aktif ? 'badge-success' : 'badge-secondary') + '">' + (j.is_aktif ? 'Aktif' : 'Off') + '</span></td>';
+                html += '<td><button class="btn btn-sm btn-outline" onclick="editJenjang(' + j.id + ')">✏️</button> ';
+                html += '<button class="btn btn-sm btn-danger" onclick="deleteJenjang(' + j.id + ')">🗑️</button></td></tr>';
+            });
+            document.querySelector('#jenjangTable tbody').innerHTML = html || '<tr><td colspan="7" class="text-center text-muted">Tidak ada data</td></tr>';
         }
         
-        function showJenjangModal(id = null) {
+        function showJenjangModal(id) {
             $('jenjangModalTitle').textContent = id ? 'Edit Jenjang' : 'Tambah Jenjang';
             $('jenjangForm').reset();
             $('jenjangId').value = id || '';
             showModal('jenjangModal');
         }
         
-        async function editJenjang(id) {
-            const jenjang = allJenjang.find(j => j.id === id);
-            if (!jenjang) return;
+        function editJenjang(id) {
+            var j = allJenjang.find(function(x) { return x.id === id; });
+            if (!j) return;
             showJenjangModal(id);
-            setFormData('jenjangForm', jenjang);
-            $('jenjangForm').querySelector('[name="is_aktif"]').value = jenjang.is_aktif ? 'true' : 'false';
+            $('jenjangKode').value = j.kode || '';
+            $('jenjangUrutan').value = j.urutan || 1;
+            $('jenjangNama').value = j.nama || '';
+            $('jenjangUsiaMulai').value = j.usia_mulai || '';
+            $('jenjangUsiaSampai').value = j.usia_sampai || '';
+            $('jenjangTarget').value = j.target_keaktifan || 75;
+            $('jenjangAktif').value = j.is_aktif ? 'true' : 'false';
         }
         
-        async function saveJenjang() {
-            const formData = getFormData('jenjangForm');
-            
-            const data = {
-                kode: formData.kode,
-                nama: formData.nama,
-                usia_mulai: formData.usia_mulai ? parseInt(formData.usia_mulai) : null,
-                usia_sampai: formData.usia_sampai ? parseInt(formData.usia_sampai) : null,
-                target_keaktifan: formData.target_keaktifan ? parseInt(formData.target_keaktifan) : null,
-                urutan: parseInt(formData.urutan) || 1,
-                is_aktif: formData.is_aktif === 'true'
+        async function saveJenjang(e) {
+            e.preventDefault();
+            var id = $('jenjangId').value;
+            var data = {
+                kode: $('jenjangKode').value || null,
+                urutan: parseInt($('jenjangUrutan').value) || 1,
+                nama: $('jenjangNama').value,
+                usia_mulai: parseInt($('jenjangUsiaMulai').value) || null,
+                usia_sampai: parseInt($('jenjangUsiaSampai').value) || null,
+                target_keaktifan: parseInt($('jenjangTarget').value) || 75,
+                is_aktif: $('jenjangAktif').value === 'true'
             };
-            
             try {
-                if (formData.id) {
-                    await db.from('jenjang').update(data).eq('id', formData.id);
-                } else {
-                    await db.from('jenjang').insert(data);
-                }
-                
-                showToast('Jenjang berhasil disimpan', 'success');
+                if (id) await db.from('jenjang').update(data).eq('id', parseInt(id));
+                else await db.from('jenjang').insert(data);
+                showToast('Berhasil!', 'success');
                 hideModal('jenjangModal');
-                await loadJenjang();
-            } catch (error) {
-                showToast('Gagal menyimpan: ' + error.message, 'error');
-            }
+                await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
         }
         
         async function deleteJenjang(id) {
-            if (!await confirmDialog('Yakin ingin menghapus jenjang ini?')) return;
-            
+            if (!confirm('Hapus jenjang ini?')) return;
             try {
                 await db.from('jenjang').delete().eq('id', id);
-                showToast('Jenjang berhasil dihapus', 'success');
-                await loadJenjang();
-            } catch (error) {
-                showToast('Gagal menghapus: ' + error.message, 'error');
-            }
+                showToast('Dihapus', 'success');
+                await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
         }
         
         // ==================== TAHUN AJARAN ====================
-        async function loadTahunAjaran() {
-            try {
-                const { data } = await db.from('tahun_ajaran').select('*').order('kode', { ascending: false });
-                allTahunAjaran = data || [];
-                renderTahunAjaranTable();
-            } catch (error) {
-                console.error('Error:', error);
-            }
+        function renderTahunTable() {
+            var html = '';
+            allTahun.forEach(function(t, i) {
+                html += '<tr><td>' + (i + 1) + '</td><td><strong>' + (t.kode || '-') + '</strong></td>';
+                html += '<td>' + (t.tanggal_mulai ? formatTanggal(t.tanggal_mulai) : '-') + ' s/d ' + (t.tanggal_selesai ? formatTanggal(t.tanggal_selesai) : '-') + '</td>';
+                html += '<td><span class="badge ' + (t.is_aktif ? 'badge-success' : 'badge-secondary') + '">' + (t.is_aktif ? 'Aktif' : 'Off') + '</span></td>';
+                html += '<td><button class="btn btn-sm btn-outline" onclick="editTahun(' + t.id + ')">✏️</button> ';
+                html += '<button class="btn btn-sm btn-danger" onclick="deleteTahun(' + t.id + ')">🗑️</button></td></tr>';
+            });
+            document.querySelector('#tahunTable tbody').innerHTML = html || '<tr><td colspan="5" class="text-center text-muted">Tidak ada data</td></tr>';
         }
         
-        function renderTahunAjaranTable() {
-            const tbody = $$('#tahunAjaranTable tbody');
-            tbody.innerHTML = allTahunAjaran.map((t, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td><strong>${t.kode}</strong></td>
-                    <td>${t.tanggal_mulai ? formatTanggal(t.tanggal_mulai) : '-'}</td>
-                    <td>${t.tanggal_selesai ? formatTanggal(t.tanggal_selesai) : '-'}</td>
-                    <td><span class="badge ${t.is_aktif ? 'badge-success' : 'badge-secondary'}">${t.is_aktif ? 'Aktif' : 'Nonaktif'}</span></td>
-                    <td>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline" onclick="editTahunAjaran(${t.id})">✏️</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteTahunAjaran(${t.id})">🗑️</button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('') || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
+        function showTahunModal(id) {
+            $('tahunModalTitle').textContent = id ? 'Edit Tahun Ajaran' : 'Tambah Tahun Ajaran';
+            $('tahunForm').reset();
+            $('tahunId').value = id || '';
+            showModal('tahunModal');
         }
         
-        function showTahunAjaranModal(id = null) {
-            $('tahunAjaranModalTitle').textContent = id ? 'Edit Tahun Ajaran' : 'Tambah Tahun Ajaran';
-            $('tahunAjaranForm').reset();
-            $('tahunAjaranId').value = id || '';
-            showModal('tahunAjaranModal');
+        function editTahun(id) {
+            var t = allTahun.find(function(x) { return x.id === id; });
+            if (!t) return;
+            showTahunModal(id);
+            $('tahunKode').value = t.kode || '';
+            $('tahunMulai').value = t.tanggal_mulai || '';
+            $('tahunSelesai').value = t.tanggal_selesai || '';
+            $('tahunAktif').value = t.is_aktif ? 'true' : 'false';
         }
         
-        async function editTahunAjaran(id) {
-            const ta = allTahunAjaran.find(t => t.id === id);
-            if (!ta) return;
-            showTahunAjaranModal(id);
-            setFormData('tahunAjaranForm', ta);
-            $('tahunAjaranForm').querySelector('[name="is_aktif"]').value = ta.is_aktif ? 'true' : 'false';
-        }
-        
-        async function saveTahunAjaran() {
-            const formData = getFormData('tahunAjaranForm');
-            
-            const data = {
-                kode: formData.kode,
-                tanggal_mulai: formData.tanggal_mulai || null,
-                tanggal_selesai: formData.tanggal_selesai || null,
-                is_aktif: formData.is_aktif === 'true'
+        async function saveTahun(e) {
+            e.preventDefault();
+            var id = $('tahunId').value;
+            var data = {
+                kode: $('tahunKode').value,
+                tanggal_mulai: $('tahunMulai').value || null,
+                tanggal_selesai: $('tahunSelesai').value || null,
+                is_aktif: $('tahunAktif').value === 'true'
             };
-            
             try {
-                // If setting as active, deactivate others
-                if (data.is_aktif) {
-                    await db.from('tahun_ajaran').update({ is_aktif: false }).neq('id', formData.id || 0);
-                }
-                
-                if (formData.id) {
-                    await db.from('tahun_ajaran').update(data).eq('id', formData.id);
-                } else {
-                    await db.from('tahun_ajaran').insert(data);
-                }
-                
-                showToast('Tahun Ajaran berhasil disimpan', 'success');
-                hideModal('tahunAjaranModal');
-                await loadTahunAjaran();
-            } catch (error) {
-                showToast('Gagal menyimpan: ' + error.message, 'error');
-            }
+                if (id) await db.from('tahun_ajaran').update(data).eq('id', parseInt(id));
+                else await db.from('tahun_ajaran').insert(data);
+                showToast('Berhasil!', 'success');
+                hideModal('tahunModal');
+                await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
         }
         
-        async function deleteTahunAjaran(id) {
-            if (!await confirmDialog('Yakin ingin menghapus tahun ajaran ini?')) return;
-            
+        async function deleteTahun(id) {
+            if (!confirm('Hapus tahun ajaran ini?')) return;
             try {
                 await db.from('tahun_ajaran').delete().eq('id', id);
-                showToast('Tahun Ajaran berhasil dihapus', 'success');
-                await loadTahunAjaran();
-            } catch (error) {
-                showToast('Gagal menghapus: ' + error.message, 'error');
-            }
+                showToast('Dihapus', 'success');
+                await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
         }
+        
+        // ==================== CLEANUP ====================
+        function loadOrphanMateri() {
+            var container = $('orphanList');
+            if (!orphanMateri.length) {
+                container.innerHTML = '<div class="text-center py-4 text-success">✅ Tidak ada materi orphan</div>';
+                return;
+            }
+            var html = '';
+            orphanMateri.forEach(function(m) {
+                html += '<div class="materi-card orphan"><input type="checkbox" class="checkbox-item orphan-check" data-id="' + m.id + '">';
+                html += '<div class="materi-info"><div class="materi-nama">' + escapeHtml(m.nama) + '</div>';
+                html += '<div class="materi-meta">ID: ' + m.id + ' | Tipe: ' + (m.tipe || '-') + ' | Kategori ID: ' + (m.kategori_id || 'NULL') + '</div></div>';
+                html += '<div class="materi-actions"><button class="btn btn-sm btn-outline" onclick="editMateri(' + m.id + ')">✏️ Pindah</button>';
+                html += '<button class="btn btn-sm btn-danger" onclick="deleteMateri(' + m.id + ')">🗑️</button></div></div>';
+            });
+            container.innerHTML = html;
+        }
+        
+        function loadKategoriKosong() {
+            var container = $('kosongList');
+            if (!kategoriKosong.length) {
+                container.innerHTML = '<div class="text-center py-4 text-success">✅ Tidak ada kategori kosong</div>';
+                return;
+            }
+            var html = '';
+            kategoriKosong.forEach(function(k) {
+                html += '<div class="materi-card empty"><input type="checkbox" class="checkbox-item kosong-check" data-id="' + k.id + '">';
+                html += '<div class="materi-info"><div class="materi-nama">' + escapeHtml(k.nama) + '</div>';
+                html += '<div class="materi-meta">Kode: ' + (k.kode || '-') + ' | Bidang: ' + (k.bidang?.nama || '-') + '</div></div>';
+                html += '<div class="materi-actions"><button class="btn btn-sm btn-outline" onclick="editKategori(' + k.id + ')">✏️</button>';
+                html += '<button class="btn btn-sm btn-danger" onclick="deleteKategori(' + k.id + ')">🗑️</button></div></div>';
+            });
+            container.innerHTML = html;
+        }
+        
+        function toggleSelectAll(type) {
+            var checked = $(type === 'orphan' ? 'selectAllOrphan' : 'selectAllKosong').checked;
+            document.querySelectorAll('.' + type + '-check').forEach(function(cb) { cb.checked = checked; });
+        }
+        
+        async function bulkDeleteOrphan() {
+            var checked = document.querySelectorAll('.orphan-check:checked');
+            if (!checked.length) { showToast('Pilih materi dulu', 'error'); return; }
+            if (!confirm('Hapus ' + checked.length + ' materi?')) return;
+            var ids = []; checked.forEach(function(cb) { ids.push(parseInt(cb.dataset.id)); });
+            try {
+                await db.from('progress_jamaah').delete().in('materi_item_id', ids);
+                await db.from('materi_item').delete().in('id', ids);
+                showToast(ids.length + ' materi dihapus', 'success');
+                $('selectAllOrphan').checked = false;
+                await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+        }
+        
+        async function bulkDeleteKosong() {
+            var checked = document.querySelectorAll('.kosong-check:checked');
+            if (!checked.length) { showToast('Pilih kategori dulu', 'error'); return; }
+            if (!confirm('Hapus ' + checked.length + ' kategori?')) return;
+            var ids = []; checked.forEach(function(cb) { ids.push(parseInt(cb.dataset.id)); });
+            try {
+                await db.from('kategori_materi').delete().in('id', ids);
+                showToast(ids.length + ' kategori dihapus', 'success');
+                $('selectAllKosong').checked = false;
+                await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+        }
+        
+        function showModal(id) { $(id).classList.add('show'); }
+        function hideModal(id) { $(id).classList.remove('show'); }
     </script>
-
-
-    <!-- Bottom Navigation for Mobile -->
-        <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
 </body>
 </html>
