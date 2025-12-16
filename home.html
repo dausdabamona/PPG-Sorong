@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PPG Sorong">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>PPG Sorong</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        /* More Menu Styles */
+        .pwa-more-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 2000;
+        }
+        .pwa-more-menu.show {
+            display: block;
+        }
+        .pwa-more-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+        }
+        .pwa-more-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 1.5rem 1.5rem 0 0;
+            padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+            max-height: 70vh;
+            overflow-y: auto;
+            animation: slideUpMenu 0.3s ease;
+        }
+        @keyframes slideUpMenu {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .pwa-more-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .pwa-more-header h3 {
+            font-size: 1rem;
+            color: #1f2937;
+        }
+        .pwa-more-header button {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- PWA Mobile Content -->
+    <div class="pwa-mobile" id="pwaMobileContent">
+        <!-- Header with Stats -->
+        <div id="pwaHeader"></div>
+        
+        <!-- Quick Actions -->
+        <div id="pwaQuickActions"></div>
+        
+        <!-- Menu Grid - Menu Utama -->
+        <div id="pwaMenuUtama"></div>
+        
+        <!-- Menu Grid - Pengaturan (Admin Only) -->
+        <div id="pwaMenuPengaturan"></div>
+        
+        <!-- Recent Activity -->
+        <div class="pwa-section">
+            <div class="pwa-section-header">
+                <h3>Aktivitas Terbaru</h3>
+                <a href="laporan-bulanan.html">Lihat Semua</a>
+            </div>
+            <div class="pwa-card" id="pwaRecentActivity">
+                <div class="pwa-loading">
+                    <div class="pwa-spinner"></div>
+                    <p>Memuat...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Desktop Fallback - Redirect to dashboard.html -->
+    <div class="desktop-redirect" id="desktopRedirect" style="display:none;">
+        <script>
+            if (window.innerWidth > 768) {
+                window.location.href = 'dashboard.html';
+            }
+        </script>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <nav class="pwa-bottom-nav" id="pwaBottomNav"></nav>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/pwa-mobile.js"></script>
+    
+    <script>
+        // Stats data
+        var dashboardStats = {
+            totalGenerus: '-',
+            totalPengajian: '-',
+            keaktifan: '-'
+        };
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check auth
+            if (!await requireAuth()) return;
+            
+            // Redirect desktop to full dashboard
+            if (window.innerWidth > 768) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            
+            // Load data
+            await loadDashboardData();
+            
+            // Render UI
+            renderMobileUI();
+        });
+        
+        async function loadDashboardData() {
+            try {
+                // Get stats
+                var stats = await dashboardApi.getStats();
+                if (stats) {
+                    dashboardStats.totalGenerus = stats.total_jamaah_aktif || 0;
+                    dashboardStats.totalPengajian = stats.pengajian_bulan_ini || 0;
+                    dashboardStats.keaktifan = stats.persentase_keaktifan || 85;
+                }
+                
+                // Get recent activity
+                await loadRecentActivity();
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+        
+        async function loadRecentActivity() {
+            try {
+                var recentPengajian = await dashboardApi.getRecentPengajian(3);
+                
+                var activityEl = document.getElementById('pwaRecentActivity');
+                if (!activityEl) return;
+                
+                if (!recentPengajian || recentPengajian.length === 0) {
+                    activityEl.innerHTML = renderPwaEmpty('📅', 'Belum ada aktivitas', 'Aktivitas pengajian akan muncul di sini');
+                    return;
+                }
+                
+                var html = '';
+                recentPengajian.forEach(function(p) {
+                    html += renderPwaListItem({
+                        icon: '📖',
+                        iconBg: '#dcfce7',
+                        title: p.wilayah_nama || p.wilayah?.nama || 'Pengajian',
+                        subtitle: formatTanggal(p.tanggal) + ' • ' + (p.jenjang_nama || p.jenjang?.nama || '-'),
+                        href: 'presensi.html?pengajian_id=' + p.id
+                    });
+                });
+                
+                activityEl.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading activity:', error);
+            }
+        }
+        
+        function renderMobileUI() {
+            // Render header
+            var headerEl = document.getElementById('pwaHeader');
+            if (headerEl) {
+                headerEl.innerHTML = renderPwaHeader(dashboardStats);
+            }
+            
+            // Render quick actions
+            var quickEl = document.getElementById('pwaQuickActions');
+            if (quickEl) {
+                quickEl.innerHTML = renderPwaQuickActions();
+            }
+            
+            // Render menu utama
+            var menuUtamaEl = document.getElementById('pwaMenuUtama');
+            if (menuUtamaEl) {
+                menuUtamaEl.innerHTML = renderPwaMenuGrid(PWA_MENU.utama, 'Menu Utama');
+            }
+            
+            // Render menu pengaturan (admin only)
+            var menuPengaturanEl = document.getElementById('pwaMenuPengaturan');
+            if (menuPengaturanEl) {
+                if (isAdmin()) {
+                    menuPengaturanEl.innerHTML = renderPwaMenuGrid(PWA_MENU.pengaturan, 'Pengaturan');
+                } else {
+                    menuPengaturanEl.style.display = 'none';
+                }
+            }
+            
+            // Render bottom nav
+            var bottomNavEl = document.getElementById('pwaBottomNav');
+            if (bottomNavEl) {
+                bottomNavEl.outerHTML = renderPwaBottomNav('dashboard');
+            }
+        }
+        
+        // Check if admin
+        function isAdmin() {
+            if (typeof userRoles === 'undefined' || !userRoles) return false;
+            return userRoles.some(function(r) {
+                return r.role && r.role.kode === 'admin';
+            });
+        }
+    </script>
+</body>
+</html>
