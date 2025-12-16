@@ -303,6 +303,7 @@
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/sidebar.js"></script>
     
     <script>
@@ -343,34 +344,60 @@
         });
         
         function updateUserUI() {
-            if (currentUserData) {
-                $('userName').textContent = currentUserData.nama || currentUserData.email;
-                $('userAvatar').textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
-                if (userRoles && userRoles.length > 0) {
-                    $('userRole').textContent = userRoles[0].role?.nama || '-';
-                }
+            // Safe check - hanya jalankan jika currentUserData sudah ada
+            if (!currentUserData) return;
+            
+            try {
+                var nameEl = $('sidebarUserName');
+                var avatarEl = $('sidebarUserAvatar');
+                var roleEl = $('sidebarUserRole');
+                
+                var userName = currentUserData.nama || currentUserData.email || 'User';
+                var userInitial = (userName || 'U').charAt(0).toUpperCase();
+                var userRole = (userRoles && userRoles.length > 0 && userRoles[0].role) 
+                    ? userRoles[0].role.nama || '-' 
+                    : '-';
+                
+                if (nameEl) nameEl.textContent = userName;
+                if (avatarEl) avatarEl.textContent = userInitial;
+                if (roleEl) roleEl.textContent = userRole;
+            } catch (e) {
+                console.warn('updateUserUI error:', e);
             }
         }
         
         async function loadFilters() {
             try {
-                const { data: daerahList } = await db.from('wilayah')
-                    .select('id, nama').eq('tingkat', 'daerah').eq('is_aktif', true).order('nama');
+                // Use wilayahApi from api.js
+                const daerahList = await wilayahApi.getByTingkat('daerah');
                 
-                if (daerahList) {
-                    $('filterDaerah').innerHTML = '<option value="">Semua Daerah</option>' +
-                        daerahList.map(d => '<option value="' + d.id + '">' + d.nama + '</option>').join('');
-                    $('pindahDaerah').innerHTML = '<option value="">Pilih Daerah</option>' +
-                        daerahList.map(d => '<option value="' + d.id + '">' + d.nama + '</option>').join('');
+                var filterDaerah = $('filterDaerah');
+                var pindahDaerah = $('pindahDaerah');
+                
+                if (daerahList && daerahList.length > 0) {
+                    var daerahOptions = '<option value="">Semua Daerah</option>' +
+                        daerahList.map(function(d) { 
+                            return '<option value="' + d.id + '">' + escapeHtml(d.nama) + '</option>'; 
+                        }).join('');
+                    
+                    if (filterDaerah) filterDaerah.innerHTML = daerahOptions;
+                    if (pindahDaerah) pindahDaerah.innerHTML = '<option value="">Pilih Daerah</option>' +
+                        daerahList.map(function(d) { 
+                            return '<option value="' + d.id + '">' + escapeHtml(d.nama) + '</option>'; 
+                        }).join('');
                 }
                 
-                const { data: kelompokList } = await db.from('wilayah')
-                    .select('id, nama, parent_id').eq('tingkat', 'kelompok').eq('is_aktif', true).order('nama');
+                const kelompokList = await wilayahApi.getByTingkat('kelompok');
                 
-                if (kelompokList) {
+                if (kelompokList && kelompokList.length > 0) {
                     allKelompok = kelompokList;
-                    $('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' +
-                        kelompokList.map(k => '<option value="' + k.id + '">' + k.nama + '</option>').join('');
+                    var filterKelompok = $('filterKelompok');
+                    if (filterKelompok) {
+                        filterKelompok.innerHTML = '<option value="">Semua Kelompok</option>' +
+                            kelompokList.map(function(k) { 
+                                return '<option value="' + k.id + '">' + escapeHtml(k.nama) + '</option>'; 
+                            }).join('');
+                    }
                 }
             } catch (error) {
                 console.error('Error loading filters:', error);
@@ -416,61 +443,63 @@
         
         async function loadGenerus() {
             try {
-                const kelompokId = $('filterKelompok').value;
-                const search = $('searchInput').value.toLowerCase();
+                const kelompokId = $('filterKelompok')?.value || '';
+                const search = $('searchInput')?.value?.toLowerCase() || '';
                 
-                const { data, error } = await db.rpc('get_generus_by_wilayah', {
-                    p_wilayah_id: kelompokId ? parseInt(kelompokId) : null,
-                    p_jenjang_id: null,
-                    p_status: 'aktif'
+                // Use generusApi from api.js
+                const data = await generusApi.getAll({
+                    wilayah_id: kelompokId || null,
+                    status: 'aktif',
+                    search: search
                 });
                 
-                if (error) throw error;
-                
-                let filtered = data || [];
-                if (search) {
-                    filtered = filtered.filter(function(g) {
-                        return g.nama.toLowerCase().includes(search) ||
-                            (g.nama_panggilan && g.nama_panggilan.toLowerCase().includes(search));
-                    });
-                }
-                
-                $('infoTotal').textContent = 'Total: ' + filtered.length;
-                renderTable(filtered);
+                var infoEl = $('infoTotal');
+                if (infoEl) infoEl.textContent = 'Total: ' + data.length;
+                renderTable(data);
                 
             } catch (error) {
                 console.error('Error:', error);
-                showToast('Gagal memuat data: ' + error.message, 'error');
+                showToast('Gagal memuat data: ' + (error.message || error), 'error');
             }
         }
         
         function renderTable(data) {
             var tbody = $$('#generusTable tbody');
-            if (!data.length) {
+            if (!tbody) return;
+            
+            if (!data || !data.length) {
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Tidak ada data</td></tr>';
                 return;
             }
             
-            var canEdit = userRoles && userRoles.some(function(r) {
+            var canEditData = userRoles && userRoles.some(function(r) {
                 var kode = r.role && r.role.kode ? r.role.kode.toLowerCase() : '';
                 return ['admin', 'mubaligh', 'mubaligh_daerah', 'mubaligh_desa', 'imam_kelompok'].includes(kode);
             });
             
-            $('colAksi').style.display = canEdit ? '' : 'none';
+            var colAksi = $('colAksi');
+            if (colAksi) colAksi.style.display = canEditData ? '' : 'none';
             
             var html = '';
             for (var i = 0; i < data.length; i++) {
                 var g = data[i];
+                var nama = escapeHtml(g.nama || '-');
+                var namaPanggilan = g.nama_panggilan ? escapeHtml(g.nama_panggilan) : '';
+                var jk = escapeHtml(g.jenis_kelamin || '-');
+                var jenjang = escapeHtml(g.jenjang_nama || '-');
+                var kelompok = escapeHtml(g.kelompok_nama || '-');
+                var umur = g.tanggal_lahir ? hitungUmur(g.tanggal_lahir) : '-';
+                
                 html += '<tr>';
                 html += '<td>' + (i + 1) + '</td>';
-                html += '<td><strong>' + g.nama + '</strong>';
-                if (g.nama_panggilan) html += '<br><small class="text-muted">' + g.nama_panggilan + '</small>';
+                html += '<td><strong>' + nama + '</strong>';
+                if (namaPanggilan) html += '<br><small class="text-muted">' + namaPanggilan + '</small>';
                 html += '</td>';
-                html += '<td>' + (g.jenis_kelamin || '-') + '</td>';
-                html += '<td>' + (g.tanggal_lahir ? hitungUmur(g.tanggal_lahir) : '-') + '</td>';
-                html += '<td><span class="badge badge-info">' + (g.jenjang_nama || '-') + '</span></td>';
-                html += '<td>' + (g.kelompok_nama || '-') + '</td>';
-                if (canEdit) {
+                html += '<td>' + jk + '</td>';
+                html += '<td>' + umur + '</td>';
+                html += '<td><span class="badge badge-info">' + jenjang + '</span></td>';
+                html += '<td>' + kelompok + '</td>';
+                if (canEditData) {
                     html += '<td><button class="btn btn-sm btn-outline" onclick="editGenerus(' + g.jamaah_id + ')">✏️</button></td>';
                 }
                 html += '</tr>';
@@ -481,47 +510,70 @@
         // ========== EDIT ==========
         async function editGenerus(id) {
             try {
-                var result = await db.from('jamaah').select('*').eq('id', id).single();
-                if (result.error) throw result.error;
-                var jamaah = result.data;
+                // Gunakan api.js untuk load data
+                var jamaah = await jamaahApi.getDetailById(id);
+                if (!jamaah) {
+                    showToast('Data jamaah tidak ditemukan', 'error');
+                    return;
+                }
                 
-                var enrollResult = await db.from('enrollment')
-                    .select('*, jenjang:jenjang_id(id, nama), wilayah:wilayah_id(id, nama)')
-                    .eq('jamaah_id', id).eq('status', 'aktif').single();
-                var enrollment = enrollResult.data;
+                var enrollment = await enrollmentApi.getActiveByJamaah(id);
                 
                 currentEditData = { jamaah: jamaah, enrollment: enrollment };
                 
-                // Tab 1
-                $('editId').value = jamaah.id;
-                $('editNama').value = jamaah.nama || '';
-                $('editNamaPanggilan').value = jamaah.nama_panggilan || '';
-                $('editJenisKelamin').value = jamaah.jenis_kelamin || '';
-                $('editTanggalLahir').value = jamaah.tanggal_lahir || '';
-                $('editPhone').value = jamaah.phone || '';
-                $('editAlamat').value = jamaah.alamat_lengkap || '';
+                // Tab 1 - Data Pribadi (dengan null safety)
+                var editId = $('editId');
+                var editNama = $('editNama');
+                var editNamaPanggilan = $('editNamaPanggilan');
+                var editJenisKelamin = $('editJenisKelamin');
+                var editTanggalLahir = $('editTanggalLahir');
+                var editPhone = $('editPhone');
+                var editAlamat = $('editAlamat');
+                
+                if (editId) editId.value = jamaah.id || '';
+                if (editNama) editNama.value = jamaah.nama || '';
+                if (editNamaPanggilan) editNamaPanggilan.value = jamaah.nama_panggilan || '';
+                if (editJenisKelamin) editJenisKelamin.value = jamaah.jenis_kelamin || '';
+                if (editTanggalLahir) editTanggalLahir.value = jamaah.tanggal_lahir || '';
+                if (editPhone) editPhone.value = jamaah.phone || '';
+                if (editAlamat) editAlamat.value = jamaah.alamat_lengkap || '';
                 showUmur();
                 
-                // Tab 2
-                $('editEnrollmentId').value = enrollment ? enrollment.id : '';
-                $('editCurrentKelompokId').value = enrollment ? enrollment.wilayah_id : '';
-                $('currentKelompokName').textContent = enrollment && enrollment.wilayah ? enrollment.wilayah.nama : 'Belum terdaftar';
-                $('currentJenjangName').textContent = enrollment && enrollment.jenjang ? enrollment.jenjang.nama : '-';
+                // Tab 2 - Kelompok (dengan null safety)
+                var editEnrollmentId = $('editEnrollmentId');
+                var editCurrentKelompokId = $('editCurrentKelompokId');
+                var currentKelompokName = $('currentKelompokName');
+                var currentJenjangName = $('currentJenjangName');
                 
-                // Tab 3
-                $('currentStatus').textContent = jamaah.status_aktif || 'aktif';
-                $('newStatus').value = '';
-                $('formMenikah').style.display = 'none';
-                $('formNonaktif').style.display = 'none';
-                $('pasanganJamaahId').value = '';
-                $('selectedPasangan').innerHTML = '';
-                $('searchPasangan').value = '';
+                if (editEnrollmentId) editEnrollmentId.value = enrollment ? enrollment.id : '';
+                if (editCurrentKelompokId) editCurrentKelompokId.value = enrollment ? enrollment.wilayah_id : '';
+                if (currentKelompokName) currentKelompokName.textContent = (enrollment && enrollment.wilayah) ? enrollment.wilayah.nama : 'Belum terdaftar';
+                if (currentJenjangName) currentJenjangName.textContent = (enrollment && enrollment.jenjang) ? enrollment.jenjang.nama : '-';
+                
+                // Tab 3 - Status (dengan null safety)
+                var currentStatus = $('currentStatus');
+                var newStatus = $('newStatus');
+                var formMenikah = $('formMenikah');
+                var formNonaktif = $('formNonaktif');
+                var pasanganJamaahId = $('pasanganJamaahId');
+                var selectedPasangan = $('selectedPasangan');
+                var searchPasangan = $('searchPasangan');
+                
+                if (currentStatus) currentStatus.textContent = jamaah.status_aktif || 'aktif';
+                if (newStatus) newStatus.value = '';
+                if (formMenikah) formMenikah.style.display = 'none';
+                if (formNonaktif) formNonaktif.style.display = 'none';
+                if (pasanganJamaahId) pasanganJamaahId.value = '';
+                if (selectedPasangan) selectedPasangan.innerHTML = '';
+                if (searchPasangan) searchPasangan.value = '';
                 
                 switchTab('tabData', document.querySelector('.tab'));
-                $('editModal').classList.add('show');
+                var editModal = $('editModal');
+                if (editModal) editModal.classList.add('show');
                 
             } catch (error) {
-                showToast('Gagal memuat: ' + error.message, 'error');
+                console.error('editGenerus error:', error);
+                showToast('Gagal memuat: ' + (error.message || error), 'error');
             }
         }
         
