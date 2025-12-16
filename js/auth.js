@@ -256,3 +256,352 @@ db.auth.onAuthStateChange((event, session) => {
         userRoles = [];
     }
 });
+
+// ============================================================================
+// ROLE CONSTANTS (BARU)
+// ============================================================================
+
+const ROLES = {
+    ADMIN: 'admin',
+    MUBALIGH_DAERAH: 'mubaligh_daerah',
+    MUBALIGH_DESA: 'mubaligh_desa',
+    IMAM_KELOMPOK: 'imam_kelompok',
+    WAKIL_KELOMPOK: 'wakil_kelompok',
+    SEKRETARIS_KELOMPOK: 'sekretaris_kelompok',
+    BENDAHARA_KELOMPOK: 'bendahara_kelompok',
+    PAKAR_PENDIDIK: 'pakar_pendidik',
+    ORANG_TUA: 'orang_tua'
+};
+
+// Role levels (semakin kecil semakin tinggi)
+const ROLE_LEVELS = {
+    'admin': 1,
+    'mubaligh_daerah': 2,
+    'mubaligh_desa': 3,
+    'imam_kelompok': 4,
+    'wakil_kelompok': 5,
+    'pakar_pendidik': 5,
+    'sekretaris_kelompok': 6,
+    'bendahara_kelompok': 6,
+    'orang_tua': 10
+};
+
+// ============================================================================
+// ALIAS FUNCTIONS (BARU) - Untuk kompatibilitas dengan kode lama
+// ============================================================================
+
+/**
+ * Alias untuk requireAuth - dipanggil di jamaah.js tapi tidak ada
+ * @returns {Promise<boolean>}
+ */
+async function checkAuth() {
+    return await requireAuth();
+}
+
+// ============================================================================
+// PERMISSION FUNCTIONS (BARU)
+// ============================================================================
+
+/**
+ * Cek apakah user bisa edit resource tertentu
+ * @param {string} resource - 'jamaah', 'pengajian', 'presensi', 'progress', 'wilayah', 'user'
+ * @param {Object} data - Data yang akan di-edit (optional, untuk cek ownership)
+ * @returns {boolean}
+ */
+function canEdit(resource, data = null) {
+    // Admin bisa edit semua
+    if (isAdmin()) return true;
+    
+    switch (resource) {
+        case 'jamaah':
+            // Mubaligh bisa edit jamaah di wilayahnya
+            if (isMubaligh()) {
+                if (!data) return true;
+                const userWilayahIds = getUserWilayahIds();
+                return userWilayahIds.length === 0 || userWilayahIds.includes(data.wilayah_id);
+            }
+            return false;
+            
+        case 'pengajian':
+            // Mubaligh bisa edit pengajian
+            return isMubaligh();
+            
+        case 'presensi':
+            // Mubaligh bisa edit presensi
+            return isMubaligh();
+            
+        case 'progress':
+            // Mubaligh bisa edit progress
+            return isMubaligh();
+            
+        case 'wilayah':
+            // Hanya admin yang bisa edit wilayah
+            return false;
+            
+        case 'user':
+            // Hanya admin yang bisa edit user lain
+            // User bisa edit data sendiri
+            if (data && currentUserData && data.id === currentUserData.id) return true;
+            return false;
+            
+        case 'kurikulum':
+            // Admin dan mubaligh daerah bisa edit kurikulum
+            return hasRole('mubaligh_daerah');
+            
+        default:
+            return false;
+    }
+}
+
+/**
+ * Cek apakah user bisa delete resource tertentu
+ * @param {string} resource
+ * @param {Object} data
+ * @returns {boolean}
+ */
+function canDelete(resource, data = null) {
+    // Admin bisa delete semua
+    if (isAdmin()) return true;
+    
+    switch (resource) {
+        case 'jamaah':
+            // Hanya admin yang bisa delete jamaah
+            return false;
+            
+        case 'pengajian':
+            // Mubaligh bisa delete pengajian yang dia buat
+            if (isMubaligh()) {
+                if (!data) return true;
+                return data.created_by === currentUserData?.id;
+            }
+            return false;
+            
+        case 'presensi':
+            // Mubaligh bisa delete presensi
+            return isMubaligh();
+            
+        case 'progress':
+            // Mubaligh bisa delete progress
+            return isMubaligh();
+            
+        case 'wilayah':
+            // Hanya admin yang bisa delete wilayah
+            return false;
+            
+        case 'user':
+            // Hanya admin yang bisa delete user
+            return false;
+            
+        default:
+            return false;
+    }
+}
+
+/**
+ * Cek apakah user bisa view resource tertentu
+ * @param {string} resource
+ * @param {Object} data
+ * @returns {boolean}
+ */
+function canView(resource, data = null) {
+    // Jika tidak login, tidak bisa lihat apapun
+    if (!currentUserData) return false;
+    
+    // Admin bisa lihat semua
+    if (isAdmin()) return true;
+    
+    switch (resource) {
+        case 'jamaah':
+            // Semua user yang login bisa lihat jamaah
+            // Orang tua hanya bisa lihat anaknya
+            if (isOrangTua() && data) {
+                // TODO: cek relasi orang tua - anak
+                return true;
+            }
+            return true;
+            
+        case 'pengajian':
+        case 'presensi':
+        case 'progress':
+        case 'wilayah':
+            // Semua user yang login bisa lihat
+            return true;
+            
+        case 'user':
+            // Hanya admin yang bisa lihat daftar user
+            // User bisa lihat data sendiri
+            if (data && data.id === currentUserData?.id) return true;
+            return false;
+            
+        default:
+            return true;
+    }
+}
+
+/**
+ * Cek apakah user bisa create resource tertentu
+ * @param {string} resource
+ * @returns {boolean}
+ */
+function canCreate(resource) {
+    // Admin bisa create semua
+    if (isAdmin()) return true;
+    
+    switch (resource) {
+        case 'jamaah':
+        case 'pengajian':
+        case 'presensi':
+        case 'progress':
+            return isMubaligh();
+            
+        case 'wilayah':
+        case 'user':
+        case 'kurikulum':
+            return false;
+            
+        default:
+            return false;
+    }
+}
+
+/**
+ * Get highest role level user (semakin kecil semakin tinggi)
+ * @returns {number}
+ */
+function getHighestRoleLevel() {
+    if (userRoles.length === 0) return 999;
+    
+    let minLevel = 999;
+    userRoles.forEach(ur => {
+        const roleKode = ur.role?.kode?.toLowerCase();
+        const level = ROLE_LEVELS[roleKode] || 100;
+        if (level < minLevel) {
+            minLevel = level;
+        }
+    });
+    return minLevel;
+}
+
+/**
+ * Cek apakah role level user lebih tinggi atau sama
+ * @param {string} requiredRole
+ * @returns {boolean}
+ */
+function hasRoleLevelOrHigher(requiredRole) {
+    const requiredLevel = ROLE_LEVELS[requiredRole.toLowerCase()] || 100;
+    const userLevel = getHighestRoleLevel();
+    return userLevel <= requiredLevel;
+}
+
+/**
+ * Get current user's primary role
+ * @returns {Object|null}
+ */
+function getPrimaryRole() {
+    if (userRoles.length === 0) return null;
+    
+    // Return role dengan level tertinggi (angka terkecil)
+    let primaryRole = userRoles[0];
+    let minLevel = 999;
+    
+    userRoles.forEach(ur => {
+        const roleKode = ur.role?.kode?.toLowerCase();
+        const level = ROLE_LEVELS[roleKode] || 100;
+        if (level < minLevel) {
+            minLevel = level;
+            primaryRole = ur;
+        }
+    });
+    
+    return primaryRole;
+}
+
+/**
+ * Get display name for current user
+ * @returns {string}
+ */
+function getCurrentUserName() {
+    return currentUserData?.nama || currentUser?.email || 'User';
+}
+
+/**
+ * Get current user's role names as string
+ * @returns {string}
+ */
+function getCurrentUserRoles() {
+    if (userRoles.length === 0) return '-';
+    return userRoles.map(ur => ur.role?.nama || ur.role?.kode).join(', ');
+}
+
+// ============================================================================
+// WILAYAH ACCESS (BARU)
+// ============================================================================
+
+/**
+ * Cek apakah user punya akses ke wilayah tertentu
+ * @param {number} wilayahId
+ * @returns {boolean}
+ */
+function hasWilayahAccess(wilayahId) {
+    if (isAdmin()) return true;
+    
+    const userWilayahIds = getUserWilayahIds();
+    
+    // Jika user tidak punya wilayah assignment, bisa akses semua (untuk mubaligh daerah)
+    if (userWilayahIds.length === 0 && isMubaligh()) return true;
+    
+    return userWilayahIds.includes(wilayahId);
+}
+
+/**
+ * Filter data berdasarkan akses wilayah user
+ * @param {Array} data
+ * @param {string} wilayahKey - key untuk wilayah_id di data
+ * @returns {Array}
+ */
+function filterByWilayahAccess(data, wilayahKey = 'wilayah_id') {
+    if (isAdmin()) return data;
+    
+    const userWilayahIds = getUserWilayahIds();
+    
+    // Jika tidak ada wilayah assignment, return semua
+    if (userWilayahIds.length === 0) return data;
+    
+    return data.filter(item => userWilayahIds.includes(item[wilayahKey]));
+}
+
+// ============================================================================
+// EXPORT NEW FUNCTIONS
+// ============================================================================
+
+window.ROLES = ROLES;
+window.ROLE_LEVELS = ROLE_LEVELS;
+window.checkAuth = checkAuth;
+window.canEdit = canEdit;
+window.canDelete = canDelete;
+window.canView = canView;
+window.canCreate = canCreate;
+window.getHighestRoleLevel = getHighestRoleLevel;
+window.hasRoleLevelOrHigher = hasRoleLevelOrHigher;
+window.getPrimaryRole = getPrimaryRole;
+window.getCurrentUserName = getCurrentUserName;
+window.getCurrentUserRoles = getCurrentUserRoles;
+window.hasWilayahAccess = hasWilayahAccess;
+window.filterByWilayahAccess = filterByWilayahAccess;
+
+// Export existing functions (untuk memastikan tersedia di window)
+window.currentUser = currentUser;
+window.currentUserData = currentUserData;
+window.userRoles = userRoles;
+window.login = login;
+window.logout = logout;
+window.register = register;
+window.checkSession = checkSession;
+window.loadUserData = loadUserData;
+window.hasRole = hasRole;
+window.isAdmin = isAdmin;
+window.isMubaligh = isMubaligh;
+window.isOrangTua = isOrangTua;
+window.getUserWilayahIds = getUserWilayahIds;
+window.requireAuth = requireAuth;
+window.requireAdmin = requireAdmin;

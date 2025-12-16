@@ -404,3 +404,299 @@ function getFromStorage(key) {
 function removeFromStorage(key) {
     localStorage.removeItem(key);
 }
+
+// ============================================================================
+// SECURITY HELPERS (BARU)
+// ============================================================================
+
+/**
+ * Escape HTML untuk mencegah XSS
+ * @param {string} text
+ * @returns {string}
+ */
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    const str = String(text);
+    const htmlEntities = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
+    return str.replace(/[&<>"']/g, char => htmlEntities[char]);
+}
+
+/**
+ * Sanitize string untuk digunakan di query
+ * @param {string} text
+ * @returns {string}
+ */
+function sanitizeString(text) {
+    if (!text) return '';
+    return String(text).trim();
+}
+
+// ============================================================================
+// SAFE PARSING (BARU)
+// ============================================================================
+
+/**
+ * Safe parseInt - return null jika invalid (bukan NaN)
+ * @param {*} value
+ * @param {*} defaultValue
+ * @returns {number|null}
+ */
+function safeParseInt(value, defaultValue = null) {
+    if (value === null || value === undefined || value === '') {
+        return defaultValue;
+    }
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? defaultValue : parsed;
+}
+
+/**
+ * Safe parseFloat - return null jika invalid
+ * @param {*} value
+ * @param {*} defaultValue
+ * @returns {number|null}
+ */
+function safeParseFloat(value, defaultValue = null) {
+    if (value === null || value === undefined || value === '') {
+        return defaultValue;
+    }
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? defaultValue : parsed;
+}
+
+/**
+ * Safe access nested property
+ * @param {Object} obj
+ * @param {string} path - e.g., 'user.profile.name'
+ * @param {*} defaultValue
+ * @returns {*}
+ */
+function safeGet(obj, path, defaultValue = null) {
+    if (!obj || !path) return defaultValue;
+    
+    const keys = path.split('.');
+    let result = obj;
+    
+    for (const key of keys) {
+        if (result === null || result === undefined) {
+            return defaultValue;
+        }
+        result = result[key];
+    }
+    
+    return result !== undefined ? result : defaultValue;
+}
+
+/**
+ * Cek apakah value kosong (null, undefined, '', [], {})
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isEmpty(value) {
+    if (value === null || value === undefined) return true;
+    if (typeof value === 'string' && value.trim() === '') return true;
+    if (Array.isArray(value) && value.length === 0) return true;
+    if (typeof value === 'object' && Object.keys(value).length === 0) return true;
+    return false;
+}
+
+/**
+ * Cek apakah value tidak kosong
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isNotEmpty(value) {
+    return !isEmpty(value);
+}
+
+// ============================================================================
+// ERROR HANDLING (BARU)
+// ============================================================================
+
+/**
+ * Handle API error dengan konsisten
+ * @param {*} error
+ * @param {string} customMessage
+ */
+function handleApiError(error, customMessage = 'Terjadi kesalahan') {
+    console.error('API Error:', error);
+    const message = error?.message || error || 'Unknown error';
+    showToast(`${customMessage}: ${message}`, 'error');
+}
+
+/**
+ * Alias untuk showToast - untuk kompatibilitas dengan kode lama
+ * @param {string} message
+ * @param {string} type
+ */
+function showAlert(message, type = 'info') {
+    showToast(message, type);
+}
+
+/**
+ * Show success message
+ * @param {string} message
+ */
+function showSuccess(message) {
+    showToast(message, 'success');
+}
+
+/**
+ * Show error message
+ * @param {string} message
+ */
+function showError(message) {
+    showToast(message, 'error');
+}
+
+/**
+ * Show warning message
+ * @param {string} message
+ */
+function showWarning(message) {
+    showToast(message, 'warning');
+}
+
+/**
+ * Show info message
+ * @param {string} message
+ */
+function showInfo(message) {
+    showToast(message, 'info');
+}
+
+// ============================================================================
+// DATE HELPERS (BARU)
+// ============================================================================
+
+/**
+ * Get current date in YYYY-MM-DD format
+ * @returns {string}
+ */
+function getCurrentDate() {
+    return new Date().toISOString().split('T')[0];
+}
+
+/**
+ * Get current month in YYYY-MM format
+ * @returns {string}
+ */
+function getCurrentMonth() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/**
+ * Get first day of month
+ * @param {number} year
+ * @param {number} month (1-12)
+ * @returns {string}
+ */
+function getFirstDayOfMonth(year, month) {
+    return `${year}-${String(month).padStart(2, '0')}-01`;
+}
+
+/**
+ * Get last day of month
+ * @param {number} year
+ * @param {number} month (1-12)
+ * @returns {string}
+ */
+function getLastDayOfMonth(year, month) {
+    const lastDay = new Date(year, month, 0).getDate();
+    return `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+}
+
+// ============================================================================
+// VALIDATION HELPERS (BARU)
+// ============================================================================
+
+/**
+ * Validate email format
+ * @param {string} email
+ * @returns {boolean}
+ */
+function isValidEmail(email) {
+    if (!email) return false;
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}
+
+/**
+ * Validate phone number (Indonesia)
+ * @param {string} phone
+ * @returns {boolean}
+ */
+function isValidPhone(phone) {
+    if (!phone) return false;
+    const cleaned = phone.replace(/\D/g, '');
+    return cleaned.length >= 10 && cleaned.length <= 15;
+}
+
+/**
+ * Format phone number
+ * @param {string} phone
+ * @returns {string}
+ */
+function formatPhone(phone) {
+    if (!phone) return '-';
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.startsWith('62')) {
+        return '+62 ' + cleaned.slice(2);
+    } else if (cleaned.startsWith('0')) {
+        return cleaned;
+    }
+    return phone;
+}
+
+// ============================================================================
+// COPY TO CLIPBOARD (BARU)
+// ============================================================================
+
+/**
+ * Copy text to clipboard
+ * @param {string} text
+ * @returns {Promise<boolean>}
+ */
+async function copyToClipboard(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        showToast('Berhasil disalin!', 'success', 2000);
+        return true;
+    } catch (error) {
+        console.error('Failed to copy:', error);
+        showToast('Gagal menyalin', 'error');
+        return false;
+    }
+}
+
+// ============================================================================
+// EXPORT NEW FUNCTIONS
+// ============================================================================
+
+window.escapeHtml = escapeHtml;
+window.sanitizeString = sanitizeString;
+window.safeParseInt = safeParseInt;
+window.safeParseFloat = safeParseFloat;
+window.safeGet = safeGet;
+window.isEmpty = isEmpty;
+window.isNotEmpty = isNotEmpty;
+window.handleApiError = handleApiError;
+window.showAlert = showAlert;
+window.showSuccess = showSuccess;
+window.showError = showError;
+window.showWarning = showWarning;
+window.showInfo = showInfo;
+window.getCurrentDate = getCurrentDate;
+window.getCurrentMonth = getCurrentMonth;
+window.getFirstDayOfMonth = getFirstDayOfMonth;
+window.getLastDayOfMonth = getLastDayOfMonth;
+window.isValidEmail = isValidEmail;
+window.isValidPhone = isValidPhone;
+window.formatPhone = formatPhone;
+window.copyToClipboard = copyToClipboard;
