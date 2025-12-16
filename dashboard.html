@@ -158,17 +158,22 @@
     <script src="js/sidebar.js"></script>
     
     <script>
+        // Fallback toggleSidebar jika sidebar.js gagal load
+        if (typeof toggleSidebar !== 'function') {
+            window.toggleSidebar = function() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (sidebar) sidebar.classList.toggle('show');
+                if (overlay) overlay.classList.toggle('show');
+            };
+        }
+        
         document.addEventListener('DOMContentLoaded', async () => {
             if (!await requireAuth()) return;
-            updateSidebarUserInfo();
-            initSidebar();
+            if (typeof updateSidebarUserInfo === 'function') updateSidebarUserInfo();
+            if (typeof initSidebar === 'function') initSidebar();
             await loadDashboardData();
         });
-        
-        function toggleSidebar() {
-            $('sidebar').classList.toggle('collapsed');
-            $('sidebarOverlay').classList.toggle('show');
-        }
         
         async function loadDashboardData() {
             try {
