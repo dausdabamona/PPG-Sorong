@@ -4,49 +4,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#059669">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
     <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
     <title>Progress Hafalan - PPG Sorong</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .progress-card{background:#fff;border-radius:8px;padding:1rem;margin-bottom:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);cursor:pointer;}
+        .progress-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+        .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;}
+        .progress-title{font-weight:600;font-size:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+        .progress-bar-bg{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;}
+        .progress-bar{height:100%;border-radius:4px;transition:width 0.3s;}
+        .progress-bar.surat{background:linear-gradient(90deg,#059669,#10b981);}
+        .progress-bar.doa{background:linear-gradient(90deg,#7c3aed,#a78bfa);}
+        .progress-stats{display:flex;justify-content:space-between;font-size:0.7rem;color:#6b7280;margin-top:0.25rem;}
+        .generus-card{display:flex;align-items:center;padding:0.75rem;background:#f0fdf4;border-radius:0.5rem;margin-bottom:0.5rem;cursor:pointer;}
+        .generus-card:hover{background:#dcfce7;}
+        .generus-avatar{width:36px;height:36px;background:#059669;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;margin-right:0.75rem;flex-shrink:0;}
+        .generus-info{flex:1;min-width:0;}
+        .generus-name{font-weight:600;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .generus-meta{font-size:0.7rem;color:#6b7280;}
+        .detail-item{display:flex;align-items:center;padding:0.5rem;border-bottom:1px solid #f1f5f9;}
+        .detail-item:last-child{border-bottom:none;}
+        .detail-no{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:600;margin-right:0.5rem;flex-shrink:0;}
+        .detail-no.belum{background:#fee2e2;color:#dc2626;}
+        .detail-no.sedang{background:#fef3c7;color:#d97706;}
+        .detail-no.selesai,.detail-no.lulus{background:#d1fae5;color:#059669;}
+        .detail-name{flex:1;font-size:0.8rem;}
+        .detail-status{font-size:0.65rem;padding:2px 6px;border-radius:3px;}
+        .detail-status.belum{background:#fee2e2;color:#dc2626;}
+        .detail-status.sedang{background:#fef3c7;color:#d97706;}
+        .detail-status.selesai,.detail-status.lulus{background:#d1fae5;color:#059669;}
+        .tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:0.5rem;overflow-x:auto;}
+        .tab{padding:0.5rem 1rem;cursor:pointer;font-size:0.8rem;font-weight:500;color:#6b7280;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
+        .tab.active{color:#059669;border-bottom-color:#059669;}
+        .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-bottom:1rem;}
+        .summary-card{background:#fff;padding:0.75rem;border-radius:8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+        .summary-value{font-size:1.25rem;font-weight:700;}
+        .summary-value.selesai{color:#059669;}
+        .summary-value.sedang{color:#d97706;}
+        .summary-value.belum{color:#dc2626;}
+        .summary-label{font-size:0.65rem;color:#6b7280;}
+    </style>
 </head>
 <body>
     <div class="app-container">
-                <aside class="sidebar" id="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">PPG</div>
-                <div class="sidebar-brand">
-                    <div class="sidebar-title">PPG Sorong</div>
-                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
-                </div>
+                <div class="sidebar-brand"><div class="sidebar-title">PPG Sorong</div></div>
                 <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
             </div>
             <nav class="sidebar-nav">
                 <div class="nav-section">MENU UTAMA</div>
                 <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
-                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
                 <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
                 <a href="progress.html" class="nav-item active"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
                 <div class="nav-section">LAPORAN</div>
                 <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
                 <div class="nav-section">PENGATURAN</div>
                 <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
                 <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
                 <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
             </nav>
             <div class="sidebar-footer">
-                <div class="sidebar-user">
-                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
-                    <div class="sidebar-user-info">
-                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
-                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
-                    </div>
-                </div>
                 <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
             </div>
         </aside>
@@ -54,102 +82,106 @@
         
         <main class="main-content">
             <header class="header">
-                <div class="header-left"><h1 class="header-title">Progress Hafalan</h1></div>
-                <div class="header-right">
-                    <div class="user-menu">
-                        <div class="user-avatar" id="userAvatar">?</div>
-                        <div class="user-info"><div class="user-name" id="userName">Loading...</div><div class="user-role" id="userRole">-</div></div>
-                    </div>
-                    <button class="btn-logout-mobile" onclick="logout()">🚪</button>
-                    <button class="btn btn-outline btn-sm" onclick="logout()">Keluar</button>
+                <div class="header-left">
+                    <button class="btn-icon" onclick="toggleSidebar()">☰</button>
+                    <h1 class="header-title">Progress Hafalan</h1>
                 </div>
             </header>
             
             <div class="page-content">
-                <div class="page-header">
-                    <div>
-                        <div class="breadcrumb"><a href="dashboard.html">Dashboard</a><span>/</span><span>Progress Hafalan</span></div>
-                        <h2 class="page-title">Input Progress Hafalan</h2>
+                <!-- Step 1: Pilih Generus -->
+                <div id="step1">
+                    <div class="card mb-sm">
+                        <div class="card-body">
+                            <input type="text" class="form-control" id="searchGenerus" placeholder="🔍 Cari nama generus..." oninput="filterGenerus()">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Pilih Generus</span></div>
+                        <div class="card-body" style="padding:0.5rem;max-height:60vh;overflow-y:auto;">
+                            <div id="generusList"><div class="text-center text-muted py-4">Memuat...</div></div>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Select Santri -->
-                <div class="card mb-lg">
-                    <div class="card-header"><h3 class="card-title">Pilih Santri</h3></div>
-                    <div class="card-body">
-                        <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;">
-                            <div style="flex:1;min-width:250px;">
-                                <label class="form-label">Santri</label>
-                                <select class="form-control" id="selectSantri" onchange="loadProgress()">
-                                    <option value="">-- Pilih Santri --</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="form-label">Kategori</label>
-                                <select class="form-control" id="selectKategori" onchange="loadProgress()">
-                                    <option value="">-- Semua Kategori --</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div id="santriInfo" class="mt-lg" style="display:none;">
-                            <div style="background:var(--gray-100);padding:1rem;border-radius:var(--radius-md);">
-                                <div style="display:flex;flex-wrap:wrap;gap:1.5rem;">
-                                    <div><strong>Nama:</strong> <span id="infoNama">-</span></div>
-                                    <div><strong>Jenjang:</strong> <span id="infoJenjang">-</span></div>
-                                    <div><strong>Kelompok:</strong> <span id="infoKelompok">-</span></div>
+                <!-- Step 2: Lihat Progress -->
+                <div id="step2" style="display:none;">
+                    <div class="card mb-sm">
+                        <div class="card-body">
+                            <div style="display:flex;align-items:center;justify-content:space-between;">
+                                <div>
+                                    <strong id="selectedName">-</strong>
+                                    <div class="text-muted" style="font-size:0.75rem;" id="selectedMeta">-</div>
                                 </div>
+                                <button class="btn btn-sm btn-outline" onclick="backToList()">← Ganti</button>
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Summary -->
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <div class="summary-value selesai" id="totalSelesai">0</div>
+                            <div class="summary-label">Selesai/Lulus</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-value sedang" id="totalSedang">0</div>
+                            <div class="summary-label">Sedang</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-value belum" id="totalBelum">0</div>
+                            <div class="summary-label">Belum</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Cards -->
+                    <div class="progress-card" onclick="showDetail('SURAT')">
+                        <div class="progress-header">
+                            <span class="progress-title">📖 Hafalan Surat</span>
+                            <span id="pctSurat">0%</span>
+                        </div>
+                        <div class="progress-bar-bg"><div class="progress-bar surat" id="barSurat" style="width:0%"></div></div>
+                        <div class="progress-stats"><span id="statSurat">0/0 surat</span><span>Tap untuk detail →</span></div>
+                    </div>
+                    
+                    <div class="progress-card" onclick="showDetail('DOA')">
+                        <div class="progress-header">
+                            <span class="progress-title">🤲 Hafalan Doa & Asmaul Husna</span>
+                            <span id="pctDoa">0%</span>
+                        </div>
+                        <div class="progress-bar-bg"><div class="progress-bar doa" id="barDoa" style="width:0%"></div></div>
+                        <div class="progress-stats"><span id="statDoa">0/0 item</span><span>Tap untuk detail →</span></div>
+                    </div>
+                    
+                    <div class="text-center mt-md">
+                        <a href="penilaian-hafalan.html" class="btn btn-primary">📝 Input Penilaian</a>
+                    </div>
                 </div>
                 
-                <!-- Progress Summary -->
-                <div class="stats-grid mb-lg" id="summaryStats" style="display:none;">
-                    <div class="stat-card">
-                        <div class="stat-icon success">✅</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="statSelesai">0</div>
-                            <div class="stat-label">Selesai</div>
+                <!-- Step 3: Detail per Kategori -->
+                <div id="step3" style="display:none;">
+                    <div class="card mb-sm">
+                        <div class="card-body">
+                            <div style="display:flex;align-items:center;justify-content:space-between;">
+                                <div>
+                                    <strong id="detailTitle">-</strong>
+                                    <div class="text-muted" style="font-size:0.75rem;" id="detailName">-</div>
+                                </div>
+                                <button class="btn btn-sm btn-outline" onclick="backToProgress()">← Kembali</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon warning">⏳</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="statProses">0</div>
-                            <div class="stat-label">Proses</div>
-                        </div>
+                    
+                    <div class="tabs" id="filterTabs">
+                        <div class="tab active" data-filter="semua">Semua</div>
+                        <div class="tab" data-filter="selesai">✅ Selesai</div>
+                        <div class="tab" data-filter="sedang">⏳ Sedang</div>
+                        <div class="tab" data-filter="belum">❌ Belum</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon secondary">⬜</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="statBelum">0</div>
-                            <div class="stat-label">Belum</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Progress Table -->
-                <div class="card" id="progressCard" style="display:none;">
-                    <div class="card-header">
-                        <h3 class="card-title">Daftar Materi</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-container">
-                            <table class="table" id="progressTable">
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Materi</th>
-                                        <th>Kategori</th>
-                                        <th>Status</th>
-                                        <th>Nilai</th>
-                                        <th>Tanggal Selesai</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                    
+                    <div class="card">
+                        <div class="card-body" style="padding:0;max-height:60vh;overflow-y:auto;">
+                            <div id="detailList"></div>
                         </div>
                     </div>
                 </div>
@@ -157,305 +189,277 @@
         </main>
     </div>
     
-    <!-- Modal Input Progress -->
-    <div class="modal" id="progressModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle">Input Progress</h3>
-                <button class="modal-close" onclick="hideModal('progressModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="progressForm">
-                    <input type="hidden" name="santri_id" id="inputSantriId">
-                    <input type="hidden" name="materi_item_id" id="inputMateriId">
-                    
-                    <div class="form-group">
-                        <label class="form-label">Materi</label>
-                        <input type="text" class="form-control" id="inputMateriNama" readonly>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label required">Status</label>
-                        <select class="form-control" name="status" required>
-                            <option value="belum">Belum</option>
-                            <option value="proses">Proses</option>
-                            <option value="selesai">Selesai</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Nilai (0-100)</label>
-                        <input type="number" class="form-control" name="nilai" min="0" max="100">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Tanggal Selesai</label>
-                        <input type="date" class="form-control" name="tanggal_selesai">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Catatan</label>
-                        <textarea class="form-control" name="catatan" rows="2"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="hideModal('progressModal')">Batal</button>
-                <button class="btn btn-primary" onclick="saveProgress()" id="btnSaveProgress">Simpan</button>
-            </div>
-        </div>
-    </div>
+    <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
-    <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/sidebar.js"></script>
     
     <script>
-        let currentJamaah = null;
-        let materiList = [];
+        let allGenerus = [];
+        let selectedJamaah = null;
+        let materiSurat = [];
+        let materiDoa = [];
         let progressData = {};
+        let currentKategori = '';
+        let currentFilter = 'semua';
         
+        const $ = id => document.getElementById(id);
         
         function toggleSidebar() {
-            $('sidebar').classList.toggle('collapsed');
+            $('sidebar').classList.toggle('show');
             $('sidebarOverlay').classList.toggle('show');
         }
-
+        
         document.addEventListener('DOMContentLoaded', async () => {
             if (!await requireAuth()) return;
-            updateSidebarUserInfo();
-            initSidebar();
-            updateUserUI();
-            await loadJamaahList();
-            await loadKategoriList();
+            await loadGenerus();
+            await loadMateri();
+            
+            // Tab click handlers
+            document.querySelectorAll('#filterTabs .tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('#filterTabs .tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentFilter = tab.dataset.filter;
+                    renderDetail();
+                });
+            });
         });
         
-        function updateUserUI() {
-            if (currentUserData) {
-                $('userName').textContent = currentUserData.nama || currentUserData.email;
-                $('userAvatar').textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
-                if (userRoles.length > 0) $('userRole').textContent = userRoles[0].role?.nama || '-';
-            }
-        }
-        
-        async function loadJamaahList() {
+        async function loadGenerus() {
             try {
-                const { data } = await db.from('jamaah')
-                    .select('id, nama')
-                    .eq('status_aktif', 'aktif')
+                const { data, error } = await db
+                    .from('jamaah')
+                    .select(`
+                        id, nama, nama_panggilan, jenis_kelamin,
+                        enrollment!inner(
+                            jenjang:jenjang_id(nama),
+                            wilayah:wilayah_id(nama),
+                            status
+                        )
+                    `)
+                    .eq('enrollment.status', 'aktif')
                     .order('nama');
-                
-                const select = $('selectSantri');
-                data?.forEach(j => {
-                    select.innerHTML += `<option value="${j.id}">${j.nama}</option>`;
-                });
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-        
-        async function loadKategoriList() {
-            try {
-                const { data } = await db.from('kategori_materi')
-                    .select('id, nama')
-                    .eq('is_aktif', true)
-                    .order('urutan');
-                
-                const select = $('selectKategori');
-                data?.forEach(k => {
-                    select.innerHTML += `<option value="${k.id}">${k.nama}</option>`;
-                });
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-        
-        async function loadProgress() {
-            const jamaahId = $('selectSantri').value;
-            const kategoriId = $('selectKategori').value;
-            
-            if (!jamaahId) {
-                $('santriInfo').style.display = 'none';
-                $('summaryStats').style.display = 'none';
-                $('progressCard').style.display = 'none';
-                return;
-            }
-            
-            try {
-                // Get jamaah info
-                const { data: jamaah } = await db.from('jamaah')
-                    .select('*, enrollment(jenjang:jenjang_id(nama), wilayah:wilayah_id(nama))')
-                    .eq('id', jamaahId)
-                    .single();
-                
-                currentJamaah = jamaah;
-                const enrollment = jamaah.enrollment?.[0];
-                
-                $('santriInfo').style.display = 'block';
-                $('infoNama').textContent = jamaah.nama;
-                $('infoJenjang').textContent = enrollment?.jenjang?.nama || '-';
-                $('infoKelompok').textContent = enrollment?.wilayah?.nama || '-';
-                
-                // Get materi items
-                let materiQuery = db.from('materi_item')
-                    .select('*, kategori:kategori_id(nama)')
-                    .order('tipe')
-                    .order('nomor');
-                
-                if (kategoriId) {
-                    materiQuery = materiQuery.eq('kategori_id', kategoriId);
-                }
-                
-                const { data: materi } = await materiQuery;
-                materiList = materi || [];
-                
-                // Get existing progress
-                const { data: progress } = await db.from('progress_jamaah')
-                    .select('*')
-                    .eq('jamaah_id', jamaahId);
-                
-                progressData = {};
-                progress?.forEach(p => {
-                    progressData[p.materi_item_id] = p;
-                });
-                
-                // Calculate summary
-                let selesai = 0, proses = 0, belum = 0;
-                materiList.forEach(m => {
-                    const p = progressData[m.id];
-                    if (p?.status === 'selesai') selesai++;
-                    else if (p?.status === 'proses') proses++;
-                    else belum++;
-                });
-                
-                $('statSelesai').textContent = selesai;
-                $('statProses').textContent = proses;
-                $('statBelum').textContent = belum;
-                $('summaryStats').style.display = 'grid';
-                
-                renderProgressTable();
-                $('progressCard').style.display = 'block';
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Gagal memuat data', 'error');
-            }
-        }
-        
-        function renderProgressTable() {
-            const tbody = $$('#progressTable tbody');
-            
-            if (materiList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Tidak ada data materi</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = materiList.map((m, i) => {
-                const p = progressData[m.id];
-                const status = p?.status || 'belum';
-                const statusBadge = {
-                    'selesai': 'badge-success',
-                    'proses': 'badge-warning',
-                    'belum': 'badge-secondary'
-                };
-                
-                return `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td><strong>${m.nama}</strong></td>
-                    <td>${m.kategori?.nama || '-'}</td>
-                    <td><span class="badge ${statusBadge[status]}">${status}</span></td>
-                    <td>${p?.nilai || '-'}</td>
-                    <td>${p?.tanggal_selesai ? formatTanggalSingkat(p.tanggal_selesai) : '-'}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="showProgressModal(${m.id}, '${m.nama.replace(/'/g, "\\'")}')">
-                            ✏️ Input
-                        </button>
-                    </td>
-                </tr>`;
-            }).join('');
-        }
-        
-        function showProgressModal(materiId, materiNama) {
-            if (!currentJamaah) return;
-            
-            const existing = progressData[materiId];
-            
-            $('inputSantriId').value = currentJamaah.id;
-            $('inputMateriId').value = materiId;
-            $('inputMateriNama').value = materiNama;
-            
-            const form = $('progressForm');
-            form.querySelector('[name="status"]').value = existing?.status || 'belum';
-            form.querySelector('[name="nilai"]').value = existing?.nilai || '';
-            form.querySelector('[name="tanggal_selesai"]').value = existing?.tanggal_selesai || '';
-            form.querySelector('[name="catatan"]').value = existing?.catatan || '';
-            
-            showModal('progressModal');
-        }
-        
-        async function saveProgress() {
-            const btn = $('btnSaveProgress');
-            btn.disabled = true;
-            
-            try {
-                const formData = getFormData('progressForm');
-                const data = {
-                    jamaah_id: parseInt(formData.santri_id),
-                    materi_item_id: parseInt(formData.materi_item_id),
-                    status: formData.status,
-                    nilai: formData.nilai ? parseFloat(formData.nilai) : null,
-                    tanggal_selesai: formData.tanggal_selesai || null,
-                    catatan: formData.catatan,
-                    penguji_id: currentUserData?.id
-                };
-                
-                // Upsert
-                const { error } = await db.from('progress_jamaah').upsert(data, {
-                    onConflict: 'jamaah_id,materi_item_id'
-                });
                 
                 if (error) throw error;
                 
-                showToast('Progress berhasil disimpan', 'success');
-                hideModal('progressModal');
-                loadProgress();
+                allGenerus = data.map(j => ({
+                    jamaah_id: j.id,
+                    nama: j.nama,
+                    nama_panggilan: j.nama_panggilan,
+                    jenis_kelamin: j.jenis_kelamin,
+                    jenjang_nama: j.enrollment?.[0]?.jenjang?.nama || '-',
+                    kelompok_nama: j.enrollment?.[0]?.wilayah?.nama || '-'
+                }));
                 
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Gagal menyimpan: ' + error.message, 'error');
-            } finally {
-                btn.disabled = false;
+                renderGenerus(allGenerus);
+            } catch (e) {
+                console.error('Error load generus:', e);
+                $('generusList').innerHTML = '<div class="text-center text-muted py-4">Gagal memuat data</div>';
             }
         }
+        
+        async function loadMateri() {
+            try {
+                // Load kategori dulu
+                const { data: kategori } = await db
+                    .from('kategori_materi')
+                    .select('id, kode')
+                    .in('kode', ['SURAT', 'DOA']);
+                
+                const katSurat = kategori?.find(k => k.kode === 'SURAT');
+                const katDoa = kategori?.find(k => k.kode === 'DOA');
+                
+                // Load materi SURAT
+                if (katSurat) {
+                    const { data } = await db
+                        .from('materi_item')
+                        .select('id, kode, nama, nomor, detail')
+                        .eq('kategori_id', katSurat.id)
+                        .order('nomor');
+                    materiSurat = data || [];
+                }
+                
+                // Load materi DOA (termasuk Asmaul Husna)
+                if (katDoa) {
+                    const { data } = await db
+                        .from('materi_item')
+                        .select('id, kode, nama, nomor, detail')
+                        .eq('kategori_id', katDoa.id)
+                        .order('nomor');
+                    materiDoa = data || [];
+                }
+            } catch (e) {
+                console.error('Error load materi:', e);
+            }
+        }
+        
+        function filterGenerus() {
+            const q = $('searchGenerus').value.toLowerCase();
+            const filtered = allGenerus.filter(g => 
+                g.nama.toLowerCase().includes(q) || 
+                (g.nama_panggilan && g.nama_panggilan.toLowerCase().includes(q))
+            );
+            renderGenerus(filtered);
+        }
+        
+        function renderGenerus(list) {
+            if (!list.length) {
+                $('generusList').innerHTML = '<div class="text-center text-muted py-4">Tidak ada data</div>';
+                return;
+            }
+            
+            let html = '';
+            list.forEach(g => {
+                html += `
+                    <div class="generus-card" onclick="selectGenerus(${g.jamaah_id})">
+                        <div class="generus-avatar">${g.nama.charAt(0)}</div>
+                        <div class="generus-info">
+                            <div class="generus-name">${g.nama}</div>
+                            <div class="generus-meta">${g.jenjang_nama} • ${g.kelompok_nama}</div>
+                        </div>
+                        <span>→</span>
+                    </div>`;
+            });
+            $('generusList').innerHTML = html;
+        }
+        
+        async function selectGenerus(id) {
+            selectedJamaah = allGenerus.find(g => g.jamaah_id === id);
+            if (!selectedJamaah) return;
+            
+            $('selectedName').textContent = selectedJamaah.nama;
+            $('selectedMeta').textContent = `${selectedJamaah.jenjang_nama} • ${selectedJamaah.kelompok_nama}`;
+            
+            // Load progress dari progress_jamaah
+            try {
+                const { data } = await db
+                    .from('progress_jamaah')
+                    .select('materi_item_id, status, nilai')
+                    .eq('jamaah_id', id);
+                
+                progressData = {};
+                (data || []).forEach(p => {
+                    progressData[p.materi_item_id] = p;
+                });
+            } catch (e) {
+                console.error('Error load progress:', e);
+            }
+            
+            updateProgressDisplay();
+            
+            $('step1').style.display = 'none';
+            $('step2').style.display = 'block';
+        }
+        
+        function updateProgressDisplay() {
+            let suratSelesai = 0, doaSelesai = 0;
+            let suratSedang = 0, doaSedang = 0;
+            
+            materiSurat.forEach(m => {
+                const p = progressData[m.id];
+                if (p && (p.status === 'selesai' || p.status === 'lulus')) suratSelesai++;
+                else if (p && p.status === 'sedang') suratSedang++;
+            });
+            
+            materiDoa.forEach(m => {
+                const p = progressData[m.id];
+                if (p && (p.status === 'selesai' || p.status === 'lulus')) doaSelesai++;
+                else if (p && p.status === 'sedang') doaSedang++;
+            });
+            
+            const totalSelesai = suratSelesai + doaSelesai;
+            const totalSedang = suratSedang + doaSedang;
+            const totalMateri = materiSurat.length + materiDoa.length;
+            const totalBelum = totalMateri - totalSelesai - totalSedang;
+            
+            $('totalSelesai').textContent = totalSelesai;
+            $('totalSedang').textContent = totalSedang;
+            $('totalBelum').textContent = totalBelum;
+            
+            // Surat
+            const pctS = materiSurat.length > 0 ? Math.round((suratSelesai / materiSurat.length) * 100) : 0;
+            $('pctSurat').textContent = pctS + '%';
+            $('barSurat').style.width = pctS + '%';
+            $('statSurat').textContent = `${suratSelesai}/${materiSurat.length} surat`;
+            
+            // Doa
+            const pctD = materiDoa.length > 0 ? Math.round((doaSelesai / materiDoa.length) * 100) : 0;
+            $('pctDoa').textContent = pctD + '%';
+            $('barDoa').style.width = pctD + '%';
+            $('statDoa').textContent = `${doaSelesai}/${materiDoa.length} item`;
+        }
+        
+        function backToList() {
+            $('step1').style.display = 'block';
+            $('step2').style.display = 'none';
+            selectedJamaah = null;
+        }
+        
+        function showDetail(kategori) {
+            currentKategori = kategori;
+            currentFilter = 'semua';
+            
+            const titles = {
+                'SURAT': '📖 Hafalan Surat',
+                'DOA': '🤲 Hafalan Doa & Asmaul Husna'
+            };
+            $('detailTitle').textContent = titles[kategori] || kategori;
+            $('detailName').textContent = selectedJamaah.nama;
+            
+            document.querySelectorAll('#filterTabs .tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+            
+            renderDetail();
+            
+            $('step2').style.display = 'none';
+            $('step3').style.display = 'block';
+        }
+        
+        function backToProgress() {
+            $('step2').style.display = 'block';
+            $('step3').style.display = 'none';
+        }
+        
+        function renderDetail() {
+            const data = currentKategori === 'SURAT' ? materiSurat : materiDoa;
+            
+            let html = '';
+            data.forEach(m => {
+                const p = progressData[m.id];
+                let status = p ? p.status : 'belum';
+                
+                if (currentFilter !== 'semua') {
+                    if (currentFilter === 'selesai' && status !== 'selesai' && status !== 'lulus') return;
+                    if (currentFilter === 'sedang' && status !== 'sedang') return;
+                    if (currentFilter === 'belum' && status !== 'belum') return;
+                }
+                
+                let detail = '';
+                try {
+                    const d = typeof m.detail === 'string' ? JSON.parse(m.detail) : m.detail;
+                    if (d) {
+                        if (d.jumlah_ayat) detail = d.jumlah_ayat + ' ayat';
+                        else if (d.arti) detail = d.arti;
+                        else if (d.kategori) detail = d.kategori;
+                    }
+                } catch (e) {}
+                
+                const statusLabel = status === 'lulus' ? 'selesai' : status;
+                
+                html += `
+                    <div class="detail-item">
+                        <div class="detail-no ${statusLabel}">${m.nomor || '-'}</div>
+                        <div class="detail-name">
+                            <div>${m.nama}</div>
+                            ${detail ? `<div style="font-size:0.7rem;color:#6b7280;">${detail}</div>` : ''}
+                        </div>
+                        <span class="detail-status ${statusLabel}">${statusLabel}</span>
+                    </div>`;
+            });
+            
+            $('detailList').innerHTML = html || '<div class="text-center text-muted py-4">Tidak ada data</div>';
+        }
     </script>
-
-    <!-- Bottom Navigation for Mobile -->
-    <nav class="bottom-nav">
-        <div class="bottom-nav-grid">
-            <a href="dashboard.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">📊</span>
-                <span class="bottom-nav-label">Home</span>
-            </a>
-            <a href="generus.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">👶</span>
-                <span class="bottom-nav-label">Generus</span>
-            </a>
-            <a href="presensi.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">✅</span>
-                <span class="bottom-nav-label">Presensi</span>
-            </a>
-            <a href="progress.html" class="bottom-nav-item active">
-                <span class="bottom-nav-icon">📈</span>
-                <span class="bottom-nav-label">Progress</span>
-            </a>
-            <a href="#" class="bottom-nav-item" onclick="toggleSidebar(); return false;">
-                <span class="bottom-nav-icon">☰</span>
-                <span class="bottom-nav-label">Menu</span>
-            </a>
-        </div>
-    </nav>
 </body>
 </html>

@@ -10,28 +10,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .generus-select{display:flex;align-items:center;padding:0.75rem;background:#f0fdf4;border-radius:0.5rem;margin-bottom:0.5rem;cursor:pointer;}
-        .generus-select:hover{background:#dcfce7;}
-        .generus-avatar{width:40px;height:40px;background:#059669;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;margin-right:0.75rem;}
-        .generus-info{flex:1;}
-        .generus-name{font-weight:600;font-size:0.9rem;}
-        .generus-meta{font-size:0.75rem;color:#6b7280;}
-        .tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:0.5rem;overflow-x:auto;}
-        .tab{padding:0.5rem 1rem;cursor:pointer;font-size:0.8rem;font-weight:500;color:#6b7280;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;}
+        .generus-card{display:flex;align-items:center;padding:0.75rem;background:#f0fdf4;border-radius:0.5rem;margin-bottom:0.5rem;cursor:pointer;}
+        .generus-card:hover{background:#dcfce7;}
+        .generus-avatar{width:36px;height:36px;background:#059669;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;margin-right:0.75rem;flex-shrink:0;}
+        .generus-info{flex:1;min-width:0;}
+        .generus-name{font-weight:600;font-size:0.85rem;}
+        .generus-meta{font-size:0.7rem;color:#6b7280;}
+        .materi-item{display:flex;align-items:center;padding:0.75rem;border-bottom:1px solid #f1f5f9;cursor:pointer;}
+        .materi-item:hover{background:#f9fafb;}
+        .materi-item:last-child{border-bottom:none;}
+        .materi-no{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;margin-right:0.75rem;flex-shrink:0;}
+        .materi-no.belum{background:#fee2e2;color:#dc2626;}
+        .materi-no.sedang{background:#fef3c7;color:#d97706;}
+        .materi-no.selesai,.materi-no.lulus{background:#d1fae5;color:#059669;}
+        .materi-info{flex:1;}
+        .materi-name{font-weight:500;font-size:0.85rem;}
+        .materi-detail{font-size:0.7rem;color:#6b7280;}
+        .materi-action{color:#059669;font-size:0.8rem;}
+        .tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:0.75rem;overflow-x:auto;}
+        .tab{padding:0.5rem 1rem;cursor:pointer;font-size:0.8rem;font-weight:500;color:#6b7280;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
         .tab.active{color:#059669;border-bottom-color:#059669;}
-        .hafalan-item{display:flex;align-items:center;padding:0.5rem 0.75rem;border-bottom:1px solid #f1f5f9;}
-        .hafalan-check{margin-right:0.5rem;}
-        .hafalan-check input{width:18px;height:18px;accent-color:#059669;}
-        .hafalan-info{flex:1;}
-        .hafalan-nama{font-size:0.85rem;}
-        .hafalan-status{font-size:0.7rem;padding:2px 6px;border-radius:3px;}
-        .hafalan-status.belum{background:#fee2e2;color:#dc2626;}
-        .hafalan-status.proses{background:#fef3c7;color:#d97706;}
-        .hafalan-status.hafal{background:#d1fae5;color:#059669;}
-        .hafalan-status.lancar{background:#059669;color:#fff;}
-        .summary-bar{display:flex;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;}
-        .summary-item{font-size:0.7rem;padding:4px 8px;background:#f3f4f6;border-radius:4px;}
-        .btn-save{position:fixed;bottom:70px;right:16px;padding:12px 20px;background:#059669;color:#fff;border:none;border-radius:25px;font-weight:600;box-shadow:0 4px 12px rgba(5,150,105,0.4);cursor:pointer;}
+        .status-btn{padding:0.5rem 1rem;border:2px solid #e5e7eb;border-radius:0.5rem;background:#fff;cursor:pointer;font-size:0.8rem;flex:1;text-align:center;}
+        .status-btn.active{border-color:#059669;background:#f0fdf4;color:#059669;}
+        .status-btn:hover{border-color:#059669;}
     </style>
 </head>
 <body>
@@ -46,13 +47,19 @@
                 <div class="nav-section">MENU UTAMA</div>
                 <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
                 <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
-                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
                 <a href="penilaian-hafalan.html" class="nav-item active"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
                 <div class="nav-section">LAPORAN</div>
                 <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
                 <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
                 <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
                 <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
             </nav>
             <div class="sidebar-footer">
                 <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
@@ -63,7 +70,7 @@
         <main class="main-content">
             <header class="header">
                 <div class="header-left">
-                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <button class="btn-icon" onclick="toggleSidebar()">☰</button>
                     <h1 class="header-title">Penilaian Hafalan</h1>
                 </div>
             </header>
@@ -73,17 +80,18 @@
                 <div id="step1">
                     <div class="card mb-sm">
                         <div class="card-body">
-                            <input type="text" class="form-control" id="searchGenerus" placeholder="🔍 Cari generus..." oninput="filterGenerus()">
+                            <input type="text" class="form-control" id="searchGenerus" placeholder="🔍 Cari nama generus..." oninput="filterGenerus()">
                         </div>
                     </div>
                     <div class="card">
-                        <div class="card-body" style="padding:0.5rem;">
+                        <div class="card-header"><span class="card-title">Pilih Generus</span></div>
+                        <div class="card-body" style="padding:0.5rem;max-height:60vh;overflow-y:auto;">
                             <div id="generusList"><div class="text-center text-muted py-4">Memuat...</div></div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Step 2: Input Hafalan -->
+                <!-- Step 2: Pilih Materi -->
                 <div id="step2" style="display:none;">
                     <div class="card mb-sm">
                         <div class="card-body">
@@ -97,17 +105,53 @@
                         </div>
                     </div>
                     
-                    <div class="tabs">
-                        <div class="tab active" onclick="switchTab('surat')">📖 Surat</div>
-                        <div class="tab" onclick="switchTab('doa')">🤲 Doa</div>
-                        <div class="tab" onclick="switchTab('asmaul')">✨ Asmaul</div>
+                    <div class="tabs" id="kategoriTabs">
+                        <div class="tab active" data-kategori="SURAT">📖 Surat</div>
+                        <div class="tab" data-kategori="DOA">🤲 Doa & Asmaul</div>
                     </div>
                     
-                    <div class="summary-bar" id="summaryBar"></div>
+                    <div class="card">
+                        <div class="card-body" style="padding:0;max-height:55vh;overflow-y:auto;">
+                            <div id="materiList"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Input Penilaian -->
+                <div id="step3" style="display:none;">
+                    <div class="card mb-sm">
+                        <div class="card-body">
+                            <div style="display:flex;align-items:center;justify-content:space-between;">
+                                <div>
+                                    <strong id="materiTitle">-</strong>
+                                    <div class="text-muted" style="font-size:0.75rem;" id="materiSub">-</div>
+                                </div>
+                                <button class="btn btn-sm btn-outline" onclick="backToMateri()">← Kembali</button>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="card">
-                        <div class="card-body" style="padding:0;">
-                            <div id="hafalanList"></div>
+                        <div class="card-header"><span class="card-title">Status Hafalan</span></div>
+                        <div class="card-body">
+                            <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;" id="statusButtons">
+                                <div class="status-btn" data-status="belum">❌ Belum</div>
+                                <div class="status-btn" data-status="sedang">⏳ Sedang</div>
+                                <div class="status-btn" data-status="selesai">✅ Selesai</div>
+                                <div class="status-btn" data-status="lulus">🏆 Lulus</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Nilai (0-100)</label>
+                                <input type="number" class="form-control" id="inputNilai" min="0" max="100" placeholder="Masukkan nilai...">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Catatan</label>
+                                <textarea class="form-control" id="inputCatatan" rows="2" placeholder="Catatan (opsional)..."></textarea>
+                            </div>
+                            
+                            <button class="btn btn-primary w-100" onclick="saveProgress()">💾 Simpan</button>
                         </div>
                     </div>
                 </div>
@@ -115,209 +159,326 @@
         </main>
     </div>
     
-    <button class="btn-save" id="btnSave" style="display:none;" onclick="saveProgress()">💾 Simpan</button>
+    <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
+    
+    <!-- Toast -->
+    <div id="toast" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:0.75rem 1.5rem;border-radius:0.5rem;z-index:9999;"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     
     <script>
-        var allGenerus=[], dataSurat=[], dataDoa=[], dataAsmaul=[];
-        var selectedJamaah=null, currentTab='surat';
-        var progressSurat={}, progressDoa={}, progressAsmaul={};
-        var changes={surat:{},doa:{},asmaul:{}};
+        let allGenerus = [];
+        let selectedJamaah = null;
+        let materiSurat = [];
+        let materiDoa = [];
+        let progressData = {};
+        let currentKategori = 'SURAT';
+        let selectedMateri = null;
+        let selectedStatus = 'belum';
         
-        function $(id){return document.getElementById(id);}
-        function toggleSidebar(){$('sidebar').classList.toggle('show');$('sidebarOverlay').classList.toggle('show');}
+        const $ = id => document.getElementById(id);
         
-        document.addEventListener('DOMContentLoaded', async function(){
-            if(!await requireAuth())return;
+        function toggleSidebar() {
+            $('sidebar').classList.toggle('show');
+            $('sidebarOverlay').classList.toggle('show');
+        }
+        
+        function showToast(msg, duration = 2000) {
+            const toast = $('toast');
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', duration);
+        }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
             await loadGenerus();
             await loadMateri();
+            
+            // Kategori tab click
+            document.querySelectorAll('#kategoriTabs .tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('#kategoriTabs .tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentKategori = tab.dataset.kategori;
+                    renderMateri();
+                });
+            });
+            
+            // Status button click
+            document.querySelectorAll('#statusButtons .status-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#statusButtons .status-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedStatus = btn.dataset.status;
+                });
+            });
         });
         
-        async function loadGenerus(){
-            try{
-                var r=await db.rpc('get_generus_by_wilayah',{p_wilayah_id:null,p_jenjang_id:null,p_status:'aktif'});
-                allGenerus=r.data||[];
+        async function loadGenerus() {
+            try {
+                const { data, error } = await db
+                    .from('jamaah')
+                    .select(`
+                        id, nama, nama_panggilan, jenis_kelamin,
+                        enrollment!inner(
+                            jenjang:jenjang_id(nama),
+                            wilayah:wilayah_id(nama),
+                            status
+                        )
+                    `)
+                    .eq('enrollment.status', 'aktif')
+                    .order('nama');
+                
+                if (error) throw error;
+                
+                allGenerus = data.map(j => ({
+                    jamaah_id: j.id,
+                    nama: j.nama,
+                    nama_panggilan: j.nama_panggilan,
+                    jenis_kelamin: j.jenis_kelamin,
+                    jenjang_nama: j.enrollment?.[0]?.jenjang?.nama || '-',
+                    kelompok_nama: j.enrollment?.[0]?.wilayah?.nama || '-'
+                }));
+                
                 renderGenerus(allGenerus);
-            }catch(e){console.error(e);}
+            } catch (e) {
+                console.error('Error load generus:', e);
+            }
         }
         
-        async function loadMateri(){
-            var r1=await db.from('hafalan_surat').select('*').order('urutan_hafalan').order('nomor_surat');
-            dataSurat=r1.data||[];
-            var r2=await db.from('hafalan_doa').select('*').order('urutan');
-            dataDoa=r2.data||[];
-            var r3=await db.from('asmaul_husna').select('*').order('nomor');
-            dataAsmaul=r3.data||[];
+        async function loadMateri() {
+            try {
+                const { data: kategori } = await db
+                    .from('kategori_materi')
+                    .select('id, kode')
+                    .in('kode', ['SURAT', 'DOA']);
+                
+                const katSurat = kategori?.find(k => k.kode === 'SURAT');
+                const katDoa = kategori?.find(k => k.kode === 'DOA');
+                
+                if (katSurat) {
+                    const { data } = await db
+                        .from('materi_item')
+                        .select('id, kode, nama, nomor, detail')
+                        .eq('kategori_id', katSurat.id)
+                        .order('nomor');
+                    materiSurat = data || [];
+                }
+                
+                if (katDoa) {
+                    const { data } = await db
+                        .from('materi_item')
+                        .select('id, kode, nama, nomor, detail')
+                        .eq('kategori_id', katDoa.id)
+                        .order('nomor');
+                    materiDoa = data || [];
+                }
+            } catch (e) {
+                console.error('Error load materi:', e);
+            }
         }
         
-        function filterGenerus(){
-            var q=$('searchGenerus').value.toLowerCase();
-            var filtered=allGenerus.filter(function(g){
-                return g.nama.toLowerCase().includes(q)||(g.nama_panggilan&&g.nama_panggilan.toLowerCase().includes(q));
-            });
+        function filterGenerus() {
+            const q = $('searchGenerus').value.toLowerCase();
+            const filtered = allGenerus.filter(g => 
+                g.nama.toLowerCase().includes(q) || 
+                (g.nama_panggilan && g.nama_panggilan.toLowerCase().includes(q))
+            );
             renderGenerus(filtered);
         }
         
-        function renderGenerus(list){
-            if(!list.length){$('generusList').innerHTML='<div class="text-center text-muted py-4">Tidak ada data</div>';return;}
-            var html='';
-            list.forEach(function(g){
-                html+='<div class="generus-select" onclick="selectGenerus('+g.jamaah_id+')">';
-                html+='<div class="generus-avatar">'+g.nama.charAt(0)+'</div>';
-                html+='<div class="generus-info"><div class="generus-name">'+g.nama+'</div>';
-                html+='<div class="generus-meta">'+(g.jenjang_nama||'-')+' • '+(g.kelompok_nama||'-')+'</div></div>';
-                html+='<span>→</span></div>';
-            });
-            $('generusList').innerHTML=html;
-        }
-        
-        async function selectGenerus(id){
-            selectedJamaah=allGenerus.find(function(g){return g.jamaah_id===id;});
-            if(!selectedJamaah)return;
-            
-            $('selectedName').textContent=selectedJamaah.nama;
-            $('selectedMeta').textContent=(selectedJamaah.jenjang_nama||'-')+' • '+(selectedJamaah.kelompok_nama||'-');
-            
-            // Load existing progress
-            var now=new Date();
-            var bulan=now.getMonth()+1, tahun=now.getFullYear();
-            
-            var r1=await db.from('progress_hafalan_surat').select('*').eq('jamaah_id',id);
-            progressSurat={};
-            (r1.data||[]).forEach(function(p){progressSurat[p.hafalan_surat_id]=p;});
-            
-            var r2=await db.from('progress_hafalan_doa').select('*').eq('jamaah_id',id);
-            progressDoa={};
-            (r2.data||[]).forEach(function(p){progressDoa[p.hafalan_doa_id]=p;});
-            
-            var r3=await db.from('progress_asmaul_husna').select('*').eq('jamaah_id',id);
-            progressAsmaul={};
-            (r3.data||[]).forEach(function(p){progressAsmaul[p.asmaul_husna_id]=p;});
-            
-            changes={surat:{},doa:{},asmaul:{}};
-            
-            $('step1').style.display='none';
-            $('step2').style.display='block';
-            $('btnSave').style.display='block';
-            
-            renderHafalan();
-        }
-        
-        function backToList(){
-            $('step1').style.display='block';
-            $('step2').style.display='none';
-            $('btnSave').style.display='none';
-            selectedJamaah=null;
-        }
-        
-        function switchTab(tab){
-            currentTab=tab;
-            document.querySelectorAll('.tab').forEach(function(t,i){
-                t.classList.toggle('active',['surat','doa','asmaul'][i]===tab);
-            });
-            renderHafalan();
-        }
-        
-        function renderHafalan(){
-            var html='', data, progress, statusCounts={belum:0,proses:0,hafal:0,lancar:0};
-            
-            if(currentTab==='surat'){
-                data=dataSurat; progress=progressSurat;
-                data.forEach(function(s){
-                    var p=progress[s.id]||{status:'belum'};
-                    var st=changes.surat[s.id]||p.status||'belum';
-                    statusCounts[st]++;
-                    html+=renderItem('surat',s.id,s.nomor_surat,s.nama_surat,st);
-                });
-            }else if(currentTab==='doa'){
-                data=dataDoa; progress=progressDoa;
-                data.forEach(function(d,i){
-                    var p=progress[d.id]||{status:'belum'};
-                    var st=changes.doa[d.id]||p.status||'belum';
-                    statusCounts[st]++;
-                    html+=renderItem('doa',d.id,i+1,d.nama_doa,st);
-                });
-            }else{
-                data=dataAsmaul; progress=progressAsmaul;
-                data.forEach(function(a){
-                    var p=progress[a.id]||{status:'belum'};
-                    var st=changes.asmaul[a.id]||p.status||'belum';
-                    statusCounts[st]++;
-                    html+=renderItem('asmaul',a.id,a.nomor,a.nama_latin,st);
-                });
+        function renderGenerus(list) {
+            if (!list.length) {
+                $('generusList').innerHTML = '<div class="text-center text-muted py-4">Tidak ada data</div>';
+                return;
             }
             
-            $('hafalanList').innerHTML=html||'<div class="text-center text-muted py-4">Tidak ada data</div>';
-            $('summaryBar').innerHTML='<div class="summary-item">❌ Belum: '+statusCounts.belum+'</div><div class="summary-item">⏳ Proses: '+statusCounts.proses+'</div><div class="summary-item">✅ Hafal: '+statusCounts.hafal+'</div><div class="summary-item">⭐ Lancar: '+statusCounts.lancar+'</div>';
+            let html = '';
+            list.forEach(g => {
+                html += `
+                    <div class="generus-card" onclick="selectGenerus(${g.jamaah_id})">
+                        <div class="generus-avatar">${g.nama.charAt(0)}</div>
+                        <div class="generus-info">
+                            <div class="generus-name">${g.nama}</div>
+                            <div class="generus-meta">${g.jenjang_nama} • ${g.kelompok_nama}</div>
+                        </div>
+                        <span>→</span>
+                    </div>`;
+            });
+            $('generusList').innerHTML = html;
         }
         
-        function renderItem(type,id,no,nama,status){
-            return '<div class="hafalan-item"><div class="hafalan-check"><input type="checkbox" '+(status==='hafal'||status==='lancar'?'checked':'')+' onchange="toggleStatus(\''+type+'\','+id+',this.checked)"></div><div class="hafalan-info"><div class="hafalan-nama">'+no+'. '+nama+'</div></div><span class="hafalan-status '+status+'">'+status+'</span></div>';
-        }
-        
-        function toggleStatus(type,id,checked){
-            var newStatus=checked?'hafal':'belum';
-            changes[type][id]=newStatus;
-            renderHafalan();
-        }
-        
-        async function saveProgress(){
-            if(!selectedJamaah)return;
-            var now=new Date();
-            var bulan=now.getMonth()+1, tahun=now.getFullYear();
-            var jamaahId=selectedJamaah.jamaah_id;
+        async function selectGenerus(id) {
+            selectedJamaah = allGenerus.find(g => g.jamaah_id === id);
+            if (!selectedJamaah) return;
             
-            try{
-                // Save surat
-                for(var id in changes.surat){
-                    var existing=progressSurat[id];
-                    var data={jamaah_id:jamaahId,hafalan_surat_id:parseInt(id),status:changes.surat[id],periode_bulan:bulan,periode_tahun:tahun,tanggal_selesai:changes.surat[id]==='hafal'||changes.surat[id]==='lancar'?now.toISOString().split('T')[0]:null,updated_at:new Date().toISOString()};
-                    if(existing){
-                        await db.from('progress_hafalan_surat').update(data).eq('id',existing.id);
-                    }else{
-                        await db.from('progress_hafalan_surat').insert(data);
+            $('selectedName').textContent = selectedJamaah.nama;
+            $('selectedMeta').textContent = `${selectedJamaah.jenjang_nama} • ${selectedJamaah.kelompok_nama}`;
+            
+            // Load progress
+            try {
+                const { data } = await db
+                    .from('progress_jamaah')
+                    .select('materi_item_id, status, nilai, catatan')
+                    .eq('jamaah_id', id);
+                
+                progressData = {};
+                (data || []).forEach(p => {
+                    progressData[p.materi_item_id] = p;
+                });
+            } catch (e) {
+                console.error('Error load progress:', e);
+            }
+            
+            currentKategori = 'SURAT';
+            document.querySelectorAll('#kategoriTabs .tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+            
+            renderMateri();
+            
+            $('step1').style.display = 'none';
+            $('step2').style.display = 'block';
+        }
+        
+        function backToList() {
+            $('step1').style.display = 'block';
+            $('step2').style.display = 'none';
+            selectedJamaah = null;
+        }
+        
+        function renderMateri() {
+            const data = currentKategori === 'SURAT' ? materiSurat : materiDoa;
+            
+            let html = '';
+            data.forEach(m => {
+                const p = progressData[m.id];
+                const status = p ? p.status : 'belum';
+                
+                let detail = '';
+                try {
+                    const d = typeof m.detail === 'string' ? JSON.parse(m.detail) : m.detail;
+                    if (d) {
+                        if (d.jumlah_ayat) detail = d.jumlah_ayat + ' ayat';
+                        else if (d.arti) detail = d.arti;
                     }
-                }
-                // Save doa
-                for(var id in changes.doa){
-                    var existing=progressDoa[id];
-                    var data={jamaah_id:jamaahId,hafalan_doa_id:parseInt(id),status:changes.doa[id],periode_bulan:bulan,periode_tahun:tahun,tanggal_selesai:changes.doa[id]==='hafal'||changes.doa[id]==='lancar'?now.toISOString().split('T')[0]:null,updated_at:new Date().toISOString()};
-                    if(existing){
-                        await db.from('progress_hafalan_doa').update(data).eq('id',existing.id);
-                    }else{
-                        await db.from('progress_hafalan_doa').insert(data);
-                    }
-                }
-                // Save asmaul
-                for(var id in changes.asmaul){
-                    var existing=progressAsmaul[id];
-                    var data={jamaah_id:jamaahId,asmaul_husna_id:parseInt(id),status:changes.asmaul[id],periode_bulan:bulan,periode_tahun:tahun,tanggal_selesai:changes.asmaul[id]==='hafal'||changes.asmaul[id]==='lancar'?now.toISOString().split('T')[0]:null,updated_at:new Date().toISOString()};
-                    if(existing){
-                        await db.from('progress_asmaul_husna').update(data).eq('id',existing.id);
-                    }else{
-                        await db.from('progress_asmaul_husna').insert(data);
-                    }
+                } catch (e) {}
+                
+                html += `
+                    <div class="materi-item" onclick="selectMateri(${m.id})">
+                        <div class="materi-no ${status}">${m.nomor || '-'}</div>
+                        <div class="materi-info">
+                            <div class="materi-name">${m.nama}</div>
+                            ${detail ? `<div class="materi-detail">${detail}</div>` : ''}
+                        </div>
+                        <span class="materi-action">Nilai →</span>
+                    </div>`;
+            });
+            
+            $('materiList').innerHTML = html || '<div class="text-center text-muted py-4">Tidak ada materi</div>';
+        }
+        
+        function selectMateri(id) {
+            const data = currentKategori === 'SURAT' ? materiSurat : materiDoa;
+            selectedMateri = data.find(m => m.id === id);
+            if (!selectedMateri) return;
+            
+            const p = progressData[selectedMateri.id];
+            
+            $('materiTitle').textContent = selectedMateri.nama;
+            $('materiSub').textContent = selectedJamaah.nama;
+            
+            // Set current values
+            selectedStatus = p ? p.status : 'belum';
+            $('inputNilai').value = p?.nilai || '';
+            $('inputCatatan').value = p?.catatan || '';
+            
+            // Update status buttons
+            document.querySelectorAll('#statusButtons .status-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.status === selectedStatus);
+            });
+            
+            $('step2').style.display = 'none';
+            $('step3').style.display = 'block';
+        }
+        
+        function backToMateri() {
+            $('step2').style.display = 'block';
+            $('step3').style.display = 'none';
+            selectedMateri = null;
+        }
+        
+        async function saveProgress() {
+            if (!selectedJamaah || !selectedMateri) return;
+            
+            const nilai = $('inputNilai').value ? parseInt($('inputNilai').value) : null;
+            const catatan = $('inputCatatan').value || null;
+            const now = new Date();
+            
+            const payload = {
+                jamaah_id: selectedJamaah.jamaah_id,
+                materi_item_id: selectedMateri.id,
+                status: selectedStatus,
+                nilai: nilai,
+                catatan: catatan,
+                periode_bulan: now.getMonth() + 1,
+                periode_tahun: now.getFullYear(),
+                updated_at: now.toISOString()
+            };
+            
+            // Set tanggal
+            if (selectedStatus === 'sedang' && !progressData[selectedMateri.id]?.tanggal_mulai) {
+                payload.tanggal_mulai = now.toISOString().split('T')[0];
+            }
+            if (selectedStatus === 'selesai' || selectedStatus === 'lulus') {
+                payload.tanggal_selesai = now.toISOString().split('T')[0];
+            }
+            
+            try {
+                // Check if exists
+                const existing = progressData[selectedMateri.id];
+                
+                if (existing) {
+                    // Update
+                    const { error } = await db
+                        .from('progress_jamaah')
+                        .update(payload)
+                        .eq('jamaah_id', selectedJamaah.jamaah_id)
+                        .eq('materi_item_id', selectedMateri.id);
+                    
+                    if (error) throw error;
+                } else {
+                    // Insert
+                    payload.tanggal_mulai = now.toISOString().split('T')[0];
+                    const { error } = await db
+                        .from('progress_jamaah')
+                        .insert(payload);
+                    
+                    if (error) throw error;
                 }
                 
-                alert('Berhasil disimpan!');
-                changes={surat:{},doa:{},asmaul:{}};
-                await selectGenerus(jamaahId); // Reload
-            }catch(e){
-                console.error(e);
-                alert('Gagal menyimpan: '+e.message);
+                // Update local data
+                progressData[selectedMateri.id] = {
+                    materi_item_id: selectedMateri.id,
+                    status: selectedStatus,
+                    nilai: nilai,
+                    catatan: catatan
+                };
+                
+                showToast('✅ Berhasil disimpan');
+                
+                // Back to materi list
+                setTimeout(() => {
+                    backToMateri();
+                    renderMateri();
+                }, 500);
+                
+            } catch (e) {
+                console.error('Error save:', e);
+                showToast('❌ Gagal menyimpan');
             }
         }
     </script>
-    
-    <nav class="bottom-nav">
-        <a href="dashboard.html" class="bottom-nav-item"><span class="bottom-nav-icon">📊</span><span class="bottom-nav-label">Home</span></a>
-        <a href="generus.html" class="bottom-nav-item"><span class="bottom-nav-icon">👶</span><span class="bottom-nav-label">Generus</span></a>
-        <a href="presensi.html" class="bottom-nav-item"><span class="bottom-nav-icon">✅</span><span class="bottom-nav-label">Presensi</span></a>
-        <a href="penilaian-hafalan.html" class="bottom-nav-item active"><span class="bottom-nav-icon">📝</span><span class="bottom-nav-label">Hafalan</span></a>
-        <a href="#" class="bottom-nav-item" onclick="toggleSidebar();return false;"><span class="bottom-nav-icon">☰</span><span class="bottom-nav-label">Menu</span></a>
-    </nav>
 </body>
 </html>

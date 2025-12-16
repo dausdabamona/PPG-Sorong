@@ -4,882 +4,341 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#059669">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
     <title>Dashboard Hafalan - PPG Sorong</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/pwa-enhanced.css">
-    <link rel="stylesheet" href="css/mobile-menu.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        
-        .page-content {
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        /* Header */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .page-title { font-size: 1.1rem; font-weight: 600; margin: 0; }
-        
-        /* Stats Row */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.75rem;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 10px;
-            padding: 1rem;
-            border: 1px solid var(--gray-200);
-            text-align: center;
-        }
-        .stat-value { font-size: 1.5rem; font-weight: 700; }
-        .stat-label { font-size: 0.7rem; color: var(--gray-500); margin-top: 0.25rem; }
-        .stat-card.up .stat-value { color: #10b981; }
-        .stat-card.down .stat-value { color: #ef4444; }
-        .stat-card.neutral .stat-value { color: #3b82f6; }
-        .stat-trend { font-size: 0.7rem; margin-top: 0.25rem; }
-        .stat-trend.up { color: #10b981; }
-        .stat-trend.down { color: #ef4444; }
-        
-        /* Filter Bar */
-        .filter-bar {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr auto;
-            gap: 0.5rem;
-            background: white;
-            padding: 0.75rem;
-            border-radius: 10px;
-            border: 1px solid var(--gray-200);
-        }
-        .filter-bar select, .filter-bar input {
-            padding: 0.5rem;
-            border: 1px solid var(--gray-300);
-            border-radius: 6px;
-            font-size: 0.8rem;
-        }
-        
-        /* Grid Layout */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-        
-        /* Card */
-        .card {
-            background: white;
-            border-radius: 10px;
-            border: 1px solid var(--gray-200);
-            overflow: hidden;
-        }
-        .card-header {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--gray-100);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .card-title {
-            font-size: 0.875rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .card-body { padding: 1rem; }
-        
-        /* Chart Container */
-        .chart-container {
-            position: relative;
-            height: 250px;
-        }
-        
-        /* Progress Chart - Full Width */
-        .chart-full {
-            grid-column: 1 / -1;
-        }
-        
-        /* Leaderboard */
-        .leaderboard-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--gray-100);
-        }
-        .leaderboard-item:last-child { border-bottom: none; }
-        .leaderboard-rank {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: 600;
-            background: var(--gray-100);
-            color: var(--gray-600);
-        }
-        .leaderboard-rank.gold { background: #fef3c7; color: #b45309; }
-        .leaderboard-rank.silver { background: #e5e7eb; color: #4b5563; }
-        .leaderboard-rank.bronze { background: #fed7aa; color: #c2410c; }
-        .leaderboard-info { flex: 1; }
-        .leaderboard-name { font-weight: 500; font-size: 0.85rem; }
-        .leaderboard-meta { font-size: 0.7rem; color: var(--gray-500); }
-        .leaderboard-score {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--primary);
-        }
-        
-        /* Recent Activity */
-        .activity-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--gray-100);
-        }
-        .activity-item:last-child { border-bottom: none; }
-        .activity-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-        .activity-icon.success { background: #dcfce7; }
-        .activity-icon.warning { background: #fef3c7; }
-        .activity-icon.info { background: #dbeafe; }
-        .activity-content { flex: 1; }
-        .activity-title { font-size: 0.8rem; font-weight: 500; }
-        .activity-subtitle { font-size: 0.7rem; color: var(--gray-500); }
-        .activity-time { font-size: 0.65rem; color: var(--gray-400); }
-        
-        /* Jenjang Progress */
-        .jenjang-progress-item {
-            margin-bottom: 0.75rem;
-        }
-        .jenjang-progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.25rem;
-        }
-        .jenjang-progress-label { font-size: 0.8rem; font-weight: 500; }
-        .jenjang-progress-value { font-size: 0.75rem; color: var(--gray-500); }
-        .jenjang-progress-bar {
-            height: 8px;
-            background: var(--gray-100);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .jenjang-progress-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.3s;
-        }
-        
-        /* Colors */
-        .bg-paud { background: #f59e0b; }
-        .bg-caberawit { background: #10b981; }
-        .bg-praremaja { background: #3b82f6; }
-        .bg-remaja { background: #8b5cf6; }
-        .bg-pranikah { background: #ec4899; }
-        
-        /* Mobile */
-        @media (max-width: 768px) {
-            .stats-row { grid-template-columns: repeat(2, 1fr); }
-            .filter-bar { grid-template-columns: 1fr 1fr; }
-            .filter-bar button { grid-column: 1 / -1; }
-            .main-grid { grid-template-columns: 1fr; }
-        }
-        
-        @media (max-width: 480px) {
-            .chart-container { height: 200px; }
-        }
+        .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0.5rem;margin-bottom:1rem;}
+        .stat-card{background:#fff;padding:1rem;border-radius:0.5rem;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+        .stat-icon{font-size:1.5rem;margin-bottom:0.25rem;}
+        .stat-value{font-size:1.75rem;font-weight:700;}
+        .stat-value.green{color:#059669;}
+        .stat-value.purple{color:#7c3aed;}
+        .stat-value.orange{color:#f59e0b;}
+        .stat-value.red{color:#dc2626;}
+        .stat-label{font-size:0.7rem;color:#6b7280;}
+        .chart-container{background:#fff;border-radius:0.5rem;padding:1rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+        .chart-title{font-size:0.9rem;font-weight:600;margin-bottom:0.75rem;}
+        .leaderboard-item{display:flex;align-items:center;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;}
+        .leaderboard-item:last-child{border-bottom:none;}
+        .lb-rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;margin-right:0.75rem;}
+        .lb-rank.gold{background:#fef3c7;color:#d97706;}
+        .lb-rank.silver{background:#f1f5f9;color:#64748b;}
+        .lb-rank.bronze{background:#fed7aa;color:#c2410c;}
+        .lb-info{flex:1;}
+        .lb-name{font-weight:500;font-size:0.85rem;}
+        .lb-meta{font-size:0.7rem;color:#6b7280;}
+        .lb-score{font-weight:600;color:#059669;font-size:0.9rem;}
+        .filter-row{display:flex;gap:0.5rem;margin-bottom:1rem;}
+        .filter-row select{flex:1;}
     </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">PPG</div>
-                <div class="sidebar-brand">
-                    <div class="sidebar-title">PPG Sorong</div>
-                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
-                </div>
+                <div class="sidebar-brand"><div class="sidebar-title">PPG Sorong</div></div>
                 <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
             </div>
             <nav class="sidebar-nav">
                 <div class="nav-section">MENU UTAMA</div>
                 <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
                 <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
                 <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
                 <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
                 <a href="hafalan-dashboard.html" class="nav-item active"><span class="nav-icon">📊</span><span class="nav-text">Dashboard Hafalan</span></a>
                 <div class="nav-section">LAPORAN</div>
                 <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
                 <div class="nav-section">PENGATURAN</div>
                 <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
                 <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
                 <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
                 <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
             </nav>
             <div class="sidebar-footer">
-                <div class="sidebar-user">
-                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
-                    <div class="sidebar-user-info">
-                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
-                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
-                    </div>
-                </div>
                 <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
             </div>
         </aside>
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
         
-        <!-- Main Content -->
         <main class="main-content">
             <header class="header">
                 <div class="header-left">
-                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <button class="btn-icon" onclick="toggleSidebar()">☰</button>
                     <h1 class="header-title">Dashboard Hafalan</h1>
-                </div>
-                <div class="header-right">
-                    <div class="header-user">
-                        <div class="user-avatar" id="userAvatar">?</div>
-                        <div class="user-info">
-                            <div class="user-name" id="userName">Loading...</div>
-                            <div class="user-role" id="userRole">-</div>
-                        </div>
-                    </div>
-                    <button class="btn-logout-mobile" onclick="logout()">🚪</button>
                 </div>
             </header>
             
             <div class="page-content">
-                <!-- Header -->
-                <div class="page-header">
-                    <div>
-                        <h2 class="page-title">📊 Analisis Perkembangan Hafalan</h2>
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="refreshData()">🔄 Refresh</button>
-                </div>
-                
-                <!-- Stats Row -->
-                <div class="stats-row">
-                    <div class="stat-card up">
-                        <div class="stat-value" id="statTotal">-</div>
-                        <div class="stat-label">Total Penilaian</div>
-                        <div class="stat-trend up" id="trendTotal">-</div>
-                    </div>
-                    <div class="stat-card neutral">
-                        <div class="stat-value" id="statAvg">-</div>
-                        <div class="stat-label">Rata-rata Nilai</div>
-                        <div class="stat-trend" id="trendAvg">-</div>
-                    </div>
-                    <div class="stat-card up">
-                        <div class="stat-value" id="statLulus">-</div>
-                        <div class="stat-label">Lulus Hafalan</div>
-                        <div class="stat-trend up" id="trendLulus">-</div>
-                    </div>
-                    <div class="stat-card down">
-                        <div class="stat-value" id="statPerlu">-</div>
-                        <div class="stat-label">Perlu Perbaikan</div>
-                        <div class="stat-trend down" id="trendPerlu">-</div>
-                    </div>
-                </div>
-                
-                <!-- Filter Bar -->
-                <div class="filter-bar">
-                    <select id="filterJenjang" onchange="loadData()">
+                <!-- Filter -->
+                <div class="filter-row">
+                    <select class="form-control" id="filterJenjang" onchange="loadData()">
                         <option value="">Semua Jenjang</option>
                     </select>
-                    <select id="filterPeriode" onchange="loadData()">
-                        <option value="7">7 Hari Terakhir</option>
-                        <option value="14">14 Hari Terakhir</option>
-                        <option value="30" selected>30 Hari Terakhir</option>
-                        <option value="90">3 Bulan Terakhir</option>
+                    <select class="form-control" id="filterPeriode" onchange="loadData()">
+                        <option value="all">Semua Waktu</option>
+                        <option value="month">Bulan Ini</option>
+                        <option value="year">Tahun Ini</option>
                     </select>
-                    <select id="filterKategori" onchange="loadData()">
-                        <option value="">Semua Kategori</option>
-                        <option value="surat">Hafalan Surat</option>
-                        <option value="doa">Hafalan Doa</option>
-                        <option value="asmaul_husna">Asmaul Husna</option>
-                    </select>
-                    <button class="btn btn-outline btn-sm" onclick="exportData()">📥 Export</button>
                 </div>
                 
-                <!-- Chart Progress - Full Width -->
-                <div class="card chart-full">
-                    <div class="card-header">
-                        <h3 class="card-title">📈 Tren Penilaian Harian</h3>
-                        <select id="chartType" onchange="updateChart()" style="font-size:0.75rem;padding:0.25rem;">
-                            <option value="nilai">Rata-rata Nilai</option>
-                            <option value="jumlah">Jumlah Penilaian</option>
-                            <option value="lulus">% Kelulusan</option>
-                        </select>
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-value green" id="totalProgress">0</div>
+                        <div class="stat-label">Total Penilaian</div>
                     </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="progressChart"></canvas>
-                        </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-value purple" id="totalSelesai">0</div>
+                        <div class="stat-label">Selesai/Lulus</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📖</div>
+                        <div class="stat-value orange" id="totalSurat">0</div>
+                        <div class="stat-label">Surat Dihafal</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🤲</div>
+                        <div class="stat-value green" id="totalDoa">0</div>
+                        <div class="stat-label">Doa & Asmaul</div>
                     </div>
                 </div>
                 
-                <!-- Main Grid -->
-                <div class="main-grid">
-                    <!-- Leaderboard -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">🏆 Top Hafalan Minggu Ini</h3>
-                        </div>
-                        <div class="card-body" id="leaderboard">
-                            <p class="text-muted text-sm">Memuat...</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Progress per Jenjang -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">📊 Progress per Jenjang</h3>
-                        </div>
-                        <div class="card-body" id="jenjangProgress">
-                            <p class="text-muted text-sm">Memuat...</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Recent Activity -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">🕐 Penilaian Terbaru</h3>
-                            <a href="penilaian.html" class="btn btn-sm btn-outline">Input</a>
-                        </div>
-                        <div class="card-body" id="recentActivity">
-                            <p class="text-muted text-sm">Memuat...</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Needs Attention -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">⚠️ Perlu Perhatian</h3>
-                        </div>
-                        <div class="card-body" id="needsAttention">
-                            <p class="text-muted text-sm">Memuat...</p>
-                        </div>
-                    </div>
+                <!-- Chart Progress per Status -->
+                <div class="chart-container">
+                    <div class="chart-title">📊 Progress per Status</div>
+                    <canvas id="chartStatus" height="200"></canvas>
+                </div>
+                
+                <!-- Leaderboard -->
+                <div class="chart-container">
+                    <div class="chart-title">🏆 Top 10 Penghafal</div>
+                    <div id="leaderboard"><div class="text-center text-muted py-2">Memuat...</div></div>
+                </div>
+                
+                <!-- Chart per Jenjang -->
+                <div class="chart-container">
+                    <div class="chart-title">📈 Progress per Jenjang</div>
+                    <canvas id="chartJenjang" height="200"></canvas>
                 </div>
             </div>
         </main>
     </div>
+    
+    <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
-    <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/sidebar.js"></script>
+    
     <script>
-        var db;
-        var progressChart;
-        var allJenjang = [];
-        var chartData = { labels: [], datasets: [] };
+        let chartStatus = null;
+        let chartJenjang = null;
+        let kategoriSurat = null;
+        let kategoriDoa = null;
+        let allJenjang = [];
         
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                
-                var user = await checkAuth();
-                if (!user) {
-                    window.location.href = 'index.html';
-                    return;
-                }
-                
-                updateUserDisplay(user);
-                await loadMasterData();
-                await loadData();
-                
-            } catch (error) {
-                console.error('Init error:', error);
-                showToast('Gagal inisialisasi: ' + error.message, 'error');
-            }
-        });
-        
-        function updateUserDisplay(user) {
-            var name = user.user_metadata?.nama || user.email?.split('@')[0] || 'User';
-            var initial = name.charAt(0).toUpperCase();
-            var role = user.user_metadata?.role || 'user';
-            
-            $('userName').textContent = name;
-            $('userRole').textContent = role;
-            $('userAvatar').textContent = initial;
-            $('sidebarUserName').textContent = name;
-            $('sidebarUserRole').textContent = role;
-            $('sidebarUserAvatar').textContent = initial;
+        const $ = id => document.getElementById(id);
+        function toggleSidebar() {
+            $('sidebar').classList.toggle('show');
+            $('sidebarOverlay').classList.toggle('show');
         }
         
-        async function loadMasterData() {
-            // Load Jenjang
-            var { data } = await db.from('jenjang')
-                .select('id, nama, kode')
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
+            
+            // Load kategori
+            const { data: kategori } = await db
+                .from('kategori_materi')
+                .select('id, kode')
+                .in('kode', ['SURAT', 'DOA']);
+            
+            kategoriSurat = kategori?.find(k => k.kode === 'SURAT');
+            kategoriDoa = kategori?.find(k => k.kode === 'DOA');
+            
+            // Load jenjang
+            const { data: jenjang } = await db
+                .from('jenjang')
+                .select('id, nama')
                 .eq('is_aktif', true)
                 .order('urutan');
             
-            allJenjang = data || [];
+            allJenjang = jenjang || [];
+            let optHtml = '<option value="">Semua Jenjang</option>';
+            allJenjang.forEach(j => {
+                optHtml += `<option value="${j.id}">${j.nama}</option>`;
+            });
+            $('filterJenjang').innerHTML = optHtml;
             
-            $('filterJenjang').innerHTML = '<option value="">Semua Jenjang</option>' +
-                allJenjang.map(j => '<option value="' + j.id + '">' + j.nama + '</option>').join('');
-        }
+            await loadData();
+        });
         
         async function loadData() {
-            await Promise.all([
-                loadStats(),
-                loadChartData(),
-                loadLeaderboard(),
-                loadJenjangProgress(),
-                loadRecentActivity(),
-                loadNeedsAttention()
-            ]);
-        }
-        
-        function refreshData() {
-            showToast('Memuat ulang data...', 'info');
-            loadData();
-        }
-        
-        async function loadStats() {
+            const jenjangId = $('filterJenjang').value;
+            const periode = $('filterPeriode').value;
+            
             try {
-                var periode = parseInt($('filterPeriode').value);
-                var startDate = new Date();
-                startDate.setDate(startDate.getDate() - periode);
-                var startStr = startDate.toISOString().split('T')[0];
+                // Build query
+                let query = db
+                    .from('progress_jamaah')
+                    .select(`
+                        id, jamaah_id, materi_item_id, status,
+                        materi_item!inner(kategori_id, kode),
+                        jamaah!inner(nama, enrollment!inner(jenjang_id, jenjang:jenjang_id(nama)))
+                    `);
                 
-                var prevStartDate = new Date();
-                prevStartDate.setDate(prevStartDate.getDate() - (periode * 2));
-                var prevStartStr = prevStartDate.toISOString().split('T')[0];
-                
-                // Current period
-                var { count: totalCurrent } = await db.from('penilaian')
-                    .select('*', { count: 'exact', head: true })
-                    .gte('tanggal', startStr);
-                
-                // Previous period
-                var { count: totalPrev } = await db.from('penilaian')
-                    .select('*', { count: 'exact', head: true })
-                    .gte('tanggal', prevStartStr)
-                    .lt('tanggal', startStr);
-                
-                // Average nilai current
-                var { data: nilaiData } = await db.from('penilaian')
-                    .select('nilai')
-                    .gte('tanggal', startStr);
-                
-                var avgCurrent = 0;
-                if (nilaiData && nilaiData.length > 0) {
-                    var sum = nilaiData.reduce((a, b) => a + (b.nilai || 0), 0);
-                    avgCurrent = (sum / nilaiData.length).toFixed(1);
+                // Filter periode
+                const now = new Date();
+                if (periode === 'month') {
+                    query = query.eq('periode_bulan', now.getMonth() + 1).eq('periode_tahun', now.getFullYear());
+                } else if (periode === 'year') {
+                    query = query.eq('periode_tahun', now.getFullYear());
                 }
                 
-                // Lulus (nilai >= 70)
-                var { count: lulusCurrent } = await db.from('penilaian')
-                    .select('*', { count: 'exact', head: true })
-                    .gte('tanggal', startStr)
-                    .gte('nilai', 70);
+                const { data: progress } = await query;
                 
-                // Perlu perbaikan (nilai < 70)
-                var { count: perluCurrent } = await db.from('penilaian')
-                    .select('*', { count: 'exact', head: true })
-                    .gte('tanggal', startStr)
-                    .lt('nilai', 70);
-                
-                // Update UI
-                $('statTotal').textContent = totalCurrent || 0;
-                $('statAvg').textContent = avgCurrent || '-';
-                $('statLulus').textContent = lulusCurrent || 0;
-                $('statPerlu').textContent = perluCurrent || 0;
-                
-                // Calculate trends
-                var totalTrend = totalPrev > 0 ? ((totalCurrent - totalPrev) / totalPrev * 100).toFixed(0) : 0;
-                $('trendTotal').textContent = (totalTrend >= 0 ? '↑ ' : '↓ ') + Math.abs(totalTrend) + '% vs periode lalu';
-                $('trendTotal').className = 'stat-trend ' + (totalTrend >= 0 ? 'up' : 'down');
-                
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
-        
-        async function loadChartData() {
-            try {
-                var periode = parseInt($('filterPeriode').value);
-                var jenjangId = $('filterJenjang').value;
-                
-                // Generate date labels
-                var labels = [];
-                var dates = [];
-                for (var i = periode - 1; i >= 0; i--) {
-                    var d = new Date();
-                    d.setDate(d.getDate() - i);
-                    labels.push(d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
-                    dates.push(d.toISOString().split('T')[0]);
+                // Filter by jenjang if selected
+                let filtered = progress || [];
+                if (jenjangId) {
+                    filtered = filtered.filter(p => 
+                        p.jamaah?.enrollment?.some(e => e.jenjang_id == jenjangId)
+                    );
                 }
                 
-                // Fetch penilaian data
-                var startDate = dates[0];
-                var query = db.from('penilaian')
-                    .select('tanggal, nilai, enrollment:enrollment_id(jenjang_id)')
-                    .gte('tanggal', startDate)
-                    .order('tanggal');
+                // Calculate stats
+                let totalProgress = filtered.length;
+                let selesaiCount = 0, sedangCount = 0, belumCount = 0;
+                let suratCount = 0, doaCount = 0;
+                const scoreMap = {};
+                const jenjangStats = {};
                 
-                var { data } = await query;
-                
-                // Group by date
-                var byDate = {};
-                dates.forEach(d => byDate[d] = { values: [], count: 0, lulus: 0 });
-                
-                (data || []).forEach(p => {
-                    var dateKey = p.tanggal;
-                    if (byDate[dateKey]) {
-                        // Filter by jenjang if selected
-                        if (jenjangId && p.enrollment?.jenjang_id != jenjangId) return;
+                filtered.forEach(p => {
+                    const isSelesai = p.status === 'selesai' || p.status === 'lulus';
+                    const isSedang = p.status === 'sedang';
+                    
+                    if (isSelesai) selesaiCount++;
+                    else if (isSedang) sedangCount++;
+                    else belumCount++;
+                    
+                    if (isSelesai) {
+                        if (kategoriSurat && p.materi_item.kategori_id === kategoriSurat.id) {
+                            suratCount++;
+                        } else if (kategoriDoa && p.materi_item.kategori_id === kategoriDoa.id) {
+                            doaCount++;
+                        }
                         
-                        byDate[dateKey].values.push(p.nilai || 0);
-                        byDate[dateKey].count++;
-                        if (p.nilai >= 70) byDate[dateKey].lulus++;
+                        // Score map
+                        const jamaahId = p.jamaah_id;
+                        if (!scoreMap[jamaahId]) {
+                            scoreMap[jamaahId] = {
+                                nama: p.jamaah?.nama || '-',
+                                jenjang: p.jamaah?.enrollment?.[0]?.jenjang?.nama || '-',
+                                score: 0
+                            };
+                        }
+                        scoreMap[jamaahId].score++;
                     }
+                    
+                    // Jenjang stats
+                    const jenjangNama = p.jamaah?.enrollment?.[0]?.jenjang?.nama || 'Lainnya';
+                    if (!jenjangStats[jenjangNama]) {
+                        jenjangStats[jenjangNama] = { selesai: 0, sedang: 0, belum: 0 };
+                    }
+                    if (isSelesai) jenjangStats[jenjangNama].selesai++;
+                    else if (isSedang) jenjangStats[jenjangNama].sedang++;
+                    else jenjangStats[jenjangNama].belum++;
                 });
                 
-                // Create datasets
-                var avgData = dates.map(d => {
-                    var vals = byDate[d].values;
-                    return vals.length > 0 ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : null;
-                });
+                // Update stats
+                $('totalProgress').textContent = totalProgress;
+                $('totalSelesai').textContent = selesaiCount;
+                $('totalSurat').textContent = suratCount;
+                $('totalDoa').textContent = doaCount;
                 
-                var countData = dates.map(d => byDate[d].count);
-                
-                var lulusData = dates.map(d => {
-                    var total = byDate[d].count;
-                    return total > 0 ? ((byDate[d].lulus / total) * 100).toFixed(0) : null;
-                });
-                
-                // Store data for chart type switching
-                chartData = { labels, avgData, countData, lulusData };
-                
-                // Create/update chart
-                updateChart();
-                
-            } catch (error) {
-                console.error('Error loading chart data:', error);
-            }
-        }
-        
-        function updateChart() {
-            var type = $('chartType').value;
-            var ctx = $('progressChart').getContext('2d');
-            
-            var data, label, color, yMax;
-            
-            if (type === 'nilai') {
-                data = chartData.avgData;
-                label = 'Rata-rata Nilai';
-                color = '#10b981';
-                yMax = 100;
-            } else if (type === 'jumlah') {
-                data = chartData.countData;
-                label = 'Jumlah Penilaian';
-                color = '#3b82f6';
-                yMax = Math.max(...data.filter(d => d !== null)) + 5;
-            } else {
-                data = chartData.lulusData;
-                label = '% Kelulusan';
-                color = '#8b5cf6';
-                yMax = 100;
-            }
-            
-            if (progressChart) {
-                progressChart.destroy();
-            }
-            
-            progressChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: chartData.labels,
-                    datasets: [{
-                        label: label,
-                        data: data,
-                        borderColor: color,
-                        backgroundColor: color + '20',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
+                // Chart Status
+                if (chartStatus) chartStatus.destroy();
+                chartStatus = new Chart($('chartStatus'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Selesai/Lulus', 'Sedang', 'Belum'],
+                        datasets: [{
+                            data: [selesaiCount, sedangCount, belumCount],
+                            backgroundColor: ['#059669', '#f59e0b', '#dc2626']
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: yMax,
-                            grid: { color: '#f1f5f9' }
-                        },
-                        x: {
-                            grid: { display: false }
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' }
                         }
                     }
-                }
-            });
-        }
-        
-        async function loadLeaderboard() {
-            try {
-                // Get this week's top performers
-                var startOfWeek = new Date();
-                startOfWeek.setDate(startOfWeek.getDate() - 7);
-                var startStr = startOfWeek.toISOString().split('T')[0];
-                
-                var { data } = await db.from('penilaian')
-                    .select('nilai, enrollment:enrollment_id(jamaah:jamaah_id(nama), jenjang:jenjang_id(nama))')
-                    .gte('tanggal', startStr)
-                    .gte('nilai', 70)
-                    .order('nilai', { ascending: false })
-                    .limit(10);
-                
-                if (!data || !data.length) {
-                    $('leaderboard').innerHTML = '<p class="text-muted text-sm">Belum ada data minggu ini</p>';
-                    return;
-                }
-                
-                // Aggregate by person
-                var scores = {};
-                data.forEach(p => {
-                    var nama = p.enrollment?.jamaah?.nama || 'Unknown';
-                    var jenjang = p.enrollment?.jenjang?.nama || '-';
-                    var key = nama;
-                    if (!scores[key]) {
-                        scores[key] = { nama, jenjang, total: 0, count: 0 };
-                    }
-                    scores[key].total += p.nilai;
-                    scores[key].count++;
                 });
                 
-                // Sort by average score
-                var sorted = Object.values(scores)
-                    .map(s => ({ ...s, avg: (s.total / s.count).toFixed(0) }))
-                    .sort((a, b) => b.avg - a.avg)
-                    .slice(0, 5);
+                // Leaderboard
+                let topList = Object.values(scoreMap);
+                topList.sort((a, b) => b.score - a.score);
+                topList = topList.slice(0, 10);
                 
-                var html = sorted.map((s, i) => {
-                    var rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-                    return `
-                        <div class="leaderboard-item">
-                            <div class="leaderboard-rank ${rankClass}">${i + 1}</div>
-                            <div class="leaderboard-info">
-                                <div class="leaderboard-name">${s.nama}</div>
-                                <div class="leaderboard-meta">${s.jenjang} • ${s.count} hafalan</div>
-                            </div>
-                            <div class="leaderboard-score">${s.avg}</div>
-                        </div>
-                    `;
-                }).join('');
+                if (topList.length > 0) {
+                    let lbHtml = '';
+                    topList.forEach((t, i) => {
+                        const rankClass = i === 0 ? 'gold' : (i === 1 ? 'silver' : (i === 2 ? 'bronze' : ''));
+                        lbHtml += `
+                            <div class="leaderboard-item">
+                                <div class="lb-rank ${rankClass}">${i + 1}</div>
+                                <div class="lb-info">
+                                    <div class="lb-name">${t.nama}</div>
+                                    <div class="lb-meta">${t.jenjang}</div>
+                                </div>
+                                <div class="lb-score">${t.score}</div>
+                            </div>`;
+                    });
+                    $('leaderboard').innerHTML = lbHtml;
+                } else {
+                    $('leaderboard').innerHTML = '<div class="text-center text-muted py-2">Belum ada data</div>';
+                }
                 
-                $('leaderboard').innerHTML = html;
+                // Chart Jenjang
+                const jenjangLabels = Object.keys(jenjangStats);
+                const jenjangSelesai = jenjangLabels.map(j => jenjangStats[j].selesai);
+                const jenjangSedang = jenjangLabels.map(j => jenjangStats[j].sedang);
                 
-            } catch (error) {
-                console.error('Error loading leaderboard:', error);
-                $('leaderboard').innerHTML = '<p class="text-muted text-sm">Gagal memuat</p>';
-            }
-        }
-        
-        async function loadJenjangProgress() {
-            try {
-                var periode = parseInt($('filterPeriode').value);
-                var startDate = new Date();
-                startDate.setDate(startDate.getDate() - periode);
-                var startStr = startDate.toISOString().split('T')[0];
-                
-                var { data } = await db.from('penilaian')
-                    .select('nilai, enrollment:enrollment_id(jenjang:jenjang_id(id, nama))')
-                    .gte('tanggal', startStr);
-                
-                // Aggregate by jenjang
-                var byJenjang = {};
-                allJenjang.forEach(j => {
-                    byJenjang[j.id] = { nama: j.nama, total: 0, lulus: 0 };
-                });
-                
-                (data || []).forEach(p => {
-                    var jid = p.enrollment?.jenjang?.id;
-                    if (jid && byJenjang[jid]) {
-                        byJenjang[jid].total++;
-                        if (p.nilai >= 70) byJenjang[jid].lulus++;
+                if (chartJenjang) chartJenjang.destroy();
+                chartJenjang = new Chart($('chartJenjang'), {
+                    type: 'bar',
+                    data: {
+                        labels: jenjangLabels,
+                        datasets: [
+                            { label: 'Selesai', data: jenjangSelesai, backgroundColor: '#059669' },
+                            { label: 'Sedang', data: jenjangSedang, backgroundColor: '#f59e0b' }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: { stacked: true },
+                            y: { stacked: true, beginAtZero: true }
+                        },
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
                     }
                 });
                 
-                var colors = {
-                    'PAUD': '#f59e0b',
-                    'Caberawit': '#10b981',
-                    'Praremaja': '#3b82f6',
-                    'Remaja': '#8b5cf6',
-                    'Pra Nikah': '#ec4899',
-                    'Pranikah': '#ec4899'
-                };
-                
-                var html = Object.values(byJenjang).map(j => {
-                    var pct = j.total > 0 ? ((j.lulus / j.total) * 100).toFixed(0) : 0;
-                    var color = colors[j.nama] || '#059669';
-                    return `
-                        <div class="jenjang-progress-item">
-                            <div class="jenjang-progress-header">
-                                <span class="jenjang-progress-label">${j.nama}</span>
-                                <span class="jenjang-progress-value">${j.lulus}/${j.total} (${pct}%)</span>
-                            </div>
-                            <div class="jenjang-progress-bar">
-                                <div class="jenjang-progress-fill" style="width:${pct}%;background:${color}"></div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-                
-                $('jenjangProgress').innerHTML = html || '<p class="text-muted text-sm">Tidak ada data</p>';
-                
-            } catch (error) {
-                console.error('Error loading jenjang progress:', error);
+            } catch (e) {
+                console.error('Error load data:', e);
             }
         }
-        
-        async function loadRecentActivity() {
-            try {
-                var { data } = await db.from('penilaian')
-                    .select('tanggal, nilai, enrollment:enrollment_id(jamaah:jamaah_id(nama), jenjang:jenjang_id(nama)), target:target_materi_id(nama)')
-                    .order('created_at', { ascending: false })
-                    .limit(5);
-                
-                if (!data || !data.length) {
-                    $('recentActivity').innerHTML = '<p class="text-muted text-sm">Belum ada penilaian</p>';
-                    return;
-                }
-                
-                var html = data.map(p => {
-                    var iconClass = p.nilai >= 70 ? 'success' : 'warning';
-                    var icon = p.nilai >= 70 ? '✅' : '⚠️';
-                    return `
-                        <div class="activity-item">
-                            <div class="activity-icon ${iconClass}">${icon}</div>
-                            <div class="activity-content">
-                                <div class="activity-title">${p.enrollment?.jamaah?.nama || '-'}</div>
-                                <div class="activity-subtitle">${p.target?.nama || 'Hafalan'} • Nilai: ${p.nilai}</div>
-                            </div>
-                            <div class="activity-time">${formatDate(p.tanggal)}</div>
-                        </div>
-                    `;
-                }).join('');
-                
-                $('recentActivity').innerHTML = html;
-                
-            } catch (error) {
-                console.error('Error loading activity:', error);
-            }
-        }
-        
-        async function loadNeedsAttention() {
-            try {
-                // Get students with low scores
-                var periode = parseInt($('filterPeriode').value);
-                var startDate = new Date();
-                startDate.setDate(startDate.getDate() - periode);
-                var startStr = startDate.toISOString().split('T')[0];
-                
-                var { data } = await db.from('penilaian')
-                    .select('nilai, enrollment:enrollment_id(jamaah:jamaah_id(id, nama), jenjang:jenjang_id(nama))')
-                    .gte('tanggal', startStr)
-                    .lt('nilai', 70)
-                    .order('nilai');
-                
-                if (!data || !data.length) {
-                    $('needsAttention').innerHTML = '<p class="text-muted text-sm" style="color:#10b981;">✨ Semua generus progresnya baik!</p>';
-                    return;
-                }
-                
-                // Aggregate by person
-                var byPerson = {};
-                data.forEach(p => {
-                    var id = p.enrollment?.jamaah?.id;
-                    var nama = p.enrollment?.jamaah?.nama || 'Unknown';
-                    if (!byPerson[id]) {
-                        byPerson[id] = { nama, jenjang: p.enrollment?.jenjang?.nama, count: 0, lowestScore: 100 };
-                    }
-                    byPerson[id].count++;
-                    if (p.nilai < byPerson[id].lowestScore) {
-                        byPerson[id].lowestScore = p.nilai;
-                    }
-                });
-                
-                // Sort by count and show top 5
-                var sorted = Object.values(byPerson)
-                    .sort((a, b) => b.count - a.count)
-                    .slice(0, 5);
-                
-                var html = sorted.map(p => `
-                    <div class="activity-item">
-                        <div class="activity-icon warning">⚠️</div>
-                        <div class="activity-content">
-                            <div class="activity-title">${p.nama}</div>
-                            <div class="activity-subtitle">${p.jenjang} • ${p.count}x nilai < 70</div>
-                        </div>
-                        <div style="font-weight:600;color:#ef4444;">${p.lowestScore}</div>
-                    </div>
-                `).join('');
-                
-                $('needsAttention').innerHTML = html;
-                
-            } catch (error) {
-                console.error('Error loading needs attention:', error);
-            }
-        }
-        
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            var d = new Date(dateStr);
-            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-        }
-        
-        function exportData() {
-            showToast('Fitur export akan segera tersedia', 'info');
-        }
-        
-        function showToast(message, type) {
-            var toast = document.createElement('div');
-            toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:0.75rem 1.5rem;border-radius:8px;color:white;font-size:0.85rem;z-index:9999;';
-            toast.style.background = type === 'error' ? '#ef4444' : type === 'info' ? '#3b82f6' : '#10b981';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(function() { toast.remove(); }, 3000);
-        }
-        
-        function $(id) { return document.getElementById(id); }
     </script>
 </body>
 </html>

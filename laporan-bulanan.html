@@ -29,8 +29,8 @@
         .top-name{font-size:0.85rem;font-weight:500;}
         .top-meta{font-size:0.7rem;color:#6b7280;}
         .top-score{font-weight:600;color:#059669;}
-        .print-btn{position:fixed;bottom:70px;right:16px;width:50px;height:50px;background:#059669;color:#fff;border:none;border-radius:50%;font-size:1.25rem;box-shadow:0 4px 12px rgba(5,150,105,0.4);cursor:pointer;}
-        @media print{.sidebar,.header,.bottom-nav,.print-btn,.filter-section{display:none!important;}.main-content{margin:0!important;padding:0!important;}}
+        .print-btn{position:fixed;bottom:80px;right:16px;width:50px;height:50px;background:#7c3aed;color:#fff;border:none;border-radius:50%;font-size:1.25rem;box-shadow:0 4px 12px rgba(124,58,237,0.4);cursor:pointer;}
+        @media print{.sidebar,.header,.fab-menu,.print-btn,.filter-section{display:none!important;}.main-content{margin:0!important;padding:0!important;}}
     </style>
 </head>
 <body>
@@ -45,13 +45,19 @@
                 <div class="nav-section">MENU UTAMA</div>
                 <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
                 <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
-                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
                 <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
                 <div class="nav-section">LAPORAN</div>
                 <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
                 <a href="laporan-bulanan.html" class="nav-item active"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
                 <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
                 <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
             </nav>
             <div class="sidebar-footer">
                 <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
@@ -62,7 +68,7 @@
         <main class="main-content">
             <header class="header">
                 <div class="header-left">
-                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <button class="btn-icon" onclick="toggleSidebar()">☰</button>
                     <h1 class="header-title">Laporan Bulanan</h1>
                 </div>
             </header>
@@ -70,7 +76,7 @@
             <div class="page-content">
                 <div class="card mb-sm filter-section">
                     <div class="card-body">
-                        <div class="filter-grid">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
                             <select class="form-control" id="filterBulan" onchange="loadReport()">
                                 <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option>
                                 <option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option>
@@ -87,6 +93,7 @@
         </main>
     </div>
     
+    <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
     <button class="print-btn" onclick="window.print()" title="Cetak">🖨️</button>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -94,140 +101,180 @@
     <script src="js/auth.js"></script>
     
     <script>
-        var namaBulan=['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+        const namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+        let kategoriSurat = null;
+        let kategoriDoa = null;
         
-        function $(id){return document.getElementById(id);}
-        function toggleSidebar(){$('sidebar').classList.toggle('show');$('sidebarOverlay').classList.toggle('show');}
+        const $ = id => document.getElementById(id);
+        function toggleSidebar() {
+            $('sidebar').classList.toggle('show');
+            $('sidebarOverlay').classList.toggle('show');
+        }
         
-        document.addEventListener('DOMContentLoaded', async function(){
-            if(!await requireAuth())return;
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
             
-            var now=new Date();
-            $('filterBulan').value=now.getMonth()+1;
+            const now = new Date();
+            $('filterBulan').value = now.getMonth() + 1;
             
-            var tahunHtml='';
-            for(var y=now.getFullYear();y>=now.getFullYear()-4;y--){
-                tahunHtml+='<option value="'+y+'">'+y+'</option>';
+            let tahunHtml = '';
+            for (let y = now.getFullYear(); y >= now.getFullYear() - 4; y--) {
+                tahunHtml += `<option value="${y}">${y}</option>`;
             }
-            $('filterTahun').innerHTML=tahunHtml;
+            $('filterTahun').innerHTML = tahunHtml;
+            
+            // Load kategori
+            const { data: kategori } = await db
+                .from('kategori_materi')
+                .select('id, kode')
+                .in('kode', ['SURAT', 'DOA']);
+            
+            kategoriSurat = kategori?.find(k => k.kode === 'SURAT');
+            kategoriDoa = kategori?.find(k => k.kode === 'DOA');
             
             await loadReport();
         });
         
-        async function loadReport(){
-            var bulan=parseInt($('filterBulan').value);
-            var tahun=parseInt($('filterTahun').value);
+        async function loadReport() {
+            const bulan = parseInt($('filterBulan').value);
+            const tahun = parseInt($('filterTahun').value);
             
-            try{
-                // Load generus
-                var rGen=await db.rpc('get_generus_by_wilayah',{p_wilayah_id:null,p_jenjang_id:null,p_status:'aktif'});
-                var generus=rGen.data||[];
-                var totalGenerus=generus.length;
+            try {
+                // Load generus aktif
+                const { data: generus } = await db
+                    .from('jamaah')
+                    .select('id, nama, enrollment!inner(jenjang:jenjang_id(nama), status)')
+                    .eq('enrollment.status', 'aktif');
                 
-                // Load progress hafalan bulan ini
-                var rSurat=await db.from('progress_hafalan_surat').select('*').eq('periode_bulan',bulan).eq('periode_tahun',tahun);
-                var rDoa=await db.from('progress_hafalan_doa').select('*').eq('periode_bulan',bulan).eq('periode_tahun',tahun);
-                var rAsmaul=await db.from('progress_asmaul_husna').select('*').eq('periode_bulan',bulan).eq('periode_tahun',tahun);
+                const totalGenerus = generus?.length || 0;
                 
-                var pSurat=rSurat.data||[], pDoa=rDoa.data||[], pAsmaul=rAsmaul.data||[];
+                // Load progress bulan ini dari progress_jamaah
+                const { data: progress } = await db
+                    .from('progress_jamaah')
+                    .select('jamaah_id, materi_item_id, status, materi_item!inner(kategori_id, kode)')
+                    .eq('periode_bulan', bulan)
+                    .eq('periode_tahun', tahun);
                 
-                // Hitung statistik
-                var suratHafal=pSurat.filter(function(p){return p.status==='hafal'||p.status==='lancar';}).length;
-                var doaHafal=pDoa.filter(function(p){return p.status==='hafal'||p.status==='lancar';}).length;
-                var asmaulHafal=pAsmaul.filter(function(p){return p.status==='hafal'||p.status==='lancar';}).length;
-                var totalHafal=suratHafal+doaHafal+asmaulHafal;
+                // Hitung per kategori
+                let suratSelesai = 0, doaSelesai = 0, asmaulSelesai = 0;
+                const scoreMap = {};
+                
+                (progress || []).forEach(p => {
+                    const isSelesai = p.status === 'selesai' || p.status === 'lulus';
+                    
+                    if (isSelesai) {
+                        // Cek kategori
+                        if (kategoriSurat && p.materi_item.kategori_id === kategoriSurat.id) {
+                            suratSelesai++;
+                        } else if (kategoriDoa && p.materi_item.kategori_id === kategoriDoa.id) {
+                            // Cek apakah asmaul husna atau doa
+                            if (p.materi_item.kode.startsWith('A-')) {
+                                asmaulSelesai++;
+                            } else {
+                                doaSelesai++;
+                            }
+                        }
+                        
+                        // Score untuk top performers
+                        scoreMap[p.jamaah_id] = (scoreMap[p.jamaah_id] || 0) + 1;
+                    }
+                });
+                
+                const totalHafal = suratSelesai + doaSelesai + asmaulSelesai;
                 
                 // Load total materi
-                var rTotalSurat=await db.from('hafalan_surat').select('id',{count:'exact',head:true});
-                var rTotalDoa=await db.from('hafalan_doa').select('id',{count:'exact',head:true});
-                var totalSurat=rTotalSurat.count||0;
-                var totalDoa=rTotalDoa.count||0;
-                
-                // Top performers - hitung per jamaah
-                var scoreMap={};
-                pSurat.forEach(function(p){
-                    if(p.status==='hafal'||p.status==='lancar'){
-                        scoreMap[p.jamaah_id]=(scoreMap[p.jamaah_id]||0)+1;
-                    }
-                });
-                pDoa.forEach(function(p){
-                    if(p.status==='hafal'||p.status==='lancar'){
-                        scoreMap[p.jamaah_id]=(scoreMap[p.jamaah_id]||0)+1;
-                    }
-                });
-                pAsmaul.forEach(function(p){
-                    if(p.status==='hafal'||p.status==='lancar'){
-                        scoreMap[p.jamaah_id]=(scoreMap[p.jamaah_id]||0)+1;
-                    }
-                });
-                
-                var topList=[];
-                for(var jid in scoreMap){
-                    var g=generus.find(function(x){return x.jamaah_id==jid;});
-                    if(g){
-                        topList.push({nama:g.nama,jenjang:g.jenjang_nama,score:scoreMap[jid]});
-                    }
+                let totalSurat = 0, totalDoa = 0;
+                if (kategoriSurat) {
+                    const { count } = await db.from('materi_item').select('id', { count: 'exact', head: true }).eq('kategori_id', kategoriSurat.id);
+                    totalSurat = count || 0;
                 }
-                topList.sort(function(a,b){return b.score-a.score;});
-                topList=topList.slice(0,5);
-                
-                // Render
-                var html='';
-                
-                // Header
-                html+='<div class="report-header">';
-                html+='<div class="report-title">📅 Laporan Bulanan PPG Sorong</div>';
-                html+='<div class="report-subtitle">Periode: '+namaBulan[bulan]+' '+tahun+'</div>';
-                html+='</div>';
-                
-                // Stats
-                html+='<div class="stats-grid">';
-                html+='<div class="stat-card"><div class="stat-value">'+totalGenerus+'</div><div class="stat-label">Total Generus</div></div>';
-                html+='<div class="stat-card"><div class="stat-value">'+totalHafal+'</div><div class="stat-label">Hafalan Baru</div></div>';
-                html+='<div class="stat-card"><div class="stat-value">'+suratHafal+'</div><div class="stat-label">Surat Dihafal</div></div>';
-                html+='<div class="stat-card"><div class="stat-value">'+doaHafal+'</div><div class="stat-label">Doa Dihafal</div></div>';
-                html+='</div>';
-                
-                // Progress per kategori
-                html+='<div class="card mb-sm"><div class="card-body">';
-                html+='<div class="section-title">📊 Progress Hafalan</div>';
-                
-                var pctSurat=totalSurat>0?Math.round((suratHafal/totalSurat)*100):0;
-                var pctDoa=totalDoa>0?Math.round((doaHafal/totalDoa)*100):0;
-                var pctAsmaul=Math.round((asmaulHafal/99)*100);
-                
-                html+='<div class="progress-row"><div class="progress-label">📖 Surat</div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pctSurat+'%"></div></div><div class="progress-value">'+suratHafal+'</div></div>';
-                html+='<div class="progress-row"><div class="progress-label">🤲 Doa</div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pctDoa+'%"></div></div><div class="progress-value">'+doaHafal+'</div></div>';
-                html+='<div class="progress-row"><div class="progress-label">✨ Asmaul Husna</div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pctAsmaul+'%"></div></div><div class="progress-value">'+asmaulHafal+'</div></div>';
-                html+='</div></div>';
+                if (kategoriDoa) {
+                    const { count } = await db.from('materi_item').select('id', { count: 'exact', head: true }).eq('kategori_id', kategoriDoa.id);
+                    totalDoa = count || 0;
+                }
                 
                 // Top performers
-                if(topList.length>0){
-                    html+='<div class="card"><div class="card-body">';
-                    html+='<div class="section-title">🏆 Top 5 Penghafal Bulan Ini</div>';
-                    topList.forEach(function(t,i){
-                        html+='<div class="top-item"><div class="top-rank">'+(i+1)+'</div>';
-                        html+='<div class="top-info"><div class="top-name">'+t.nama+'</div><div class="top-meta">'+(t.jenjang||'-')+'</div></div>';
-                        html+='<div class="top-score">'+t.score+' hafalan</div></div>';
+                let topList = [];
+                for (const jid in scoreMap) {
+                    const g = generus?.find(x => x.id == jid);
+                    if (g) {
+                        topList.push({
+                            nama: g.nama,
+                            jenjang: g.enrollment?.[0]?.jenjang?.nama || '-',
+                            score: scoreMap[jid]
+                        });
+                    }
+                }
+                topList.sort((a, b) => b.score - a.score);
+                topList = topList.slice(0, 5);
+                
+                // Render
+                let html = '';
+                
+                // Header
+                html += `
+                    <div class="report-header">
+                        <div class="report-title">📅 Laporan Bulanan PPG Sorong</div>
+                        <div class="report-subtitle">Periode: ${namaBulan[bulan]} ${tahun}</div>
+                    </div>`;
+                
+                // Stats
+                html += `
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="stat-value">${totalGenerus}</div><div class="stat-label">Total Generus</div></div>
+                        <div class="stat-card"><div class="stat-value">${totalHafal}</div><div class="stat-label">Hafalan Selesai</div></div>
+                        <div class="stat-card"><div class="stat-value">${suratSelesai}</div><div class="stat-label">📖 Surat</div></div>
+                        <div class="stat-card"><div class="stat-value">${doaSelesai + asmaulSelesai}</div><div class="stat-label">🤲 Doa & Asmaul</div></div>
+                    </div>`;
+                
+                // Progress per kategori
+                const pctSurat = totalSurat > 0 ? Math.round((suratSelesai / totalSurat) * 100) : 0;
+                const pctDoa = totalDoa > 0 ? Math.round(((doaSelesai + asmaulSelesai) / totalDoa) * 100) : 0;
+                
+                html += `
+                    <div class="card mb-sm"><div class="card-body">
+                        <div class="section-title">📊 Progress Hafalan Bulan Ini</div>
+                        <div class="progress-row">
+                            <div class="progress-label">📖 Hafalan Surat</div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pctSurat}%"></div></div>
+                            <div class="progress-value">${suratSelesai}</div>
+                        </div>
+                        <div class="progress-row">
+                            <div class="progress-label">🤲 Doa & Asmaul Husna</div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pctDoa}%"></div></div>
+                            <div class="progress-value">${doaSelesai + asmaulSelesai}</div>
+                        </div>
+                    </div></div>`;
+                
+                // Top performers
+                if (topList.length > 0) {
+                    html += `<div class="card"><div class="card-body">
+                        <div class="section-title">🏆 Top 5 Penghafal Bulan Ini</div>`;
+                    
+                    topList.forEach((t, i) => {
+                        html += `
+                            <div class="top-item">
+                                <div class="top-rank">${i + 1}</div>
+                                <div class="top-info">
+                                    <div class="top-name">${t.nama}</div>
+                                    <div class="top-meta">${t.jenjang}</div>
+                                </div>
+                                <div class="top-score">${t.score} hafalan</div>
+                            </div>`;
                     });
-                    html+='</div></div>';
+                    
+                    html += `</div></div>`;
+                } else {
+                    html += `<div class="card"><div class="card-body text-center text-muted">Belum ada data hafalan bulan ini</div></div>`;
                 }
                 
-                $('reportContent').innerHTML=html;
+                $('reportContent').innerHTML = html;
                 
-            }catch(e){
+            } catch (e) {
                 console.error(e);
-                $('reportContent').innerHTML='<div class="card"><div class="card-body text-center text-danger">Gagal memuat: '+e.message+'</div></div>';
+                $('reportContent').innerHTML = `<div class="card"><div class="card-body text-center text-danger">Gagal memuat: ${e.message}</div></div>`;
             }
         }
     </script>
-    
-    <nav class="bottom-nav">
-        <a href="dashboard.html" class="bottom-nav-item"><span class="bottom-nav-icon">📊</span><span class="bottom-nav-label">Home</span></a>
-        <a href="generus.html" class="bottom-nav-item"><span class="bottom-nav-icon">👶</span><span class="bottom-nav-label">Generus</span></a>
-        <a href="presensi.html" class="bottom-nav-item"><span class="bottom-nav-icon">✅</span><span class="bottom-nav-label">Presensi</span></a>
-        <a href="penilaian-hafalan.html" class="bottom-nav-item"><span class="bottom-nav-icon">📝</span><span class="bottom-nav-label">Hafalan</span></a>
-        <a href="#" class="bottom-nav-item" onclick="toggleSidebar();return false;"><span class="bottom-nav-icon">☰</span><span class="bottom-nav-label">Menu</span></a>
-    </nav>
 </body>
 </html>

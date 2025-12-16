@@ -60,15 +60,7 @@
         <main class="main-content">
             <header class="header no-print">
                 <div class="header-left"><h1 class="header-title">Rapor Santri</h1></div>
-                <div class="header-right">
-                    <div class="user-menu">
-                        <div class="user-avatar" id="userAvatar">?</div>
-                        <div class="user-info"><div class="user-name" id="userName">Loading...</div><div class="user-role" id="userRole">-</div></div>
-                    </div>
-                    <button class="btn-logout-mobile" onclick="logout()">🚪</button>
-                    <button class="btn btn-outline btn-sm" onclick="logout()">Keluar</button>
-                </div>
-            </header>
+                </header>
             
             <div class="page-content">
                 <!-- Filter -->
@@ -353,29 +345,6 @@
 
 
     <!-- Bottom Navigation for Mobile -->
-    <nav class="bottom-nav">
-        <div class="bottom-nav-grid">
-            <a href="dashboard.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">📊</span>
-                <span class="bottom-nav-label">Home</span>
-            </a>
-            <a href="generus.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">👶</span>
-                <span class="bottom-nav-label">Generus</span>
-            </a>
-            <a href="presensi.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">✅</span>
-                <span class="bottom-nav-label">Presensi</span>
-            </a>
-            <a href="progress.html" class="bottom-nav-item">
-                <span class="bottom-nav-icon">📈</span>
-                <span class="bottom-nav-label">Progress</span>
-            </a>
-            <a href="#" class="bottom-nav-item" onclick="toggleSidebar(); return false;">
-                <span class="bottom-nav-icon">☰</span>
-                <span class="bottom-nav-label">Menu</span>
-            </a>
-        </div>
-    </nav>
+        <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
 </body>
 </html>
