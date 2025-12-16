@@ -21,9 +21,9 @@ function getSidebarHTML(activePage = '') {
                     <span class="nav-icon">📊</span>
                     <span class="nav-text">Dashboard</span>
                 </a>
-                <a href="santri.html" class="nav-item ${activePage === 'santri' ? 'active' : ''}">
-                    <span class="nav-icon">👥</span>
-                    <span class="nav-text">Data Santri</span>
+                <a href="generus.html" class="nav-item ${activePage === 'generus' ? 'active' : ''}">
+                    <span class="nav-icon">👶</span>
+                    <span class="nav-text">Data Generus</span>
                 </a>
                 <a href="pengajian.html" class="nav-item ${activePage === 'pengajian' ? 'active' : ''}">
                     <span class="nav-icon">📖</span>
@@ -52,6 +52,10 @@ function getSidebarHTML(activePage = '') {
                 <a href="kurikulum.html" class="nav-item ${activePage === 'kurikulum' ? 'active' : ''}">
                     <span class="nav-icon">📚</span>
                     <span class="nav-text">Kurikulum</span>
+                </a>
+                <a href="jamaah.html" class="nav-item ${activePage === 'jamaah' ? 'active' : ''}">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Data Jamaah</span>
                 </a>
                 <a href="users.html" class="nav-item ${activePage === 'users' ? 'active' : ''}">
                     <span class="nav-icon">👤</span>

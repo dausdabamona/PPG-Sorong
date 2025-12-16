@@ -603,81 +603,98 @@
         
         // ========== SAVE DATA ==========
         async function saveDataDiri() {
-            var id = $('editId').value;
+            var idEl = $('editId');
+            if (!idEl || !idEl.value) {
+                showToast('ID tidak valid', 'error');
+                return;
+            }
+            var id = idEl.value;
+            
             try {
-                var result = await db.from('jamaah').update({
-                    nama: $('editNama').value,
-                    nama_panggilan: $('editNamaPanggilan').value || null,
-                    jenis_kelamin: $('editJenisKelamin').value,
-                    tanggal_lahir: $('editTanggalLahir').value || null,
-                    phone: $('editPhone').value || null,
-                    alamat_lengkap: $('editAlamat').value || null
-                }).eq('id', id);
+                var jamaahData = {
+                    nama: $('editNama')?.value || '',
+                    nama_panggilan: $('editNamaPanggilan')?.value || null,
+                    jenis_kelamin: $('editJenisKelamin')?.value || null,
+                    tanggal_lahir: $('editTanggalLahir')?.value || null,
+                    phone: $('editPhone')?.value || null,
+                    alamat_lengkap: $('editAlamat')?.value || null
+                };
                 
-                if (result.error) throw result.error;
-                showToast('Data berhasil disimpan!', 'success');
-                closeEditModal();
-                loadGenerus();
+                // Gunakan api.js
+                var success = await jamaahApi.update(id, jamaahData);
+                
+                if (success) {
+                    showToast('Data berhasil disimpan!', 'success');
+                    closeEditModal();
+                    loadGenerus();
+                }
             } catch (error) {
-                showToast('Gagal: ' + error.message, 'error');
+                console.error('saveDataDiri error:', error);
+                showToast('Gagal: ' + (error.message || error), 'error');
             }
         }
         
         // ========== PINDAH KELOMPOK ==========
         async function savePindahKelompok() {
-            var jamaahId = $('editId').value;
-            var enrollmentId = $('editEnrollmentId').value;
-            var kelompokBaru = $('pindahKelompok').value;
-            var tanggal = $('pindahTanggal').value;
-            var keterangan = $('pindahKeterangan').value;
+            var jamaahIdEl = $('editId');
+            var kelompokBaruEl = $('pindahKelompok');
+            var keteranganEl = $('pindahKeterangan');
+            var currentKelompokIdEl = $('editCurrentKelompokId');
+            
+            if (!jamaahIdEl || !jamaahIdEl.value) {
+                showToast('ID jamaah tidak valid', 'error');
+                return;
+            }
+            
+            var jamaahId = jamaahIdEl.value;
+            var kelompokBaru = kelompokBaruEl?.value || '';
+            var keterangan = keteranganEl?.value || 'Pindah kelompok';
+            var currentKelompokId = currentKelompokIdEl?.value || '';
             
             if (!kelompokBaru) {
                 showToast('Pilih kelompok tujuan!', 'error');
                 return;
             }
-            if (kelompokBaru == $('editCurrentKelompokId').value) {
-                showToast('Kelompok sama!', 'error');
+            if (kelompokBaru == currentKelompokId) {
+                showToast('Kelompok sama dengan kelompok sekarang!', 'error');
                 return;
             }
             
             try {
-                if (enrollmentId) {
-                    await db.from('enrollment').update({ 
-                        status: 'pindah', 
-                        tanggal_selesai: tanggal, 
-                        keterangan: keterangan || 'Pindah kelompok'
-                    }).eq('id', enrollmentId);
+                // Gunakan api.js - enrollmentApi.pindahKelompok
+                var jenjangId = (currentEditData && currentEditData.enrollment) 
+                    ? currentEditData.enrollment.jenjang_id 
+                    : null;
+                
+                var result = await enrollmentApi.pindahKelompok(
+                    jamaahId, 
+                    kelompokBaru, 
+                    jenjangId, 
+                    keterangan
+                );
+                
+                if (result) {
+                    showToast('Berhasil pindah kelompok!', 'success');
+                    closeEditModal();
+                    loadGenerus();
                 }
-                
-                var taResult = await db.from('tahun_ajaran').select('id').eq('is_aktif', true).single();
-                var taId = taResult.data ? taResult.data.id : 1;
-                
-                var jenjangId = currentEditData && currentEditData.enrollment ? currentEditData.enrollment.jenjang_id : null;
-                
-                var result = await db.from('enrollment').insert({
-                    jamaah_id: parseInt(jamaahId),
-                    wilayah_id: parseInt(kelompokBaru),
-                    jenjang_id: jenjangId,
-                    tahun_ajaran_id: taId,
-                    tanggal_mulai: tanggal,
-                    status: 'aktif',
-                    keterangan: 'Pindah dari kelompok lain'
-                });
-                
-                if (result.error) throw result.error;
-                showToast('Berhasil pindah kelompok!', 'success');
-                closeEditModal();
-                loadGenerus();
             } catch (error) {
-                showToast('Gagal: ' + error.message, 'error');
+                console.error('savePindahKelompok error:', error);
+                showToast('Gagal: ' + (error.message || error), 'error');
             }
         }
         
         // ========== STATUS ==========
         function onStatusChange() {
-            var status = $('newStatus').value;
-            $('formMenikah').style.display = status === 'menikah' ? 'block' : 'none';
-            $('formNonaktif').style.display = ['nonaktif', 'pindah', 'meninggal'].includes(status) ? 'block' : 'none';
+            var statusEl = $('newStatus');
+            var formMenikahEl = $('formMenikah');
+            var formNonaktifEl = $('formNonaktif');
+            
+            var status = statusEl?.value || '';
+            
+            if (formMenikahEl) formMenikahEl.style.display = status === 'menikah' ? 'block' : 'none';
+            if (formNonaktifEl) formNonaktifEl.style.display = ['nonaktif', 'pindah', 'meninggal'].includes(status) ? 'block' : 'none';
+        }
         }
         
         function togglePasanganForm() {
@@ -687,64 +704,99 @@
         }
         
         async function searchPasanganJamaah() {
-            var search = $('searchPasangan').value.toLowerCase();
+            var searchEl = $('searchPasangan');
             var resultsDiv = $('searchPasanganResults');
+            
+            if (!searchEl || !resultsDiv) return;
+            
+            var search = (searchEl.value || '').toLowerCase();
             
             if (search.length < 2) { 
                 resultsDiv.classList.remove('show'); 
                 return; 
             }
             
-            var currentGender = currentEditData && currentEditData.jamaah ? currentEditData.jamaah.jenis_kelamin : 'L';
+            var currentGender = (currentEditData && currentEditData.jamaah) ? currentEditData.jamaah.jenis_kelamin : 'L';
             var searchGender = currentGender === 'L' ? 'P' : 'L';
-            var currentId = currentEditData && currentEditData.jamaah ? currentEditData.jamaah.id : 0;
+            var currentId = (currentEditData && currentEditData.jamaah) ? currentEditData.jamaah.id : 0;
             
-            var result = await db.from('jamaah')
-                .select('id, nama, nama_panggilan, tanggal_lahir')
-                .neq('id', currentId)
-                .eq('jenis_kelamin', searchGender)
-                .ilike('nama', '%' + search + '%')
-                .limit(10);
-            
-            var data = result.data;
-            
-            if (data && data.length > 0) {
-                var html = '';
-                for (var i = 0; i < data.length; i++) {
-                    var j = data[i];
-                    var umurText = j.tanggal_lahir ? ' - ' + hitungUmur(j.tanggal_lahir) + ' th' : '';
-                    html += '<div class="search-result-item" onclick="selectPasangan(' + j.id + ', \'' + j.nama.replace(/'/g, "\\'") + '\', \'' + (j.tanggal_lahir || '') + '\')">';
-                    html += '<strong>' + j.nama + '</strong>' + umurText;
-                    html += '</div>';
+            try {
+                var result = await db.from('jamaah')
+                    .select('id, nama, nama_panggilan, tanggal_lahir')
+                    .neq('id', currentId)
+                    .eq('jenis_kelamin', searchGender)
+                    .ilike('nama', '%' + search + '%')
+                    .limit(10);
+                
+                var data = result.data || [];
+                
+                if (data.length > 0) {
+                    var html = '';
+                    for (var i = 0; i < data.length; i++) {
+                        var j = data[i];
+                        var namaEscaped = escapeHtml(j.nama || '');
+                        var umurText = j.tanggal_lahir ? ' - ' + hitungUmur(j.tanggal_lahir) + ' th' : '';
+                        html += '<div class="search-result-item" onclick="selectPasangan(' + j.id + ', \'' + namaEscaped.replace(/'/g, "\\'") + '\', \'' + (j.tanggal_lahir || '') + '\')">';
+                        html += '<strong>' + namaEscaped + '</strong>' + umurText;
+                        html += '</div>';
+                    }
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = '<div class="search-result-item text-muted">Tidak ditemukan</div>';
                 }
-                resultsDiv.innerHTML = html;
-            } else {
-                resultsDiv.innerHTML = '<div class="search-result-item text-muted">Tidak ditemukan</div>';
+                resultsDiv.classList.add('show');
+            } catch (error) {
+                console.error('searchPasanganJamaah error:', error);
+                resultsDiv.innerHTML = '<div class="search-result-item text-muted">Error mencari</div>';
+                resultsDiv.classList.add('show');
             }
-            resultsDiv.classList.add('show');
         }
         
         function selectPasangan(id, nama, tgl) {
-            $('pasanganJamaahId').value = id;
-            $('searchPasangan').value = '';
-            $('searchPasanganResults').classList.remove('show');
-            var umurText = tgl ? ' (' + hitungUmur(tgl) + ' th)' : '';
-            $('selectedPasangan').innerHTML = '<div class="selected-person"><span>💍 ' + nama + umurText + '</span><span class="remove" onclick="removePasangan()">✕</span></div>';
+            var pasanganIdEl = $('pasanganJamaahId');
+            var searchEl = $('searchPasangan');
+            var resultsEl = $('searchPasanganResults');
+            var selectedEl = $('selectedPasangan');
+            
+            if (pasanganIdEl) pasanganIdEl.value = id;
+            if (searchEl) searchEl.value = '';
+            if (resultsEl) resultsEl.classList.remove('show');
+            
+            if (selectedEl) {
+                var umurText = tgl ? ' (' + hitungUmur(tgl) + ' th)' : '';
+                var namaEscaped = escapeHtml(nama || '');
+                selectedEl.innerHTML = '<div class="selected-person"><span>💍 ' + namaEscaped + umurText + '</span><span class="remove" onclick="removePasangan()">✕</span></div>';
+            }
         }
         
         function removePasangan() {
-            $('pasanganJamaahId').value = '';
-            $('selectedPasangan').innerHTML = '';
+            var pasanganIdEl = $('pasanganJamaahId');
+            var selectedEl = $('selectedPasangan');
+            
+            if (pasanganIdEl) pasanganIdEl.value = '';
+            if (selectedEl) selectedEl.innerHTML = '';
         }
         
         async function saveStatus() {
-            var status = $('newStatus').value;
-            if (!status) {
+            var statusEl = $('newStatus');
+            var editIdEl = $('editId');
+            
+            if (!statusEl || !statusEl.value) {
                 showToast('Pilih status!', 'error');
                 return;
             }
+            if (!editIdEl || !editIdEl.value) {
+                showToast('ID jamaah tidak valid', 'error');
+                return;
+            }
             
-            var jamaahId = parseInt($('editId').value);
+            var status = statusEl.value;
+            var jamaahId = safeParseInt(editIdEl.value);
+            
+            if (!jamaahId) {
+                showToast('ID jamaah tidak valid', 'error');
+                return;
+            }
             
             try {
                 if (status === 'menikah') {
@@ -752,71 +804,62 @@
                 } else if (['nonaktif', 'pindah', 'meninggal'].includes(status)) {
                     await prosesNonaktif(jamaahId, status);
                 } else if (status === 'aktif') {
-                    await db.from('jamaah').update({ status_aktif: 'aktif' }).eq('id', jamaahId);
+                    // Gunakan api.js
+                    await jamaahApi.updateStatus(jamaahId, 'aktif', 'Diaktifkan kembali');
                     showToast('Status: Aktif', 'success');
                 }
                 closeEditModal();
                 loadGenerus();
             } catch (error) {
-                showToast('Gagal: ' + error.message, 'error');
+                console.error('saveStatus error:', error);
+                showToast('Gagal: ' + (error.message || error), 'error');
             }
         }
         
         async function prosesMenuikah(jamaahId) {
-            var tanggal = $('tanggalMenikah').value;
-            var pasanganId = $('pasanganJamaahId').value;
+            var tanggalEl = $('tanggalMenikah');
+            var pasanganIdEl = $('pasanganJamaahId');
+            var pasanganDariPPGEl = $('pasanganDariPPG');
+            
+            var tanggal = tanggalEl?.value || '';
+            var pasanganId = pasanganIdEl?.value || '';
+            var pasanganDariPPG = pasanganDariPPGEl?.value || 'tidak';
             
             if (!tanggal) {
                 showToast('Isi tanggal menikah!', 'error');
                 return;
             }
             
-            var enrollmentId = $('editEnrollmentId').value;
-            if (enrollmentId) {
-                await db.from('enrollment').update({ jenjang_id: JENJANG_DEWASA_ID }).eq('id', enrollmentId);
-            }
-            
-            if ($('pasanganDariPPG').value === 'ya' && pasanganId) {
-                var gender = currentEditData && currentEditData.jamaah ? currentEditData.jamaah.jenis_kelamin : 'L';
-                
-                await db.from('relasi_keluarga').insert([
-                    { jamaah_id: jamaahId, relasi_dengan_jamaah_id: parseInt(pasanganId), tipe_relasi: gender === 'L' ? 'suami' : 'istri', status_relasi: 'aktif', tanggal_mulai: tanggal },
-                    { jamaah_id: parseInt(pasanganId), relasi_dengan_jamaah_id: jamaahId, tipe_relasi: gender === 'L' ? 'istri' : 'suami', status_relasi: 'aktif', tanggal_mulai: tanggal }
-                ]);
-                
-                var pEnrollResult = await db.from('enrollment').select('id').eq('jamaah_id', pasanganId).eq('status', 'aktif').single();
-                if (pEnrollResult.data) {
-                    await db.from('enrollment').update({ jenjang_id: JENJANG_DEWASA_ID }).eq('id', pEnrollResult.data.id);
+            try {
+                // Gunakan api.js - pernikahanApi.proses
+                if (pasanganDariPPG === 'ya' && pasanganId) {
+                    await pernikahanApi.proses(jamaahId, safeParseInt(pasanganId), tanggal);
+                } else {
+                    await pernikahanApi.proses(jamaahId, null, tanggal);
                 }
+                
+                showToast('Status menikah disimpan!', 'success');
+            } catch (error) {
+                console.error('prosesMenuikah error:', error);
+                throw error;
             }
-            
-            showToast('Status menikah disimpan!', 'success');
         }
         
         async function prosesNonaktif(jamaahId, status) {
-            var tanggal = $('tanggalNonaktif').value;
-            var keterangan = $('keteranganNonaktif').value;
+            var tanggalEl = $('tanggalNonaktif');
+            var keteranganEl = $('keteranganNonaktif');
             
-            await db.from('jamaah').update({ 
-                status_aktif: status, 
-                tanggal_nonaktif: tanggal || null, 
-                keterangan: keterangan || null
-            }).eq('id', jamaahId);
+            var tanggal = tanggalEl?.value || null;
+            var keterangan = keteranganEl?.value || null;
             
-            var enrollmentId = $('editEnrollmentId').value;
-            if (enrollmentId) {
-                await db.from('enrollment').update({ 
-                    status: status === 'meninggal' ? 'nonaktif' : status, 
-                    tanggal_selesai: tanggal
-                }).eq('id', enrollmentId);
+            try {
+                // Gunakan api.js
+                await jamaahApi.updateStatus(jamaahId, status, keterangan);
+                showToast('Status: ' + status, 'success');
+            } catch (error) {
+                console.error('prosesNonaktif error:', error);
+                throw error;
             }
-            
-            if (status === 'meninggal') {
-                await db.from('relasi_keluarga').update({ status_relasi: 'meninggal' })
-                    .or('jamaah_id.eq.' + jamaahId + ',relasi_dengan_jamaah_id.eq.' + jamaahId);
-            }
-            
-            showToast('Status: ' + status, 'success');
         }
         
         function hitungUmur(tgl) {
@@ -830,8 +873,9 @@
         }
         
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-select')) {
-                $('searchPasanganResults').classList.remove('show');
+            var resultsEl = $('searchPasanganResults');
+            if (resultsEl && !e.target.closest('.search-select')) {
+                resultsEl.classList.remove('show');
             }
         });
     </script>

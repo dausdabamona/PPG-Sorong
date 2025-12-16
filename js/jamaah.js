@@ -449,4 +449,285 @@ window.loadJamaah = loadJamaah;
 window.viewDetail = viewDetail;
 window.editJamaah = editJamaah;
 window.confirmDelete = confirmDelete;
+window.deleteJamaah = deleteJamaah;
 window.debounceSearch = debounceSearch;
+window.saveJamaahWithProcedure = saveJamaahWithProcedure;
+window.saveEditJamaah = saveEditJamaah;
+window.closeModal = closeModal;
+window.closeDetailModal = closeDetailModal;
+
+// ============================================================================
+// VIEW DETAIL
+// ============================================================================
+
+async function viewDetail(id) {
+    try {
+        showLoading(true);
+        
+        // Gunakan api.js
+        const jamaah = await jamaahApi.getById(id);
+        
+        if (!jamaah) {
+            showAlert('Data jamaah tidak ditemukan', 'error');
+            return;
+        }
+        
+        // Build detail HTML
+        const detailHtml = `
+            <div class="detail-section">
+                <h4>Data Pribadi</h4>
+                <table class="detail-table">
+                    <tr><td>Nama Lengkap</td><td>: <strong>${escapeHtml(jamaah.nama || '-')}</strong></td></tr>
+                    <tr><td>Nama Panggilan</td><td>: ${escapeHtml(jamaah.nama_panggilan || '-')}</td></tr>
+                    <tr><td>Nomor Induk</td><td>: ${escapeHtml(jamaah.nomor_induk || '-')}</td></tr>
+                    <tr><td>Jenis Kelamin</td><td>: ${jamaah.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}</td></tr>
+                    <tr><td>Tempat Lahir</td><td>: ${escapeHtml(jamaah.tempat_lahir || '-')}</td></tr>
+                    <tr><td>Tanggal Lahir</td><td>: ${jamaah.tanggal_lahir ? formatTanggal(jamaah.tanggal_lahir) : '-'}</td></tr>
+                    <tr><td>Umur</td><td>: ${jamaah.umur || hitungUmur(jamaah.tanggal_lahir)} tahun</td></tr>
+                    <tr><td>Phone</td><td>: ${escapeHtml(jamaah.phone || '-')}</td></tr>
+                    <tr><td>Alamat</td><td>: ${escapeHtml(jamaah.alamat_lengkap || '-')}</td></tr>
+                </table>
+            </div>
+            <div class="detail-section">
+                <h4>Status & Kelompok</h4>
+                <table class="detail-table">
+                    <tr><td>Status</td><td>: <span class="badge badge-${jamaah.status_aktif === 'aktif' ? 'success' : 'secondary'}">${jamaah.status_aktif || '-'}</span></td></tr>
+                    <tr><td>Fase</td><td>: ${escapeHtml(jamaah.fase_nama || jamaah.currentFase || '-')}</td></tr>
+                    <tr><td>Jenjang</td><td>: ${escapeHtml(jamaah.jenjang_nama || jamaah.currentJenjang || '-')}</td></tr>
+                    <tr><td>Kelompok</td><td>: ${escapeHtml(jamaah.kelompok_nama || jamaah.currentWilayah || '-')}</td></tr>
+                    <tr><td>Desa</td><td>: ${escapeHtml(jamaah.desa_nama || '-')}</td></tr>
+                </table>
+            </div>
+        `;
+        
+        const detailContent = document.getElementById('detailContent');
+        if (detailContent) {
+            detailContent.innerHTML = detailHtml;
+        }
+        
+        const detailModal = document.getElementById('detailModal');
+        if (detailModal) {
+            detailModal.classList.add('show');
+        }
+        
+    } catch (error) {
+        console.error('viewDetail error:', error);
+        showAlert('Gagal memuat detail: ' + (error.message || error), 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function closeDetailModal() {
+    const modal = document.getElementById('detailModal');
+    if (modal) modal.classList.remove('show');
+}
+
+// ============================================================================
+// EDIT JAMAAH
+// ============================================================================
+
+let currentEditId = null;
+
+async function editJamaah(id) {
+    try {
+        showLoading(true);
+        currentEditId = id;
+        
+        // Gunakan api.js
+        const jamaah = await jamaahApi.getDetailById(id);
+        
+        if (!jamaah) {
+            showAlert('Data jamaah tidak ditemukan', 'error');
+            return;
+        }
+        
+        // Populate form
+        const fields = {
+            'editId': jamaah.id,
+            'editNama': jamaah.nama,
+            'editNamaPanggilan': jamaah.nama_panggilan,
+            'editJenisKelamin': jamaah.jenis_kelamin,
+            'editTempatLahir': jamaah.tempat_lahir,
+            'editTanggalLahir': jamaah.tanggal_lahir,
+            'editPhone': jamaah.phone,
+            'editAlamat': jamaah.alamat_lengkap,
+            'editStatus': jamaah.status_aktif
+        };
+        
+        for (const [fieldId, value] of Object.entries(fields)) {
+            const el = document.getElementById(fieldId);
+            if (el) el.value = value || '';
+        }
+        
+        const editModal = document.getElementById('editModal');
+        if (editModal) {
+            editModal.classList.add('show');
+        }
+        
+    } catch (error) {
+        console.error('editJamaah error:', error);
+        showAlert('Gagal memuat data: ' + (error.message || error), 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function saveEditJamaah() {
+    if (!currentEditId) {
+        showAlert('ID tidak valid', 'error');
+        return;
+    }
+    
+    try {
+        showLoading(true);
+        
+        const jamaahData = {
+            nama: document.getElementById('editNama')?.value || '',
+            nama_panggilan: document.getElementById('editNamaPanggilan')?.value || null,
+            jenis_kelamin: document.getElementById('editJenisKelamin')?.value || null,
+            tempat_lahir: document.getElementById('editTempatLahir')?.value || null,
+            tanggal_lahir: document.getElementById('editTanggalLahir')?.value || null,
+            phone: document.getElementById('editPhone')?.value || null,
+            alamat_lengkap: document.getElementById('editAlamat')?.value || null,
+            status_aktif: document.getElementById('editStatus')?.value || 'aktif'
+        };
+        
+        // Gunakan api.js
+        const success = await jamaahApi.update(currentEditId, jamaahData);
+        
+        if (success) {
+            showAlert('Data berhasil disimpan!', 'success');
+            closeModal();
+            await loadJamaah();
+        }
+        
+    } catch (error) {
+        console.error('saveEditJamaah error:', error);
+        showAlert('Gagal menyimpan: ' + (error.message || error), 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function closeModal() {
+    const editModal = document.getElementById('editModal');
+    const addModal = document.getElementById('addModal');
+    
+    if (editModal) editModal.classList.remove('show');
+    if (addModal) addModal.classList.remove('show');
+    
+    currentEditId = null;
+}
+
+// ============================================================================
+// DELETE JAMAAH
+// ============================================================================
+
+async function confirmDelete(id) {
+    const confirmed = await confirmDialog('Apakah Anda yakin ingin menghapus jamaah ini? Semua data terkait (enrollment, progress, presensi) juga akan dihapus.', 'Konfirmasi Hapus');
+    
+    if (confirmed) {
+        await deleteJamaah(id);
+    }
+}
+
+async function deleteJamaah(id) {
+    try {
+        showLoading(true);
+        
+        // Gunakan api.js
+        const success = await jamaahApi.delete(id);
+        
+        if (success) {
+            showAlert('Jamaah berhasil dihapus', 'success');
+            await loadJamaah();
+        }
+        
+    } catch (error) {
+        console.error('deleteJamaah error:', error);
+        showAlert('Gagal menghapus: ' + (error.message || error), 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ============================================================================
+// UPDATE STATS
+// ============================================================================
+
+function updateStats() {
+    const totalEl = document.getElementById('totalJamaah');
+    const aktifEl = document.getElementById('totalAktif');
+    const lkEl = document.getElementById('totalLK');
+    const prEl = document.getElementById('totalPR');
+    
+    const total = filteredJamaah.length;
+    const aktif = filteredJamaah.filter(j => j.status_aktif === 'aktif').length;
+    const lk = filteredJamaah.filter(j => j.jenis_kelamin === 'L').length;
+    const pr = filteredJamaah.filter(j => j.jenis_kelamin === 'P').length;
+    
+    if (totalEl) totalEl.textContent = total;
+    if (aktifEl) aktifEl.textContent = aktif;
+    if (lkEl) lkEl.textContent = lk;
+    if (prEl) prEl.textContent = pr;
+}
+
+// ============================================================================
+// PAGINATION
+// ============================================================================
+
+function renderPagination() {
+    const totalPages = Math.ceil(filteredJamaah.length / itemsPerPage);
+    const paginationEl = document.getElementById('pagination');
+    
+    if (!paginationEl || totalPages <= 1) {
+        if (paginationEl) paginationEl.innerHTML = '';
+        return;
+    }
+    
+    let html = '';
+    
+    // Previous
+    html += `<button class="btn btn-sm ${currentPage === 1 ? 'btn-outline disabled' : 'btn-outline'}" 
+             onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+             ‹ Prev
+             </button>`;
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    for (let i = startPage; i <= endPage; i++) {
+        html += `<button class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline'}" 
+                 onclick="goToPage(${i})">${i}</button>`;
+    }
+    
+    // Next
+    html += `<button class="btn btn-sm ${currentPage === totalPages ? 'btn-outline disabled' : 'btn-outline'}" 
+             onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+             Next ›
+             </button>`;
+    
+    paginationEl.innerHTML = html;
+}
+
+function goToPage(page) {
+    const totalPages = Math.ceil(filteredJamaah.length / itemsPerPage);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderTable();
+}
+
+window.goToPage = goToPage;
+
+// ============================================================================
+// LOADING HELPER
+// ============================================================================
+
+function showLoading(show) {
+    const loader = document.getElementById('loadingOverlay');
+    if (loader) {
+        loader.style.display = show ? 'flex' : 'none';
+    }
+}

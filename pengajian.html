@@ -214,6 +214,7 @@
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/sidebar.js"></script>
     
     <script>
@@ -401,42 +402,58 @@
         
         async function savePengajian() {
             const form = $('pengajianForm');
-            if (!form.checkValidity()) { form.reportValidity(); return; }
+            if (!form || !form.checkValidity()) { 
+                if (form) form.reportValidity(); 
+                return; 
+            }
             
             const btn = $('btnSave');
-            btn.disabled = true;
-            btn.textContent = 'Menyimpan...';
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Menyimpan...';
+            }
             
             try {
                 const formData = getFormData('pengajianForm');
                 const pengajianData = {
-                    jenjang_id: parseInt(formData.jenjang_id),
-                    wilayah_id: parseInt(formData.wilayah_id),
-                    tanggal: formData.tanggal,
+                    jenjang_id: safeParseInt(formData.jenjang_id),
+                    wilayah_id: safeParseInt(formData.wilayah_id),
+                    tanggal: formData.tanggal || null,
                     waktu_mulai: formData.waktu_mulai || null,
                     waktu_selesai: formData.waktu_selesai || null,
                     materi: formData.materi || null
                 };
                 
-                if (editMode && formData.id) {
-                    const { error } = await db.from('pengajian').update(pengajianData).eq('id', formData.id);
-                    if (error) throw error;
-                } else {
-                    pengajianData.created_by = currentUserData?.id;
-                    const { error } = await db.from('pengajian').insert(pengajianData);
-                    if (error) throw error;
+                // Validasi
+                if (!pengajianData.jenjang_id || !pengajianData.wilayah_id || !pengajianData.tanggal) {
+                    showToast('Jenjang, Wilayah, dan Tanggal wajib diisi', 'error');
+                    return;
                 }
                 
-                showToast('Pengajian berhasil disimpan', 'success');
-                hideModal('pengajianModal');
-                await loadStats();
-                await loadPengajian();
+                let success = false;
+                if (editMode && formData.id) {
+                    // Gunakan api.js
+                    success = await pengajianApi.update(safeParseInt(formData.id), pengajianData);
+                } else {
+                    // Gunakan api.js
+                    const result = await pengajianApi.create(pengajianData);
+                    success = result !== null;
+                }
+                
+                if (success) {
+                    showToast('Pengajian berhasil disimpan', 'success');
+                    hideModal('pengajianModal');
+                    await loadStats();
+                    await loadPengajian();
+                }
             } catch (error) {
                 console.error('Error:', error);
-                showToast('Gagal menyimpan: ' + error.message, 'error');
+                showToast('Gagal menyimpan: ' + (error.message || error), 'error');
             } finally {
-                btn.disabled = false;
-                btn.textContent = 'Simpan';
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Simpan';
+                }
             }
         }
         
@@ -444,19 +461,17 @@
             if (!await confirmDialog('Yakin ingin menghapus pengajian ini? Data presensi juga akan ikut terhapus.')) return;
             
             try {
-                // Delete related keaktifan first
-                await db.from('keaktifan_pengajian').delete().eq('pengajian_id', id);
+                // Gunakan api.js
+                const success = await pengajianApi.delete(id);
                 
-                // Then delete pengajian
-                const { error } = await db.from('pengajian').delete().eq('id', id);
-                if (error) throw error;
-                
-                showToast('Pengajian berhasil dihapus', 'success');
-                await loadStats();
-                await loadPengajian();
+                if (success) {
+                    showToast('Pengajian berhasil dihapus', 'success');
+                    await loadStats();
+                    await loadPengajian();
+                }
             } catch (error) {
                 console.error('Error:', error);
-                showToast('Gagal menghapus: ' + error.message, 'error');
+                showToast('Gagal menghapus: ' + (error.message || error), 'error');
             }
         }
     </script>
