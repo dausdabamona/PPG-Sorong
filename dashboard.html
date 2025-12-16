@@ -155,14 +155,15 @@
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/sidebar.js"></script>
     
     <script>
         // Fallback toggleSidebar jika sidebar.js gagal load
         if (typeof toggleSidebar !== 'function') {
             window.toggleSidebar = function() {
-                const sidebar = document.getElementById('sidebar');
-                const overlay = document.getElementById('sidebarOverlay');
+                var sidebar = document.getElementById('sidebar');
+                var overlay = document.getElementById('sidebarOverlay');
                 if (sidebar) sidebar.classList.toggle('show');
                 if (overlay) overlay.classList.toggle('show');
             };
@@ -177,51 +178,62 @@
         
         async function loadDashboardData() {
             try {
-                // Total Jamaah Aktif
-                const { count: jamaahCount } = await db.from('jamaah').select('*', { count: 'exact', head: true }).eq('status_aktif', 'aktif');
-                $('totalSantri').textContent = formatAngka(jamaahCount || 0);
+                // Gunakan api.js - dashboardApi.getStats()
+                var stats = await dashboardApi.getStats();
                 
-                // Pengajian bulan ini
-                const startOfMonth = new Date();
-                startOfMonth.setDate(1);
-                const { count: pengajianCount } = await db.from('pengajian').select('*', { count: 'exact', head: true }).gte('tanggal', startOfMonth.toISOString().split('T')[0]);
-                $('totalPengajian').textContent = formatAngka(pengajianCount || 0);
+                var totalSantriEl = $('totalSantri');
+                var totalPengajianEl = $('totalPengajian');
+                var totalKelompokEl = $('totalKelompok');
+                var totalMateriEl = $('totalMateri');
                 
-                // Total Kelompok
-                const { count: kelompokCount } = await db.from('wilayah').select('*', { count: 'exact', head: true }).eq('tingkat', 'kelompok');
-                $('totalKelompok').textContent = formatAngka(kelompokCount || 0);
-                
-                // Total Materi
-                const { count: materiCount } = await db.from('materi_item').select('*', { count: 'exact', head: true });
-                $('totalMateri').textContent = formatAngka(materiCount || 0);
+                if (stats) {
+                    if (totalSantriEl) totalSantriEl.textContent = formatAngka(stats.total_jamaah_aktif || 0);
+                    if (totalPengajianEl) totalPengajianEl.textContent = formatAngka(stats.pengajian_bulan_ini || 0);
+                    if (totalKelompokEl) totalKelompokEl.textContent = formatAngka(stats.total_kelompok || 0);
+                    if (totalMateriEl) totalMateriEl.textContent = formatAngka(stats.total_materi || 0);
+                } else {
+                    // Fallback to manual queries if view not available
+                    var jamaahCount = await jamaahApi.count({ status_aktif: 'aktif' });
+                    if (totalSantriEl) totalSantriEl.textContent = formatAngka(jamaahCount || 0);
+                    
+                    var pengajianCount = await pengajianApi.count({ bulan: getCurrentMonth() });
+                    if (totalPengajianEl) totalPengajianEl.textContent = formatAngka(pengajianCount || 0);
+                    
+                    var kelompokCount = await wilayahApi.count({ tingkat: 'kelompok' });
+                    if (totalKelompokEl) totalKelompokEl.textContent = formatAngka(kelompokCount || 0);
+                }
                 
                 await loadJenjangStats();
                 await loadRecentPengajian();
                 await loadRecentProgress();
             } catch (error) {
                 console.error('Error loading dashboard:', error);
+                showToast('Gagal memuat dashboard', 'error');
             }
         }
         
         async function loadJenjangStats() {
             try {
-                const { data: jenjangData } = await db.from('jenjang').select('id, kode, nama').order('urutan');
-                if (!jenjangData || jenjangData.length === 0) {
-                    $('jenjangStats').innerHTML = '<p class="text-muted">Belum ada data jenjang</p>';
+                // Gunakan api.js
+                var jenjangStats = await dashboardApi.getStatistikJenjang();
+                var jenjangStatsEl = $('jenjangStats');
+                
+                if (!jenjangStatsEl) return;
+                
+                if (!jenjangStats || jenjangStats.length === 0) {
+                    jenjangStatsEl.innerHTML = '<p class="text-muted">Belum ada data jenjang</p>';
                     return;
                 }
                 
-                let html = '';
-                for (const jenjang of jenjangData) {
-                    const { count } = await db.from('enrollment').select('*', { count: 'exact', head: true }).eq('jenjang_id', jenjang.id).eq('status', 'aktif');
-                    html += `
-                        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">
-                            <span>${jenjang.nama}</span>
-                            <span class="badge badge-primary">${count || 0} santri</span>
-                        </div>
-                    `;
-                }
-                $('jenjangStats').innerHTML = html || '<p class="text-muted">Belum ada data</p>';
+                var html = '';
+                jenjangStats.forEach(function(j) {
+                    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">';
+                    html += '<span>' + escapeHtml(j.nama || '-') + '</span>';
+                    html += '<span class="badge badge-primary">' + (j.total || 0) + ' santri</span>';
+                    html += '</div>';
+                });
+                
+                jenjangStatsEl.innerHTML = html || '<p class="text-muted">Belum ada data</p>';
             } catch (error) {
                 console.error('Error:', error);
             }
@@ -229,22 +241,28 @@
         
         async function loadRecentPengajian() {
             try {
-                // Note: mubaligh_id tidak ada di tabel pengajian, gunakan created_by atau hapus
-                const { data } = await db.from('pengajian').select('*, wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)').order('tanggal', { ascending: false }).limit(5);
+                // Gunakan api.js
+                var data = await dashboardApi.getRecentPengajian(5);
+                var recentPengajianEl = $('recentPengajian');
+                
+                if (!recentPengajianEl) return;
+                
                 if (!data || data.length === 0) {
-                    $('recentPengajian').innerHTML = '<p class="text-muted">Belum ada pengajian</p>';
+                    recentPengajianEl.innerHTML = '<p class="text-muted">Belum ada pengajian</p>';
                     return;
                 }
                 
-                $('recentPengajian').innerHTML = data.map(p => `
-                    <div style="padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">
-                        <div style="display:flex;justify-content:space-between;">
-                            <strong>${p.wilayah?.nama || '-'}</strong>
-                            <span class="badge badge-primary">${p.jenjang?.nama || '-'}</span>
-                        </div>
-                        <div class="text-sm text-muted mt-sm">${formatTanggal(p.tanggal)}</div>
-                    </div>
-                `).join('');
+                var html = data.map(function(p) {
+                    return '<div style="padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">' +
+                        '<div style="display:flex;justify-content:space-between;">' +
+                        '<strong>' + escapeHtml(p.wilayah_nama || p.wilayah?.nama || '-') + '</strong>' +
+                        '<span class="badge badge-primary">' + escapeHtml(p.jenjang_nama || p.jenjang?.nama || '-') + '</span>' +
+                        '</div>' +
+                        '<div class="text-sm text-muted mt-sm">' + formatTanggal(p.tanggal) + '</div>' +
+                        '</div>';
+                }).join('');
+                
+                recentPengajianEl.innerHTML = html;
             } catch (error) {
                 console.error('Error:', error);
             }
@@ -252,21 +270,28 @@
         
         async function loadRecentProgress() {
             try {
-                const { data } = await db.from('progress_jamaah').select('*, jamaah:jamaah_id(nama), materi_item:materi_item_id(nama)').eq('status', 'selesai').order('tanggal_selesai', { ascending: false }).limit(5);
+                // Gunakan api.js
+                var data = await dashboardApi.getRecentProgress(5);
+                var recentProgressEl = $('recentProgress');
+                
+                if (!recentProgressEl) return;
+                
                 if (!data || data.length === 0) {
-                    $('recentProgress').innerHTML = '<p class="text-muted">Belum ada progress</p>';
+                    recentProgressEl.innerHTML = '<p class="text-muted">Belum ada progress</p>';
                     return;
                 }
                 
-                $('recentProgress').innerHTML = data.map(p => `
-                    <div style="padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">
-                        <div style="display:flex;justify-content:space-between;">
-                            <strong>${p.jamaah?.nama || '-'}</strong>
-                            <span class="badge badge-success">Selesai</span>
-                        </div>
-                        <div class="text-sm text-muted mt-sm">${p.materi_item?.nama || '-'}</div>
-                    </div>
-                `).join('');
+                var html = data.map(function(p) {
+                    return '<div style="padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">' +
+                        '<div style="display:flex;justify-content:space-between;">' +
+                        '<strong>' + escapeHtml(p.jamaah?.nama || '-') + '</strong>' +
+                        '<span class="badge badge-success">Selesai</span>' +
+                        '</div>' +
+                        '<div class="text-sm text-muted mt-sm">' + escapeHtml(p.materi_item?.nama || '-') + '</div>' +
+                        '</div>';
+                }).join('');
+                
+                recentProgressEl.innerHTML = html;
             } catch (error) {
                 console.error('Error:', error);
             }

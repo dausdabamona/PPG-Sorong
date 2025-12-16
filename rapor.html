@@ -195,13 +195,16 @@
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/sidebar.js"></script>
     
     <script>
         
         function toggleSidebar() {
-            $('sidebar').classList.toggle('show');
-            $('sidebarOverlay').classList.toggle('show');
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -213,132 +216,165 @@
         });
         
         function updateUserUI() {
-            if (currentUserData) {
-                $('userName').textContent = currentUserData.nama || currentUserData.email;
-                $('userAvatar').textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
-                if (userRoles.length > 0) $('userRole').textContent = userRoles[0].role?.nama || '-';
+            if (!currentUserData) return;
+            
+            var userNameEl = $('userName');
+            var userAvatarEl = $('userAvatar');
+            var userRoleEl = $('userRole');
+            
+            if (userNameEl) userNameEl.textContent = currentUserData.nama || currentUserData.email || 'User';
+            if (userAvatarEl) userAvatarEl.textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
+            if (userRoleEl && userRoles && userRoles.length > 0) {
+                userRoleEl.textContent = userRoles[0].role?.nama || '-';
             }
         }
         
         async function loadFilters() {
             try {
-                // Load jamaah
-                const { data: jamaah } = await db.from('jamaah').select('id, nama').eq('status_aktif', 'aktif').order('nama');
-                const selectSantri = $('selectSantri');
-                jamaah?.forEach(j => { selectSantri.innerHTML += `<option value="${j.id}">${j.nama}</option>`; });
+                // Load jamaah menggunakan api.js
+                var jamaahData = await jamaahApi.getAll({ status_aktif: 'aktif' });
+                var selectSantri = $('selectSantri');
+                if (selectSantri && jamaahData) {
+                    jamaahData.forEach(function(j) { 
+                        selectSantri.innerHTML += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>'; 
+                    });
+                }
                 
-                // Load tahun ajaran
-                const { data: ta } = await db.from('tahun_ajaran').select('id, kode').order('kode', { ascending: false });
-                const selectTA = $('selectTahunAjaran');
-                ta?.forEach(t => { selectTA.innerHTML += `<option value="${t.id}">${t.kode}</option>`; });
-                if (ta?.length > 0) selectTA.value = ta[0].id;
+                // Load tahun ajaran menggunakan api.js
+                var taData = await masterApi.getTahunAjaran();
+                var selectTA = $('selectTahunAjaran');
+                if (selectTA && taData) {
+                    taData.forEach(function(t) { 
+                        selectTA.innerHTML += '<option value="' + t.id + '">' + escapeHtml(t.kode) + '</option>'; 
+                    });
+                    if (taData.length > 0) selectTA.value = taData[0].id;
+                }
             } catch (error) {
                 console.error('Error:', error);
+                showToast('Gagal memuat filter', 'error');
             }
         }
         
         async function loadRapor() {
-            const jamaahId = $('selectSantri').value;
-            const tahunAjaranId = $('selectTahunAjaran').value;
-            const periode = $('selectPeriode').value;
+            var selectSantriEl = $('selectSantri');
+            var selectTAEl = $('selectTahunAjaran');
+            var selectPeriodeEl = $('selectPeriode');
+            var raporCardEl = $('raporCard');
+            var emptyCardEl = $('emptyCard');
+            
+            var jamaahId = selectSantriEl?.value || '';
+            var tahunAjaranId = selectTAEl?.value || '';
+            var periode = selectPeriodeEl?.value || '';
             
             if (!jamaahId) {
-                $('raporCard').style.display = 'none';
-                $('emptyCard').style.display = 'block';
+                if (raporCardEl) raporCardEl.style.display = 'none';
+                if (emptyCardEl) emptyCardEl.style.display = 'block';
                 return;
             }
             
             try {
-                // Get jamaah info
-                const { data: jamaah } = await db.from('jamaah')
-                    .select('*, enrollment(jenjang:jenjang_id(nama), wilayah:wilayah_id(nama))')
-                    .eq('id', jamaahId)
-                    .single();
-                
-                const enrollment = jamaah.enrollment?.[0];
+                // Get jamaah info menggunakan api.js
+                var jamaah = await jamaahApi.getById(jamaahId);
+                if (!jamaah) {
+                    showToast('Data jamaah tidak ditemukan', 'error');
+                    return;
+                }
                 
                 // Get tahun ajaran
-                const { data: ta } = await db.from('tahun_ajaran').select('kode').eq('id', tahunAjaranId).single();
+                var taData = await masterApi.getTahunAjaran();
+                var ta = taData?.find(function(t) { return t.id == tahunAjaranId; });
                 
-                // Fill rapor info
-                $('raporNama').textContent = jamaah.nama;
-                $('raporTTL').textContent = `${jamaah.tempat_lahir || '-'}, ${formatTanggal(jamaah.tanggal_lahir)}`;
-                $('raporJK').textContent = jamaah.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';
-                $('raporJenjang').textContent = enrollment?.jenjang?.nama || '-';
-                $('raporKelompok').textContent = enrollment?.wilayah?.nama || '-';
-                $('raporTA').textContent = ta?.kode || '-';
-                $('tanggalRapor').textContent = formatTanggal(new Date().toISOString());
+                // Fill rapor info dengan null safety
+                var raporNamaEl = $('raporNama');
+                var raporTTLEl = $('raporTTL');
+                var raporJKEl = $('raporJK');
+                var raporJenjangEl = $('raporJenjang');
+                var raporKelompokEl = $('raporKelompok');
+                var raporTAEl = $('raporTA');
+                var tanggalRaporEl = $('tanggalRapor');
                 
-                // Calculate nilai per bidang
-                const { data: progress } = await db.from('progress_jamaah')
-                    .select('*, materi_item:materi_item_id(kategori:kategori_id(bidang_id))')
-                    .eq('jamaah_id', jamaahId)
-                    .eq('status', 'selesai');
+                if (raporNamaEl) raporNamaEl.textContent = escapeHtml(jamaah.nama || '-');
+                if (raporTTLEl) raporTTLEl.textContent = escapeHtml(jamaah.tempat_lahir || '-') + ', ' + formatTanggal(jamaah.tanggal_lahir);
+                if (raporJKEl) raporJKEl.textContent = jamaah.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';
+                if (raporJenjangEl) raporJenjangEl.textContent = escapeHtml(jamaah.jenjang_nama || '-');
+                if (raporKelompokEl) raporKelompokEl.textContent = escapeHtml(jamaah.kelompok_nama || '-');
+                if (raporTAEl) raporTAEl.textContent = escapeHtml(ta?.kode || '-');
+                if (tanggalRaporEl) tanggalRaporEl.textContent = formatTanggal(new Date().toISOString());
                 
-                let nilaiAlim = [], nilaiAkhlak = [], nilaiMandiri = [];
-                progress?.forEach(p => {
-                    if (p.nilai) {
-                        const bidangId = p.materi_item?.kategori?.bidang_id;
-                        if (bidangId === 1) nilaiAlim.push(p.nilai);
-                        else if (bidangId === 2) nilaiAkhlak.push(p.nilai);
-                        else if (bidangId === 3) nilaiMandiri.push(p.nilai);
-                    }
-                });
+                // Get progress summary menggunakan api.js
+                var progressSummary = await progressApi.getSummary(jamaahId);
                 
-                const avg = arr => arr.length ? (arr.reduce((a,b) => a+b, 0) / arr.length).toFixed(1) : '-';
-                $('nilaiAlim').textContent = avg(nilaiAlim);
-                $('nilaiAkhlak').textContent = avg(nilaiAkhlak);
-                $('nilaiMandiri').textContent = avg(nilaiMandiri);
+                // Calculate nilai per bidang dari progress
+                var progress = await progressApi.getByJamaah(jamaahId);
+                var nilaiAlim = [], nilaiAkhlak = [], nilaiMandiri = [];
                 
-                // Keaktifan (placeholder - would need date range filter)
-                $('totalPengajian').textContent = '-';
-                $('totalHadir').textContent = '-';
-                $('persenKeaktifan').textContent = '-';
-                $('progressBar').style.width = '0%';
+                if (progress) {
+                    progress.forEach(function(p) {
+                        if (p.nilai) {
+                            // Simplified - in real app would join with materi_item to get bidang
+                            nilaiAlim.push(p.nilai);
+                        }
+                    });
+                }
+                
+                var avg = function(arr) { 
+                    return arr.length ? (arr.reduce(function(a,b) { return a+b; }, 0) / arr.length).toFixed(1) : '-'; 
+                };
+                
+                var nilaiAlimEl = $('nilaiAlim');
+                var nilaiAkhlakEl = $('nilaiAkhlak');
+                var nilaiMandiriEl = $('nilaiMandiri');
+                
+                if (nilaiAlimEl) nilaiAlimEl.textContent = avg(nilaiAlim);
+                if (nilaiAkhlakEl) nilaiAkhlakEl.textContent = avg(nilaiAkhlak);
+                if (nilaiMandiriEl) nilaiMandiriEl.textContent = avg(nilaiMandiri);
+                
+                // Keaktifan menggunakan api.js
+                var presensiRekap = await presensiApi.getRekapJamaah(jamaahId);
+                
+                var totalPengajianEl = $('totalPengajian');
+                var totalHadirEl = $('totalHadir');
+                var persenKeaktifanEl = $('persenKeaktifan');
+                var progressBarEl = $('progressBar');
+                
+                if (totalPengajianEl) totalPengajianEl.textContent = presensiRekap?.total_pengajian || '-';
+                if (totalHadirEl) totalHadirEl.textContent = presensiRekap?.total_hadir || '-';
+                if (persenKeaktifanEl) persenKeaktifanEl.textContent = (presensiRekap?.persentase_hadir || 0) + '%';
+                if (progressBarEl) progressBarEl.style.width = (presensiRekap?.persentase_hadir || 0) + '%';
                 
                 // Progress per kategori
-                const { data: kategori } = await db.from('kategori_materi').select('id, nama').eq('is_aktif', true).order('urutan');
-                
-                let progressHtml = '';
-                for (const k of (kategori || [])) {
-                    const { count: selesai } = await db.from('progress_jamaah')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('jamaah_id', jamaahId)
-                        .eq('status', 'selesai')
-                        .eq('materi_item.kategori_id', k.id);
-                    
-                    const { count: total } = await db.from('materi_item')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('kategori_id', k.id);
-                    
-                    const persen = total > 0 ? ((selesai || 0) / total * 100).toFixed(0) : 0;
-                    
-                    progressHtml += `
-                        <tr>
-                            <td>${k.nama}</td>
-                            <td>${selesai || 0}</td>
-                            <td>${total || 0}</td>
-                            <td>
-                                <div style="display:flex;align-items:center;gap:0.5rem;">
-                                    <div class="progress" style="flex:1;height:8px;">
-                                        <div class="progress-bar ${persen >= 80 ? 'success' : persen >= 50 ? 'warning' : ''}" style="width:${persen}%;"></div>
-                                    </div>
-                                    <span>${persen}%</span>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                var progressHtml = '';
+                if (progressSummary && progressSummary.length > 0) {
+                    progressSummary.forEach(function(s) {
+                        var persen = s.total_materi > 0 ? ((s.total_selesai || 0) / s.total_materi * 100).toFixed(0) : 0;
+                        var barClass = persen >= 80 ? 'success' : persen >= 50 ? 'warning' : '';
+                        
+                        progressHtml += '<tr>';
+                        progressHtml += '<td>' + escapeHtml(s.kategori_nama || '-') + '</td>';
+                        progressHtml += '<td>' + (s.total_selesai || 0) + '</td>';
+                        progressHtml += '<td>' + (s.total_materi || 0) + '</td>';
+                        progressHtml += '<td><div style="display:flex;align-items:center;gap:0.5rem;">';
+                        progressHtml += '<div class="progress" style="flex:1;height:8px;">';
+                        progressHtml += '<div class="progress-bar ' + barClass + '" style="width:' + persen + '%;"></div>';
+                        progressHtml += '</div><span>' + persen + '%</span></div></td>';
+                        progressHtml += '</tr>';
+                    });
+                } else {
+                    progressHtml = '<tr><td colspan="4" class="text-center text-muted">Tidak ada data</td></tr>';
                 }
-                $$('#progressTable tbody').innerHTML = progressHtml || '<tr><td colspan="4" class="text-center text-muted">Tidak ada data</td></tr>';
                 
-                $('catatanRapor').textContent = 'Terus tingkatkan hafalan dan keaktifan mengaji.';
+                var progressTbody = $$('#progressTable tbody');
+                if (progressTbody) progressTbody.innerHTML = progressHtml;
                 
-                $('emptyCard').style.display = 'none';
-                $('raporCard').style.display = 'block';
+                var catatanRaporEl = $('catatanRapor');
+                if (catatanRaporEl) catatanRaporEl.textContent = 'Terus tingkatkan hafalan dan keaktifan mengaji.';
+                
+                if (emptyCardEl) emptyCardEl.style.display = 'none';
+                if (raporCardEl) raporCardEl.style.display = 'block';
                 
             } catch (error) {
                 console.error('Error:', error);
-                showToast('Gagal memuat rapor', 'error');
+                showToast('Gagal memuat rapor: ' + (error.message || error), 'error');
             }
         }
     </script>

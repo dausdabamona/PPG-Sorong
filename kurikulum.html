@@ -525,6 +525,7 @@
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/sidebar.js"></script>
     
     <script>
@@ -537,8 +538,10 @@
         
         
         function toggleSidebar() {
-            $('sidebar').classList.toggle('show');
-            $('sidebarOverlay').classList.toggle('show');
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -547,15 +550,18 @@
             initSidebar();
             updateUserUI();
             
+            var accessDeniedEl = $('accessDenied');
+            var adminContentEl = $('adminContent');
+            
             // Check admin access
             if (!isAdmin()) {
-                $('accessDenied').style.display = 'block';
-                $('adminContent').style.display = 'none';
+                if (accessDeniedEl) accessDeniedEl.style.display = 'block';
+                if (adminContentEl) adminContentEl.style.display = 'none';
                 return;
             }
             
-            $('accessDenied').style.display = 'none';
-            $('adminContent').style.display = 'block';
+            if (accessDeniedEl) accessDeniedEl.style.display = 'none';
+            if (adminContentEl) adminContentEl.style.display = 'block';
             
             await loadAllData();
         });

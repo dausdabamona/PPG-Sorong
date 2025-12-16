@@ -193,7 +193,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     
     <script>
         let allGenerus = [];
@@ -204,11 +206,13 @@
         let currentKategori = '';
         let currentFilter = 'semua';
         
-        const $ = id => document.getElementById(id);
+        const $ = function(id) { return document.getElementById(id); };
         
         function toggleSidebar() {
-            $('sidebar').classList.toggle('show');
-            $('sidebarOverlay').classList.toggle('show');
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
         }
         
         document.addEventListener('DOMContentLoaded', async () => {
@@ -217,9 +221,9 @@
             await loadMateri();
             
             // Tab click handlers
-            document.querySelectorAll('#filterTabs .tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelectorAll('#filterTabs .tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#filterTabs .tab').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('#filterTabs .tab').forEach(function(t) { t.classList.remove('active'); });
                     tab.classList.add('active');
                     currentFilter = tab.dataset.filter;
                     renderDetail();
@@ -229,66 +233,31 @@
         
         async function loadGenerus() {
             try {
-                const { data, error } = await db
-                    .from('jamaah')
-                    .select(`
-                        id, nama, nama_panggilan, jenis_kelamin,
-                        enrollment!inner(
-                            jenjang:jenjang_id(nama),
-                            wilayah:wilayah_id(nama),
-                            status
-                        )
-                    `)
-                    .eq('enrollment.status', 'aktif')
-                    .order('nama');
+                // Gunakan api.js
+                var data = await generusApi.getAll({ status: 'aktif' });
                 
-                if (error) throw error;
-                
-                allGenerus = data.map(j => ({
-                    jamaah_id: j.id,
-                    nama: j.nama,
-                    nama_panggilan: j.nama_panggilan,
-                    jenis_kelamin: j.jenis_kelamin,
-                    jenjang_nama: j.enrollment?.[0]?.jenjang?.nama || '-',
-                    kelompok_nama: j.enrollment?.[0]?.wilayah?.nama || '-'
-                }));
-                
+                allGenerus = data || [];
                 renderGenerus(allGenerus);
             } catch (e) {
                 console.error('Error load generus:', e);
-                $('generusList').innerHTML = '<div class="text-center text-muted py-4">Gagal memuat data</div>';
+                var el = $('generusList');
+                if (el) el.innerHTML = '<div class="text-center text-muted py-4">Gagal memuat data</div>';
             }
         }
         
         async function loadMateri() {
             try {
-                // Load kategori dulu
-                const { data: kategori } = await db
-                    .from('kategori_materi')
-                    .select('id, kode')
-                    .in('kode', ['SURAT', 'DOA']);
+                // Load materi menggunakan api.js
+                var materiData = await masterApi.getMateri();
                 
-                const katSurat = kategori?.find(k => k.kode === 'SURAT');
-                const katDoa = kategori?.find(k => k.kode === 'DOA');
-                
-                // Load materi SURAT
-                if (katSurat) {
-                    const { data } = await db
-                        .from('materi_item')
-                        .select('id, kode, nama, nomor, detail')
-                        .eq('kategori_id', katSurat.id)
-                        .order('nomor');
-                    materiSurat = data || [];
-                }
-                
-                // Load materi DOA (termasuk Asmaul Husna)
-                if (katDoa) {
-                    const { data } = await db
-                        .from('materi_item')
-                        .select('id, kode, nama, nomor, detail')
-                        .eq('kategori_id', katDoa.id)
-                        .order('nomor');
-                    materiDoa = data || [];
+                if (materiData) {
+                    // Pisahkan berdasarkan kategori
+                    materiSurat = materiData.filter(function(m) { 
+                        return m.kategori_kode === 'SURAT' || (m.kategori && m.kategori.kode === 'SURAT'); 
+                    });
+                    materiDoa = materiData.filter(function(m) { 
+                        return m.kategori_kode === 'DOA' || (m.kategori && m.kategori.kode === 'DOA'); 
+                    });
                 }
             } catch (e) {
                 console.error('Error load materi:', e);

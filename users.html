@@ -188,6 +188,7 @@
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/sidebar.js"></script>
     
     <script>
@@ -198,54 +199,74 @@
             updateSidebarUserInfo();
             initSidebar();
             
+            var accessDeniedEl = $('accessDenied');
+            var adminContentEl = $('adminContent');
+            
             if (!isAdmin()) {
-                $('accessDenied').style.display = 'block';
-                $('adminContent').style.display = 'none';
+                if (accessDeniedEl) accessDeniedEl.style.display = 'block';
+                if (adminContentEl) adminContentEl.style.display = 'none';
                 return;
             }
             
-            $('accessDenied').style.display = 'none';
-            $('adminContent').style.display = 'block';
+            if (accessDeniedEl) accessDeniedEl.style.display = 'none';
+            if (adminContentEl) adminContentEl.style.display = 'block';
             await loadAllData();
         });
         
         function toggleSidebar() {
-            $('sidebar').classList.toggle('show');
-            $('sidebarOverlay').classList.toggle('show');
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
         }
         
         async function loadAllData() {
             await Promise.all([loadUsers(), loadRoles(), loadWilayah(), loadAssignments()]);
-            $('totalUsers').textContent = allUsers.length;
-            // Users table doesn't have status field - count all as active
-            $('activeUsers').textContent = allUsers.length;
-            $('totalRoles').textContent = allRoles.length;
+            var totalUsersEl = $('totalUsers');
+            var activeUsersEl = $('activeUsers');
+            var totalRolesEl = $('totalRoles');
+            if (totalUsersEl) totalUsersEl.textContent = allUsers.length;
+            if (activeUsersEl) activeUsersEl.textContent = allUsers.length;
+            if (totalRolesEl) totalRolesEl.textContent = allRoles.length;
         }
         
         function switchTab(tab, el) {
-            $$$('.tab-item').forEach(t => t.classList.remove('active'));
-            $$$('.tab-content').forEach(t => t.classList.remove('active'));
+            $$$('.tab-item').forEach(function(t) { t.classList.remove('active'); });
+            $$$('.tab-content').forEach(function(t) { t.classList.remove('active'); });
             el.classList.add('active');
-            $(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+            var tabEl = $('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+            if (tabEl) tabEl.classList.add('active');
         }
         
         async function loadUsers() {
-            const { data } = await db.from('users').select('*').order('nama');
-            allUsers = data || [];
-            const { data: ur } = await db.from('user_role').select('user_id, role:role_id(nama)').eq('is_aktif', true);
-            const map = {};
-            ur?.forEach(r => { if (!map[r.user_id]) map[r.user_id] = []; map[r.user_id].push(r.role?.nama); });
+            var result = await db.from('users').select('*').order('nama');
+            allUsers = result.data || [];
+            var urResult = await db.from('user_role').select('user_id, role:role_id(nama)').eq('is_aktif', true);
+            var ur = urResult.data;
+            var map = {};
+            if (ur) {
+                ur.forEach(function(r) { 
+                    if (!map[r.user_id]) map[r.user_id] = []; 
+                    if (r.role && r.role.nama) map[r.user_id].push(r.role.nama); 
+                });
+            }
             
-            $$('#usersTable tbody').innerHTML = allUsers.map((u, i) => `
-                <tr>
-                    <td>${i+1}</td>
-                    <td><strong>${u.nama || '-'}</strong></td>
-                    <td>${u.email}</td>
-                    <td>${(map[u.id] || []).map(r => `<span class="badge badge-primary">${r}</span>`).join(' ') || '-'}</td>
-                    <td>${u.phone || '-'}</td>
-                    <td><button class="btn btn-sm btn-outline" onclick="editUser(${u.id})">✏️</button></td>
-                </tr>
-            `).join('') || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
+            var tbody = $$('#usersTable tbody');
+            if (tbody) {
+                tbody.innerHTML = allUsers.map(function(u, i) {
+                    var roles = (map[u.id] || []).map(function(r) {
+                        return '<span class="badge badge-primary">' + escapeHtml(r) + '</span>';
+                    }).join(' ') || '-';
+                    return '<tr>' +
+                        '<td>' + (i+1) + '</td>' +
+                        '<td><strong>' + escapeHtml(u.nama || '-') + '</strong></td>' +
+                        '<td>' + escapeHtml(u.email || '') + '</td>' +
+                        '<td>' + roles + '</td>' +
+                        '<td>' + escapeHtml(u.phone || '-') + '</td>' +
+                        '<td><button class="btn btn-sm btn-outline" onclick="editUser(' + u.id + ')">✏️</button></td>' +
+                        '</tr>';
+                }).join('') || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
+            }
         }
         
         async function editUser(id) {

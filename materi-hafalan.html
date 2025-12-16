@@ -102,18 +102,22 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     
     <script>
         let materiSurat = [];
         let materiDoa = [];
         let currentKategori = 'SURAT';
         
-        const $ = id => document.getElementById(id);
+        const $ = function(id) { return document.getElementById(id); };
         
         function toggleSidebar() {
-            $('sidebar').classList.toggle('show');
-            $('sidebarOverlay').classList.toggle('show');
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
         }
         
         document.addEventListener('DOMContentLoaded', async () => {
@@ -121,9 +125,9 @@
             await loadMateri();
             
             // Tab click
-            document.querySelectorAll('#kategoriTabs .tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelectorAll('#kategoriTabs .tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#kategoriTabs .tab').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('#kategoriTabs .tab').forEach(function(t) { t.classList.remove('active'); });
                     tab.classList.add('active');
                     currentKategori = tab.dataset.kategori;
                     renderMateri();
@@ -133,40 +137,29 @@
         
         async function loadMateri() {
             try {
-                const { data: kategori } = await db
-                    .from('kategori_materi')
-                    .select('id, kode')
-                    .in('kode', ['SURAT', 'DOA']);
+                // Gunakan api.js
+                var materiData = await masterApi.getMateri();
                 
-                const katSurat = kategori?.find(k => k.kode === 'SURAT');
-                const katDoa = kategori?.find(k => k.kode === 'DOA');
-                
-                if (katSurat) {
-                    const { data } = await db
-                        .from('materi_item')
-                        .select('id, kode, nama, nomor, detail')
-                        .eq('kategori_id', katSurat.id)
-                        .order('nomor');
-                    materiSurat = data || [];
-                }
-                
-                if (katDoa) {
-                    const { data } = await db
-                        .from('materi_item')
-                        .select('id, kode, nama, nomor, detail')
-                        .eq('kategori_id', katDoa.id)
-                        .order('nomor');
-                    materiDoa = data || [];
+                if (materiData) {
+                    materiSurat = materiData.filter(function(m) { 
+                        return m.kategori_kode === 'SURAT' || (m.kategori && m.kategori.kode === 'SURAT'); 
+                    });
+                    materiDoa = materiData.filter(function(m) { 
+                        return m.kategori_kode === 'DOA' || (m.kategori && m.kategori.kode === 'DOA'); 
+                    });
                 }
                 
                 // Update stats
-                $('totalSurat').textContent = materiSurat.length;
-                $('totalDoa').textContent = materiDoa.length;
+                var totalSuratEl = $('totalSurat');
+                var totalDoaEl = $('totalDoa');
+                if (totalSuratEl) totalSuratEl.textContent = materiSurat.length;
+                if (totalDoaEl) totalDoaEl.textContent = materiDoa.length;
                 
                 renderMateri();
             } catch (e) {
                 console.error('Error load materi:', e);
-                $('materiList').innerHTML = '<div class="text-center text-muted py-4">Gagal memuat data</div>';
+                var materiListEl = $('materiList');
+                if (materiListEl) materiListEl.innerHTML = '<div class="text-center text-muted py-4">Gagal memuat data</div>';
             }
         }
         
@@ -175,8 +168,9 @@
         }
         
         function renderMateri() {
-            const data = currentKategori === 'SURAT' ? materiSurat : materiDoa;
-            const query = $('searchMateri').value.toLowerCase();
+            var data = currentKategori === 'SURAT' ? materiSurat : materiDoa;
+            var searchEl = $('searchMateri');
+            var query = searchEl ? searchEl.value.toLowerCase() : '';
             
             const filtered = data.filter(m => 
                 m.nama.toLowerCase().includes(query) || 

@@ -219,6 +219,7 @@
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/sidebar.js"></script>
     
     <script>
@@ -227,8 +228,10 @@
         
         
         function toggleSidebar() {
-            $('sidebar').classList.toggle('show');
-            $('sidebarOverlay').classList.toggle('show');
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -240,27 +243,32 @@
         });
         
         function updateUserUI() {
-            if (currentUserData) {
-                $('userName').textContent = currentUserData.nama || currentUserData.email;
-                $('userAvatar').textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
-                if (userRoles.length > 0) $('userRole').textContent = userRoles[0].role?.nama || '-';
+            if (!currentUserData) return;
+            
+            var userNameEl = $('userName');
+            var userAvatarEl = $('userAvatar');
+            var userRoleEl = $('userRole');
+            
+            if (userNameEl) userNameEl.textContent = currentUserData.nama || currentUserData.email || 'User';
+            if (userAvatarEl) userAvatarEl.textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
+            if (userRoleEl && userRoles && userRoles.length > 0) {
+                userRoleEl.textContent = userRoles[0].role?.nama || '-';
             }
         }
         
         async function loadWilayah() {
             try {
-                const { data, error } = await db.from('wilayah')
-                    .select('*')
-                    .order('tingkat')
-                    .order('nama');
-                
-                if (error) throw error;
-                allWilayah = data || [];
+                // Gunakan api.js
+                allWilayah = await wilayahApi.getAll() || [];
                 
                 // Update stats
-                $('totalDaerah').textContent = allWilayah.filter(w => w.tingkat === 'daerah').length;
-                $('totalDesa').textContent = allWilayah.filter(w => w.tingkat === 'desa').length;
-                $('totalKelompok').textContent = allWilayah.filter(w => w.tingkat === 'kelompok').length;
+                var totalDaerahEl = $('totalDaerah');
+                var totalDesaEl = $('totalDesa');
+                var totalKelompokEl = $('totalKelompok');
+                
+                if (totalDaerahEl) totalDaerahEl.textContent = allWilayah.filter(function(w) { return w.tingkat === 'daerah'; }).length;
+                if (totalDesaEl) totalDesaEl.textContent = allWilayah.filter(function(w) { return w.tingkat === 'desa'; }).length;
+                if (totalKelompokEl) totalKelompokEl.textContent = allWilayah.filter(function(w) { return w.tingkat === 'kelompok'; }).length;
                 
                 renderTreeView();
                 renderTableView();

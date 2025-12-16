@@ -210,6 +210,7 @@
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/sidebar.js"></script>
     
     <script>
@@ -220,12 +221,12 @@
         const debounceSearch = debounce(() => loadJamaah(), 300);
         
         function toggleSidebar() {
-            const sidebar = $('sidebar');
-            const overlay = $('sidebarOverlay');
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
             if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('show');
+                if (sidebar) sidebar.classList.toggle('show');
             } else {
-                sidebar.classList.toggle('collapsed');
+                if (sidebar) sidebar.classList.toggle('collapsed');
             }
             if (overlay) overlay.classList.toggle('show');
         }
@@ -242,25 +243,23 @@
             // Fallback: jika userRoles kosong, coba load ulang
             if (userRoles.length === 0 && currentUserData?.id) {
                 console.log('userRoles kosong, mencoba load ulang...');
-                const { data: rolesData, error } = await db
+                var rolesResult = await db
                     .from('user_role')
                     .select('*, role:role_id(kode, nama, level), wilayah:wilayah_id(id, nama, tingkat)')
                     .eq('user_id', currentUserData.id)
                     .eq('is_aktif', true);
                 
-                if (!error && rolesData) {
-                    userRoles = rolesData;
+                if (!rolesResult.error && rolesResult.data) {
+                    userRoles = rolesResult.data;
                     console.log('userRoles reloaded:', JSON.stringify(userRoles, null, 2));
                 } else {
-                    console.error('Gagal reload userRoles:', error);
+                    console.error('Gagal reload userRoles:', rolesResult.error);
                 }
             }
             
             // Get wilayah dari role user
-            // Format dari query: { wilayah_id: 22, wilayah: { id: 22, nama: 'Klasaman', ... }, role: {...} }
-            const userRoleWithWilayah = userRoles.find(r => r.wilayah_id || r.wilayah);
+            var userRoleWithWilayah = userRoles.find(function(r) { return r.wilayah_id || r.wilayah; });
             if (userRoleWithWilayah) {
-                // Ambil wilayah_id langsung atau dari nested object
                 userWilayahId = userRoleWithWilayah.wilayah_id;
                 console.log('User wilayah ID:', userWilayahId, 'Wilayah:', userRoleWithWilayah.wilayah);
             } else {
@@ -271,16 +270,23 @@
             await loadJamaah();
             
             // FORCE tampilkan tombol tambah - halaman ini di Pengaturan untuk admin
-            $('btnTambah').style.display = 'block';
+            var btnTambah = $('btnTambah');
+            if (btnTambah) btnTambah.style.display = 'block';
             
             if (getUrlParam('action') === 'add') showAddModal();
         });
         
         function updateUserUI() {
-            if (currentUserData) {
-                $('userName').textContent = currentUserData.nama || currentUserData.email;
-                $('userAvatar').textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
-                if (userRoles.length > 0) $('userRole').textContent = userRoles[0].role?.nama || '-';
+            if (!currentUserData) return;
+            
+            var userNameEl = $('userName');
+            var userAvatarEl = $('userAvatar');
+            var userRoleEl = $('userRole');
+            
+            if (userNameEl) userNameEl.textContent = currentUserData.nama || currentUserData.email || 'User';
+            if (userAvatarEl) userAvatarEl.textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
+            if (userRoleEl && userRoles && userRoles.length > 0) {
+                userRoleEl.textContent = userRoles[0].role?.nama || '-';
             }
         }
         

@@ -139,7 +139,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     
     <script>
         let chartStatus = null;
@@ -148,76 +150,78 @@
         let kategoriDoa = null;
         let allJenjang = [];
         
-        const $ = id => document.getElementById(id);
+        const $ = function(id) { return document.getElementById(id); };
+        
         function toggleSidebar() {
-            $('sidebar').classList.toggle('show');
-            $('sidebarOverlay').classList.toggle('show');
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
         }
         
         document.addEventListener('DOMContentLoaded', async () => {
             if (!await requireAuth()) return;
             
             // Load kategori
-            const { data: kategori } = await db
+            var kategoriResult = await db
                 .from('kategori_materi')
                 .select('id, kode')
                 .in('kode', ['SURAT', 'DOA']);
             
-            kategoriSurat = kategori?.find(k => k.kode === 'SURAT');
-            kategoriDoa = kategori?.find(k => k.kode === 'DOA');
+            var kategori = kategoriResult.data;
+            if (kategori) {
+                kategoriSurat = kategori.find(function(k) { return k.kode === 'SURAT'; });
+                kategoriDoa = kategori.find(function(k) { return k.kode === 'DOA'; });
+            }
             
-            // Load jenjang
-            const { data: jenjang } = await db
-                .from('jenjang')
-                .select('id, nama')
-                .eq('is_aktif', true)
-                .order('urutan');
+            // Load jenjang menggunakan api.js
+            allJenjang = await masterApi.getJenjang() || [];
             
-            allJenjang = jenjang || [];
-            let optHtml = '<option value="">Semua Jenjang</option>';
-            allJenjang.forEach(j => {
-                optHtml += `<option value="${j.id}">${j.nama}</option>`;
+            var filterJenjangEl = $('filterJenjang');
+            var optHtml = '<option value="">Semua Jenjang</option>';
+            allJenjang.forEach(function(j) {
+                optHtml += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>';
             });
-            $('filterJenjang').innerHTML = optHtml;
+            if (filterJenjangEl) filterJenjangEl.innerHTML = optHtml;
             
             await loadData();
         });
         
         async function loadData() {
-            const jenjangId = $('filterJenjang').value;
-            const periode = $('filterPeriode').value;
+            var filterJenjangEl = $('filterJenjang');
+            var filterPeriodeEl = $('filterPeriode');
+            
+            var jenjangId = filterJenjangEl?.value || '';
+            var periode = filterPeriodeEl?.value || 'all';
             
             try {
                 // Build query
-                let query = db
+                var query = db
                     .from('progress_jamaah')
-                    .select(`
-                        id, jamaah_id, materi_item_id, status,
-                        materi_item!inner(kategori_id, kode),
-                        jamaah!inner(nama, enrollment!inner(jenjang_id, jenjang:jenjang_id(nama)))
-                    `);
+                    .select('id, jamaah_id, materi_item_id, status, materi_item!inner(kategori_id, kode), jamaah!inner(nama, enrollment!inner(jenjang_id, jenjang:jenjang_id(nama)))');
                 
                 // Filter periode
-                const now = new Date();
+                var now = new Date();
                 if (periode === 'month') {
                     query = query.eq('periode_bulan', now.getMonth() + 1).eq('periode_tahun', now.getFullYear());
                 } else if (periode === 'year') {
                     query = query.eq('periode_tahun', now.getFullYear());
                 }
                 
-                const { data: progress } = await query;
+                var result = await query;
+                var progress = result.data;
                 
                 // Filter by jenjang if selected
-                let filtered = progress || [];
+                var filtered = progress || [];
                 if (jenjangId) {
-                    filtered = filtered.filter(p => 
-                        p.jamaah?.enrollment?.some(e => e.jenjang_id == jenjangId)
-                    );
+                    filtered = filtered.filter(function(p) { 
+                        return p.jamaah?.enrollment?.some(function(e) { return e.jenjang_id == jenjangId; });
+                    });
                 }
                 
                 // Calculate stats
-                let totalProgress = filtered.length;
-                let selesaiCount = 0, sedangCount = 0, belumCount = 0;
+                var totalProgress = filtered.length;
+                var selesaiCount = 0, sedangCount = 0, belumCount = 0;
                 let suratCount = 0, doaCount = 0;
                 const scoreMap = {};
                 const jenjangStats = {};

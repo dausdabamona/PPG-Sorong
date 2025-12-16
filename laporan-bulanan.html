@@ -98,69 +98,81 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
     
     <script>
         const namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
         let kategoriSurat = null;
         let kategoriDoa = null;
         
-        const $ = id => document.getElementById(id);
+        const $ = function(id) { return document.getElementById(id); };
+        
         function toggleSidebar() {
-            $('sidebar').classList.toggle('show');
-            $('sidebarOverlay').classList.toggle('show');
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
         }
         
         document.addEventListener('DOMContentLoaded', async () => {
             if (!await requireAuth()) return;
             
-            const now = new Date();
-            $('filterBulan').value = now.getMonth() + 1;
+            var now = new Date();
+            var filterBulanEl = $('filterBulan');
+            var filterTahunEl = $('filterTahun');
             
-            let tahunHtml = '';
-            for (let y = now.getFullYear(); y >= now.getFullYear() - 4; y--) {
-                tahunHtml += `<option value="${y}">${y}</option>`;
+            if (filterBulanEl) filterBulanEl.value = now.getMonth() + 1;
+            
+            var tahunHtml = '';
+            for (var y = now.getFullYear(); y >= now.getFullYear() - 4; y--) {
+                tahunHtml += '<option value="' + y + '">' + y + '</option>';
             }
-            $('filterTahun').innerHTML = tahunHtml;
+            if (filterTahunEl) filterTahunEl.innerHTML = tahunHtml;
             
             // Load kategori
-            const { data: kategori } = await db
+            var kategoriResult = await db
                 .from('kategori_materi')
                 .select('id, kode')
                 .in('kode', ['SURAT', 'DOA']);
             
-            kategoriSurat = kategori?.find(k => k.kode === 'SURAT');
-            kategoriDoa = kategori?.find(k => k.kode === 'DOA');
+            var kategori = kategoriResult.data;
+            if (kategori) {
+                kategoriSurat = kategori.find(function(k) { return k.kode === 'SURAT'; });
+                kategoriDoa = kategori.find(function(k) { return k.kode === 'DOA'; });
+            }
             
             await loadReport();
         });
         
         async function loadReport() {
-            const bulan = parseInt($('filterBulan').value);
-            const tahun = parseInt($('filterTahun').value);
+            var filterBulanEl = $('filterBulan');
+            var filterTahunEl = $('filterTahun');
+            
+            var bulan = safeParseInt(filterBulanEl?.value) || new Date().getMonth() + 1;
+            var tahun = safeParseInt(filterTahunEl?.value) || new Date().getFullYear();
             
             try {
-                // Load generus aktif
-                const { data: generus } = await db
-                    .from('jamaah')
-                    .select('id, nama, enrollment!inner(jenjang:jenjang_id(nama), status)')
-                    .eq('enrollment.status', 'aktif');
-                
-                const totalGenerus = generus?.length || 0;
+                // Load generus aktif menggunakan api.js
+                var generus = await generusApi.getAll({ status: 'aktif' });
+                var totalGenerus = generus?.length || 0;
                 
                 // Load progress bulan ini dari progress_jamaah
-                const { data: progress } = await db
+                var progressResult = await db
                     .from('progress_jamaah')
                     .select('jamaah_id, materi_item_id, status, materi_item!inner(kategori_id, kode)')
                     .eq('periode_bulan', bulan)
                     .eq('periode_tahun', tahun);
                 
-                // Hitung per kategori
-                let suratSelesai = 0, doaSelesai = 0, asmaulSelesai = 0;
-                const scoreMap = {};
+                var progress = progressResult.data;
                 
-                (progress || []).forEach(p => {
-                    const isSelesai = p.status === 'selesai' || p.status === 'lulus';
+                // Hitung per kategori
+                var suratSelesai = 0, doaSelesai = 0, asmaulSelesai = 0;
+                var scoreMap = {};
+                
+                (progress || []).forEach(function(p) {
+                    var isSelesai = p.status === 'selesai' || p.status === 'lulus';
                     
                     if (isSelesai) {
                         // Cek kategori
