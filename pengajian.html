@@ -7,29 +7,58 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
-    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
     <title>Pengajian - PPG Sorong</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
     <style>
-        .badge-mingguan { background: #dcfce7; color: #166534; }
-        .badge-bulanan { background: #fef3c7; color: #92400e; }
-        .badge-3bulanan { background: #f3e8ff; color: #7c3aed; }
-        .tab-container { border-bottom: 1px solid var(--gray-200); margin-bottom: 1.5rem; }
-        .tab-nav { display: flex; gap: 0; }
-        .tab-btn { padding: 0.75rem 1.5rem; border: none; background: none; cursor: pointer; font-weight: 500; color: var(--gray-600); border-bottom: 2px solid transparent; transition: all 0.2s; }
-        .tab-btn:hover { color: var(--primary); }
-        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab-nav { display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 1rem; }
+        .tab-btn { padding: 0.75rem 1.25rem; border: none; background: none; cursor: pointer; font-weight: 500; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -2px; font-size: 0.9rem; }
+        .tab-btn:hover { color: #059669; }
+        .tab-btn.active { color: #059669; border-bottom-color: #059669; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .jadwal-card { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 0.75rem; }
-        .jadwal-card:hover { border-color: var(--primary); }
-        .jadwal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-        .jadwal-title { font-weight: 600; color: var(--gray-900); }
-        .jadwal-info { font-size: 0.875rem; color: var(--gray-600); }
-        .jadwal-actions { display: flex; gap: 0.5rem; }
+        .group-card { margin-bottom: 1rem; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .group-header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 0.75rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .group-header.desa { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+        .group-header.daerah { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+        .group-header h4 { margin: 0; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+        .group-badge { background: rgba(255,255,255,0.25); padding: 0.2rem 0.6rem; border-radius: 1rem; font-size: 0.7rem; }
+        .group-content { background: white; }
+        .group-content.collapsed { display: none; }
+        .jenjang-header { background: #f0fdf4; padding: 0.5rem 1rem; font-weight: 600; font-size: 0.75rem; color: #065f46; border-bottom: 1px solid #d1fae5; display: flex; justify-content: space-between; }
+        .jenjang-badge { background: #059669; color: white; padding: 0.1rem 0.4rem; border-radius: 0.5rem; font-size: 0.65rem; }
+        .pengajian-item { display: flex; align-items: center; padding: 0.6rem 1rem; border-bottom: 1px solid #f1f5f9; gap: 0.6rem; }
+        .pengajian-item:last-child { border-bottom: none; }
+        .pengajian-date { min-width: 45px; text-align: center; background: #f8fafc; padding: 0.4rem; border-radius: 0.5rem; }
+        .pengajian-date .day { font-size: 1.1rem; font-weight: 700; color: #1f2937; line-height: 1; }
+        .pengajian-date .month { font-size: 0.55rem; color: #6b7280; text-transform: uppercase; }
+        .pengajian-info { flex: 1; min-width: 0; }
+        .pengajian-title { font-weight: 500; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pengajian-meta { font-size: 0.7rem; color: #6b7280; }
+        .pengajian-actions { flex-shrink: 0; display: flex; gap: 0.25rem; }
+        .stats-mini { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .stat-mini { flex: 1; background: white; border-radius: 0.75rem; padding: 0.6rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-mini-value { font-size: 1.1rem; font-weight: 700; color: #1f2937; }
+        .stat-mini-label { font-size: 0.6rem; color: #6b7280; }
+        .rutin-item { background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; margin-bottom: 0.75rem; }
+        .rutin-item.inactive { opacity: 0.6; background: #f9fafb; }
+        .rutin-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+        .rutin-title { font-weight: 600; font-size: 0.95rem; color: #1f2937; }
+        .rutin-meta { font-size: 0.75rem; color: #6b7280; margin-bottom: 0.5rem; }
+        .rutin-schedule { background: #f0fdf4; padding: 0.5rem; border-radius: 0.5rem; font-size: 0.75rem; color: #065f46; }
+        .rutin-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+        .hari-selector { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .hari-check { display: flex; align-items: center; gap: 0.25rem; background: #f1f5f9; padding: 0.4rem 0.6rem; border-radius: 0.5rem; font-size: 0.8rem; cursor: pointer; }
+        .hari-check input { margin: 0; }
+        .bulan-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+        .bulan-check { display: flex; align-items: center; justify-content: center; gap: 0.25rem; background: #f1f5f9; padding: 0.4rem; border-radius: 0.5rem; font-size: 0.75rem; cursor: pointer; }
+        .bulan-check input { margin: 0; }
+        .libur-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f1f5f9; }
+        .libur-item:last-child { border-bottom: none; }
+        .badge-done { background: #dcfce7; color: #166534; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-generated { background: #dbeafe; color: #1e40af; }
     </style>
 </head>
 <body>
@@ -47,16 +76,14 @@
                 <div class="nav-section">MENU UTAMA</div>
                 <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
                 <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
-                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <a href="pengajian.html" class="nav-item active"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
                 <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
                 <div class="nav-section">LAPORAN</div>
                 <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
-                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
                 <div class="nav-section">PENGATURAN</div>
                 <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
-                <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
                 <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
                 <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
                 <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
@@ -75,137 +102,190 @@
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
         
         <main class="main-content">
-            <header class="header">
+            <header class="header" id="desktopHeader">
                 <div class="header-left">
                     <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
                     <h1 class="header-title">Pengajian</h1>
                 </div>
-                </header>
+            </header>
+            
+            <div class="pwa-page-header" id="mobileHeader" style="display:none;">
+                <button class="pwa-back-btn" onclick="location.href='dashboard.html'">←</button>
+                <h1 class="pwa-page-title">📖 Pengajian</h1>
+                <button class="pwa-page-action" onclick="showAddPengajianModal()">➕</button>
+            </div>
             
             <div class="page-content">
-                <div class="page-header">
-                    <div>
-                        <div class="breadcrumb"><a href="dashboard.html">Dashboard</a><span>/</span><span>Pengajian</span></div>
-                        <h2 class="page-title">Kelola Pengajian</h2>
-                    </div>
-                    <button class="btn btn-primary" onclick="showAddModal()">➕ Buat Pengajian</button>
+                <div class="tab-nav">
+                    <button class="tab-btn active" onclick="switchMainTab('jadwal', this)">📅 Jadwal</button>
+                    <button class="tab-btn" onclick="switchMainTab('rutin', this)">⚙️ Atur Rutin</button>
+                    <button class="tab-btn" onclick="switchMainTab('libur', this)">🚫 Libur</button>
                 </div>
                 
-                <!-- Stats -->
-                <div class="stats-grid mb-lg">
-                    <div class="stat-card">
-                        <div class="stat-icon primary">📅</div>
-                        <div class="stat-content"><div class="stat-value" id="totalJadwal">0</div><div class="stat-label">Jadwal Aktif</div></div>
+                <!-- TAB 1: JADWAL -->
+                <div class="tab-content active" id="tabJadwal">
+                    <div class="stats-mini">
+                        <div class="stat-mini"><div class="stat-mini-value" id="statTotal">0</div><div class="stat-mini-label">Total</div></div>
+                        <div class="stat-mini"><div class="stat-mini-value" id="statSelesai">0</div><div class="stat-mini-label">Presensi</div></div>
+                        <div class="stat-mini"><div class="stat-mini-value" id="statPending">0</div><div class="stat-mini-label">Belum</div></div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon success">📖</div>
-                        <div class="stat-content"><div class="stat-value" id="totalPengajian">0</div><div class="stat-label">Pengajian Bulan Ini</div></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon warning">✅</div>
-                        <div class="stat-content"><div class="stat-value" id="pengajianSelesai">0</div><div class="stat-label">Sudah Presensi</div></div>
-                    </div>
-                </div>
-                
-                <!-- Filters -->
-                <div class="card mb-lg">
-                    <div class="card-body">
-                        <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;">
-                            <div>
-                                <label class="form-label">Bulan</label>
-                                <input type="month" class="form-control" id="filterBulan" onchange="loadPengajian()">
+                    <div class="card mb-sm">
+                        <div class="card-body">
+                            <div class="filter-grid">
+                                <div><label class="form-label" style="font-size:0.7rem;">Bulan</label><input type="month" class="form-control" id="filterBulan" onchange="loadPengajian()"></div>
+                                <div><label class="form-label" style="font-size:0.7rem;">Tingkat</label><select class="form-control" id="filterTingkat" onchange="onFilterTingkatChange()"><option value="">Semua</option><option value="kelompok">Kelompok</option><option value="desa">Desa</option><option value="daerah">Daerah</option></select></div>
                             </div>
-                            <div>
-                                <label class="form-label">Jenjang</label>
-                                <select class="form-control" id="filterJenjang" onchange="loadPengajian()">
-                                    <option value="">Semua Jenjang</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="form-label">Wilayah</label>
-                                <select class="form-control" id="filterWilayah" onchange="loadPengajian()">
-                                    <option value="">Semua Wilayah</option>
-                                </select>
+                            <div class="filter-grid" style="margin-top:0.5rem;">
+                                <div><label class="form-label" style="font-size:0.7rem;">Wilayah</label><select class="form-control" id="filterWilayah" onchange="loadPengajian()"><option value="">Semua</option></select></div>
+                                <div><label class="form-label" style="font-size:0.7rem;">Jenjang</label><select class="form-control" id="filterJenjang" onchange="loadPengajian()"><option value="">Semua</option></select></div>
                             </div>
                         </div>
                     </div>
+                    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+                        <button class="btn btn-primary btn-sm" onclick="showAddPengajianModal()">➕ Buat Pengajian</button>
+                        <button class="btn btn-outline btn-sm" onclick="generateBulanIni()">🔄 Generate Bulan Ini</button>
+                    </div>
+                    <div id="pengajianContainer"><div class="text-center py-4 text-muted">Memuat data...</div></div>
                 </div>
                 
-                <!-- Table -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Daftar Pengajian</h3>
+                <!-- TAB 2: RUTIN -->
+                <div class="tab-content" id="tabRutin">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                        <h3 style="font-size:1rem;margin:0;">Template Jadwal Rutin</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddRutinModal()">➕ Tambah</button>
                     </div>
-                    <div class="card-body">
-                        <div class="table-container">
-                            <table class="table" id="pengajianTable">
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Tanggal</th>
-                                        <th>Jenjang</th>
-                                        <th>Wilayah</th>
-                                        <th>Waktu</th>
-                                        <th>Materi</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody><tr><td colspan="7" class="text-center text-muted py-4">Memuat data...</td></tr></tbody>
-                            </table>
-                        </div>
+                    <div id="rutinContainer"><div class="text-center py-4 text-muted">Memuat data...</div></div>
+                </div>
+                
+                <!-- TAB 3: LIBUR -->
+                <div class="tab-content" id="tabLibur">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                        <h3 style="font-size:1rem;margin:0;">Tanggal Libur / Skip</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddLiburModal()">➕ Tambah</button>
                     </div>
+                    <div class="card"><div class="card-body">
+                        <div style="margin-bottom:1rem;"><select class="form-control" id="filterTahunLibur" onchange="loadLibur()" style="width:auto;"><option value="2025">2025</option><option value="2024">2024</option></select></div>
+                        <div id="liburContainer"><div class="text-center py-4 text-muted">Memuat data...</div></div>
+                    </div></div>
                 </div>
             </div>
+            
+            <nav class="pwa-bottom-nav" id="mobileBottomNav" style="display:none;">
+                <a href="dashboard.html" class="pwa-nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
+                <a href="generus.html" class="pwa-nav-item"><span class="nav-icon">👶</span><span class="nav-label">Generus</span></a>
+                <a href="pengajian.html" class="pwa-nav-item active"><span class="nav-icon">📖</span><span class="nav-label">Pengajian</span></a>
+                <a href="presensi.html" class="pwa-nav-item"><span class="nav-icon">✅</span><span class="nav-label">Presensi</span></a>
+                <a href="jamaah.html" class="pwa-nav-item"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></a>
+            </nav>
         </main>
     </div>
     
-    <!-- Modal Form -->
+    <!-- Modal Pengajian -->
     <div class="modal" id="pengajianModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle">Buat Pengajian</h3>
-                <button class="modal-close" onclick="hideModal('pengajianModal')">&times;</button>
-            </div>
+            <div class="modal-header"><h3 id="pengajianModalTitle">Buat Pengajian</h3><button class="modal-close" onclick="hideModal('pengajianModal')">&times;</button></div>
             <div class="modal-body">
-                <form id="pengajianForm">
-                    <input type="hidden" name="id" id="pengajianId">
-                    <div class="form-group">
-                        <label class="form-label required">Jenjang</label>
-                        <select class="form-control" name="jenjang_id" id="selectJenjangForm" required>
-                            <option value="">-- Pilih Jenjang --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label required">Wilayah</label>
-                        <select class="form-control" name="wilayah_id" id="selectWilayahForm" required>
-                            <option value="">-- Pilih Wilayah --</option>
-                        </select>
-                    </div>
+                <form id="pengajianForm" onsubmit="savePengajian(event)">
+                    <input type="hidden" id="pengajianId">
+                    <div class="form-group"><label class="form-label">Tingkat *</label><select class="form-control" id="formTingkat" onchange="onFormTingkatChange()" required><option value="">-- Pilih --</option><option value="kelompok">Kelompok</option><option value="desa">Desa</option><option value="daerah">Daerah</option></select></div>
+                    <div class="form-group"><label class="form-label">Wilayah *</label><select class="form-control" id="formWilayah" required></select></div>
+                    <div class="form-group"><label class="form-label">Jenjang *</label><select class="form-control" id="formJenjang" required></select></div>
+                    <div class="form-group"><label class="form-label">Tanggal *</label><input type="date" class="form-control" id="formTanggal" required></div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label required">Tanggal</label>
-                            <input type="date" class="form-control" name="tanggal" required>
-                        </div>
+                        <div class="form-group"><label class="form-label">Waktu Mulai</label><input type="time" class="form-control" id="formWaktuMulai"></div>
+                        <div class="form-group"><label class="form-label">Waktu Selesai</label><input type="time" class="form-control" id="formWaktuSelesai"></div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Waktu Mulai</label>
-                            <input type="time" class="form-control" name="waktu_mulai">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Waktu Selesai</label>
-                            <input type="time" class="form-control" name="waktu_selesai">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Materi</label>
-                        <textarea class="form-control" name="materi" rows="3" placeholder="Materi yang akan diajarkan..."></textarea>
-                    </div>
+                    <div class="form-group"><label class="form-label">Materi</label><input type="text" class="form-control" id="formMateri" placeholder="Topik pengajian"></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="hideModal('pengajianModal')">Batal</button>
-                <button class="btn btn-primary" id="btnSave" onclick="savePengajian()">Simpan</button>
+        </div>
+    </div>
+    
+    <!-- Modal Rutin -->
+    <div class="modal" id="rutinModal">
+        <div class="modal-content" style="max-height:90vh;">
+            <div class="modal-header"><h3 id="rutinModalTitle">Tambah Jadwal Rutin</h3><button class="modal-close" onclick="hideModal('rutinModal')">&times;</button></div>
+            <div class="modal-body" style="overflow-y:auto;">
+                <form id="rutinForm" onsubmit="saveRutin(event)">
+                    <input type="hidden" id="rutinId">
+                    <div class="form-group"><label class="form-label">Nama Jadwal *</label><input type="text" class="form-control" id="rutinNama" required></div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Tingkat *</label><select class="form-control" id="rutinTingkat" onchange="onRutinTingkatChange()" required><option value="">-- Pilih --</option><option value="kelompok">Kelompok</option><option value="desa">Desa</option><option value="daerah">Daerah</option></select></div>
+                        <div class="form-group"><label class="form-label">Wilayah *</label><select class="form-control" id="rutinWilayah" required></select></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Jenjang *</label><select class="form-control" id="rutinJenjang" required></select></div>
+                    <hr style="margin:1rem 0;">
+                    <div class="form-group"><label class="form-label">Tipe Jadwal *</label>
+                        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                            <label class="hari-check"><input type="radio" name="rutinTipe" value="harian" onchange="onRutinTipeChange()"> Harian</label>
+                            <label class="hari-check"><input type="radio" name="rutinTipe" value="mingguan" onchange="onRutinTipeChange()"> Mingguan</label>
+                            <label class="hari-check"><input type="radio" name="rutinTipe" value="bulanan" onchange="onRutinTipeChange()"> Bulanan</label>
+                        </div>
+                    </div>
+                    <div id="settingHarian" style="display:none;">
+                        <div class="form-group"><label class="form-label">Pilih Hari:</label>
+                            <div class="hari-selector">
+                                <label class="hari-check"><input type="checkbox" id="hariMinggu"> Min</label>
+                                <label class="hari-check"><input type="checkbox" id="hariSenin"> Sen</label>
+                                <label class="hari-check"><input type="checkbox" id="hariSelasa"> Sel</label>
+                                <label class="hari-check"><input type="checkbox" id="hariRabu"> Rab</label>
+                                <label class="hari-check"><input type="checkbox" id="hariKamis"> Kam</label>
+                                <label class="hari-check"><input type="checkbox" id="hariJumat"> Jum</label>
+                                <label class="hari-check"><input type="checkbox" id="hariSabtu"> Sab</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="settingMingguan" style="display:none;">
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Minggu ke:</label><select class="form-control" id="mingguKe"><option value="1">Minggu ke-1</option><option value="2">Minggu ke-2</option><option value="3">Minggu ke-3</option><option value="4">Minggu ke-4</option><option value="5">Minggu ke-5</option></select></div>
+                            <div class="form-group"><label class="form-label">Hari:</label><select class="form-control" id="hariMingguan"><option value="0">Minggu</option><option value="1">Senin</option><option value="2">Selasa</option><option value="3">Rabu</option><option value="4">Kamis</option><option value="5">Jumat</option><option value="6">Sabtu</option></select></div>
+                        </div>
+                    </div>
+                    <div id="settingBulanan" style="display:none;">
+                        <div class="form-group"><label class="form-label">Pilih Bulan:</label>
+                            <div class="bulan-selector">
+                                <label class="bulan-check"><input type="checkbox" id="bulanJan"> Jan</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanFeb"> Feb</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanMar"> Mar</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanApr"> Apr</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanMei"> Mei</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanJun"> Jun</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanJul"> Jul</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanAgt"> Agt</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanSep"> Sep</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanOkt"> Okt</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanNov"> Nov</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanDes"> Des</label>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Minggu ke:</label><select class="form-control" id="mingguKeBulanan"><option value="1">Minggu ke-1</option><option value="2">Minggu ke-2</option><option value="3">Minggu ke-3</option><option value="4">Minggu ke-4</option></select></div>
+                            <div class="form-group"><label class="form-label">Hari:</label><select class="form-control" id="hariBulanan"><option value="0">Minggu</option><option value="1">Senin</option><option value="2">Selasa</option><option value="3">Rabu</option><option value="4">Kamis</option><option value="5">Jumat</option><option value="6">Sabtu</option></select></div>
+                        </div>
+                    </div>
+                    <hr style="margin:1rem 0;">
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Waktu Mulai</label><input type="time" class="form-control" id="rutinWaktuMulai"></div>
+                        <div class="form-group"><label class="form-label">Waktu Selesai</label><input type="time" class="form-control" id="rutinWaktuSelesai"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Materi Default</label><input type="text" class="form-control" id="rutinMateri"></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Libur -->
+    <div class="modal" id="liburModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Tambah Tanggal Libur</h3><button class="modal-close" onclick="hideModal('liburModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="liburForm" onsubmit="saveLibur(event)">
+                    <div class="form-group"><label class="form-label">Tanggal *</label><input type="date" class="form-control" id="liburTanggal" required></div>
+                    <div class="form-group"><label class="form-label">Keterangan</label><input type="text" class="form-control" id="liburKeterangan"></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
+                </form>
             </div>
         </div>
     </div>
@@ -216,274 +296,352 @@
     <script src="js/auth.js"></script>
     <script src="js/api.js"></script>
     <script src="js/sidebar.js"></script>
-    
     <script>
-        let editMode = false;
+        var allWilayah = [], allJenjang = [], pengajianData = [], rutinData = [];
+        var HARI_NAMA = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        var BULAN_NAMA = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
         
-        function toggleSidebar() {
-            $('sidebar').classList.toggle('show');
-            $('sidebarOverlay').classList.toggle('show');
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', async function() {
             if (!await requireAuth()) return;
-            updateSidebarUserInfo();
-            initSidebar();
-            updateUserUI();
-            
-            // Set default month to current
-            const now = new Date();
-            $('filterBulan').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            
-            await loadFilters();
-            await loadStats();
+            setupResponsiveView();
+            window.addEventListener('resize', setupResponsiveView);
+            var now = new Date();
+            $('filterBulan').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            await loadMasterData();
             await loadPengajian();
         });
         
-        function updateUserUI() {
-            if (!currentUserData) return;
-            
-            var userNameEl = $('userName');
-            var userAvatarEl = $('userAvatar');
-            var userRoleEl = $('userRole');
-            
-            if (userNameEl) userNameEl.textContent = currentUserData.nama || currentUserData.email || 'User';
-            if (userAvatarEl) userAvatarEl.textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
-            if (userRoleEl && userRoles && userRoles.length > 0) {
-                userRoleEl.textContent = userRoles[0].role?.nama || '-';
-            }
+        function setupResponsiveView() {
+            var isMobile = window.innerWidth <= 768;
+            if ($('desktopHeader')) $('desktopHeader').style.display = isMobile ? 'none' : 'flex';
+            if ($('mobileHeader')) $('mobileHeader').style.display = isMobile ? 'flex' : 'none';
+            if ($('mobileBottomNav')) $('mobileBottomNav').style.display = isMobile ? 'flex' : 'none';
+            document.body.style.paddingBottom = isMobile ? '70px' : '0';
         }
         
-        async function loadStats() {
-            try {
-                // Jadwal aktif
-                const { count: jadwalCount } = await db.from('jadwal_pengajian')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('is_aktif', true);
-                $('totalJadwal').textContent = jadwalCount || 0;
-                
-                // Pengajian bulan ini
-                const startOfMonth = new Date();
-                startOfMonth.setDate(1);
-                const { count: pengajianCount } = await db.from('pengajian')
-                    .select('*', { count: 'exact', head: true })
-                    .gte('tanggal', startOfMonth.toISOString().split('T')[0]);
-                $('totalPengajian').textContent = pengajianCount || 0;
-                
-                // Pengajian yang sudah ada presensi
-                const { data: pengajianWithPresensi } = await db.from('pengajian')
-                    .select('id, keaktifan_pengajian(id)')
-                    .gte('tanggal', startOfMonth.toISOString().split('T')[0]);
-                
-                const selesaiCount = pengajianWithPresensi?.filter(p => p.keaktifan_pengajian?.length > 0).length || 0;
-                $('pengajianSelesai').textContent = selesaiCount;
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
+        function switchMainTab(tabId, btn) {
+            document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+            btn.classList.add('active');
+            $('tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1)).classList.add('active');
+            if (tabId === 'rutin') loadRutin();
+            if (tabId === 'libur') loadLibur();
         }
         
-        async function loadFilters() {
+        async function loadMasterData() {
             try {
-                // Load jenjang
-                const { data: jenjang } = await db.from('jenjang')
-                    .select('id, nama')
-                    .eq('is_aktif', true)
-                    .order('urutan');
-                
-                if (jenjang) {
-                    const jenjangOptions = jenjang.map(j => `<option value="${j.id}">${j.nama}</option>`).join('');
-                    $('filterJenjang').innerHTML += jenjangOptions;
-                    $('selectJenjangForm').innerHTML += jenjangOptions;
-                }
-                
-                // Load wilayah (kelompok)
-                const { data: wilayah } = await db.from('wilayah')
-                    .select('id, nama, tingkat')
-                    .eq('is_aktif', true)
-                    .order('nama');
-                
-                if (wilayah) {
-                    const wilayahOptions = wilayah.map(w => `<option value="${w.id}">${w.nama} (${w.tingkat})</option>`).join('');
-                    $('filterWilayah').innerHTML += wilayahOptions;
-                    $('selectWilayahForm').innerHTML += wilayahOptions;
-                }
-            } catch (error) {
-                console.error('Error loading filters:', error);
-            }
+                allWilayah = await wilayahApi.getAll() || [];
+                allJenjang = await jenjangApi.getAll() || [];
+                var jenjangHtml = '<option value="">Semua</option>';
+                var jenjangHtml2 = '<option value="">-- Pilih --</option>';
+                allJenjang.forEach(function(j) {
+                    jenjangHtml += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>';
+                    jenjangHtml2 += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>';
+                });
+                if ($('filterJenjang')) $('filterJenjang').innerHTML = jenjangHtml;
+                if ($('formJenjang')) $('formJenjang').innerHTML = jenjangHtml2;
+                if ($('rutinJenjang')) $('rutinJenjang').innerHTML = jenjangHtml2;
+            } catch (error) { console.error('Error load master:', error); }
+        }
+        
+        function onFilterTingkatChange() {
+            populateWilayahFilter('filterWilayah', $('filterTingkat').value, true);
+            loadPengajian();
+        }
+        
+        function populateWilayahFilter(selectId, tingkat, addAll) {
+            var select = $(selectId);
+            if (!select) return;
+            var filtered = tingkat ? allWilayah.filter(function(w) { return w.tingkat === tingkat; }) : allWilayah;
+            var html = addAll ? '<option value="">Semua</option>' : '<option value="">-- Pilih --</option>';
+            filtered.forEach(function(w) { html += '<option value="' + w.id + '">' + escapeHtml(w.nama + ' (' + w.tingkat + ')') + '</option>'; });
+            select.innerHTML = html;
+        }
+        
+        function onFormTingkatChange() { populateWilayahFilter('formWilayah', $('formTingkat').value, false); }
+        function onRutinTingkatChange() { populateWilayahFilter('rutinWilayah', $('rutinTingkat').value, false); }
+        
+        function onRutinTipeChange() {
+            var tipe = document.querySelector('input[name="rutinTipe"]:checked')?.value;
+            $('settingHarian').style.display = tipe === 'harian' ? 'block' : 'none';
+            $('settingMingguan').style.display = tipe === 'mingguan' ? 'block' : 'none';
+            $('settingBulanan').style.display = tipe === 'bulanan' ? 'block' : 'none';
         }
         
         async function loadPengajian() {
+            var container = $('pengajianContainer');
+            container.innerHTML = '<div class="text-center py-4 text-muted">Memuat data...</div>';
             try {
-                const bulan = $('filterBulan').value;
-                const jenjangId = $('filterJenjang').value;
-                const wilayahId = $('filterWilayah').value;
-                
-                let query = db.from('pengajian')
-                    .select(`
-                        *,
-                        wilayah:wilayah_id(nama),
-                        jenjang:jenjang_id(nama),
-                        creator:created_by(nama)
-                    `)
-                    .order('tanggal', { ascending: false });
-                
-                if (bulan) {
-                    const [year, month] = bulan.split('-');
-                    const start = `${year}-${month}-01`;
-                    const lastDay = new Date(year, month, 0).getDate();
-                    const end = `${year}-${month}-${lastDay}`;
-                    query = query.gte('tanggal', start).lte('tanggal', end);
-                }
-                
-                if (jenjangId) query = query.eq('jenjang_id', jenjangId);
-                if (wilayahId) query = query.eq('wilayah_id', wilayahId);
-                
-                const { data, error } = await query;
-                if (error) throw error;
-                
-                renderTable(data || []);
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Gagal memuat data', 'error');
-            }
+                var bulan = $('filterBulan').value;
+                var filters = {};
+                if (bulan) { var parts = bulan.split('-'); filters.tahun = parseInt(parts[0]); filters.bulan = parseInt(parts[1]); }
+                if ($('filterWilayah').value) filters.wilayah_id = $('filterWilayah').value;
+                if ($('filterJenjang').value) filters.jenjang_id = $('filterJenjang').value;
+                pengajianData = await pengajianApi.getAll(filters);
+                var tingkat = $('filterTingkat').value;
+                if (tingkat) pengajianData = pengajianData.filter(function(p) { return p.wilayah_tingkat === tingkat; });
+                var total = pengajianData.length;
+                var selesai = pengajianData.filter(function(p) { return p.total_hadir > 0; }).length;
+                $('statTotal').textContent = total;
+                $('statSelesai').textContent = selesai;
+                $('statPending').textContent = total - selesai;
+                renderPengajian(pengajianData);
+            } catch (error) { console.error('Error:', error); container.innerHTML = '<div class="text-center py-4 text-danger">Gagal memuat data</div>'; }
         }
         
-        function renderTable(data) {
-            const tbody = $$('#pengajianTable tbody');
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Tidak ada data pengajian</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = data.map((p, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>
-                        <strong>${formatTanggal(p.tanggal)}</strong>
-                    </td>
-                    <td>
-                        <span class="badge badge-primary">${p.jenjang?.nama || '-'}</span>
-                    </td>
-                    <td>${p.wilayah?.nama || '-'}</td>
-                    <td>
-                        ${p.waktu_mulai ? formatWaktu(p.waktu_mulai) : '-'}
-                        ${p.waktu_selesai ? ' - ' + formatWaktu(p.waktu_selesai) : ''}
-                    </td>
-                    <td>${p.materi || '-'}</td>
-                    <td>
-                        <div class="btn-group">
-                            <a href="presensi.html?pengajian_id=${p.id}" class="btn btn-sm btn-success" title="Input Presensi">✅</a>
-                            <button class="btn btn-sm btn-outline" onclick="editPengajian(${p.id})" title="Edit">✏️</button>
-                            <button class="btn btn-sm btn-danger" onclick="deletePengajian(${p.id})" title="Hapus">🗑️</button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+        function renderPengajian(data) {
+            var container = $('pengajianContainer');
+            if (!data || !data.length) { container.innerHTML = '<div class="card"><div class="card-body text-center py-4 text-muted">Tidak ada jadwal</div></div>'; return; }
+            var groups = {};
+            data.forEach(function(p) {
+                var wilayah = p.wilayah_nama || 'Tanpa Wilayah';
+                var jenjang = p.jenjang_nama || 'Tanpa Jenjang';
+                var tingkat = p.wilayah_tingkat || 'kelompok';
+                var key = tingkat + '|' + wilayah;
+                if (!groups[key]) groups[key] = { wilayah: wilayah, tingkat: tingkat, jenjangGroups: {} };
+                if (!groups[key].jenjangGroups[jenjang]) groups[key].jenjangGroups[jenjang] = [];
+                groups[key].jenjangGroups[jenjang].push(p);
+            });
+            var html = '';
+            Object.keys(groups).sort().forEach(function(key, gIdx) {
+                var group = groups[key];
+                var totalP = 0; Object.values(group.jenjangGroups).forEach(function(arr) { totalP += arr.length; });
+                var icon = group.tingkat === 'daerah' ? '🌍' : (group.tingkat === 'desa' ? '🏘️' : '🏠');
+                var headerClass = group.tingkat === 'daerah' ? 'daerah' : (group.tingkat === 'desa' ? 'desa' : '');
+                html += '<div class="group-card"><div class="group-header ' + headerClass + '" onclick="toggleGroup(' + gIdx + ')"><h4>' + icon + ' ' + escapeHtml(group.wilayah) + '</h4><span class="group-badge">' + totalP + '</span></div>';
+                html += '<div class="group-content" id="groupContent' + gIdx + '">';
+                Object.keys(group.jenjangGroups).sort().forEach(function(jenjangName) {
+                    var items = group.jenjangGroups[jenjangName];
+                    html += '<div class="jenjang-header"><span>📚 ' + escapeHtml(jenjangName) + '</span><span class="jenjang-badge">' + items.length + '</span></div>';
+                    items.sort(function(a, b) { return a.tanggal.localeCompare(b.tanggal); });
+                    items.forEach(function(p) {
+                        var tgl = new Date(p.tanggal); var day = tgl.getDate(); var month = BULAN_NAMA[tgl.getMonth() + 1];
+                        var hasPresensi = p.total_hadir > 0;
+                        var statusBadge = hasPresensi ? '<span class="badge badge-done">' + p.total_hadir + '/' + p.total_peserta + '</span>' : '<span class="badge badge-pending">Belum</span>';
+                        html += '<div class="pengajian-item"><div class="pengajian-date"><div class="day">' + day + '</div><div class="month">' + month + '</div></div>';
+                        html += '<div class="pengajian-info"><div class="pengajian-title">' + escapeHtml(p.materi || 'Pengajian') + '</div>';
+                        html += '<div class="pengajian-meta">';
+                        if (p.waktu_mulai) html += '🕐 ' + p.waktu_mulai.substring(0,5);
+                        if (p.waktu_selesai) html += '-' + p.waktu_selesai.substring(0,5);
+                        html += ' ' + statusBadge;
+                        if (p.is_generated) html += ' <span class="badge badge-generated">Auto</span>';
+                        html += '</div></div>';
+                        html += '<div class="pengajian-actions"><a href="presensi.html?pengajian_id=' + p.id + '" class="btn btn-sm btn-success">✅</a>';
+                        html += '<button class="btn btn-sm btn-outline" onclick="editPengajian(' + p.id + ')">✏️</button>';
+                        html += '<button class="btn btn-sm btn-danger" onclick="deletePengajian(' + p.id + ')">🗑️</button></div></div>';
+                    });
+                });
+                html += '</div></div>';
+            });
+            container.innerHTML = html;
         }
         
-        function showAddModal() {
-            editMode = false;
-            $('modalTitle').textContent = 'Buat Pengajian';
-            $('pengajianForm').reset();
+        function toggleGroup(idx) { var c = $('groupContent' + idx); if (c) c.classList.toggle('collapsed'); }
+        
+        function showAddPengajianModal() {
+            $('pengajianModalTitle').textContent = 'Buat Pengajian';
             $('pengajianId').value = '';
-            // Set default date to today
-            $('pengajianForm').querySelector('[name="tanggal"]').value = new Date().toISOString().split('T')[0];
+            $('pengajianForm').reset();
+            $('formTanggal').value = new Date().toISOString().split('T')[0];
+            $('formWilayah').innerHTML = '<option value="">-- Pilih Tingkat --</option>';
             showModal('pengajianModal');
         }
         
         async function editPengajian(id) {
-            try {
-                const { data, error } = await db.from('pengajian').select('*').eq('id', id).single();
-                if (error) throw error;
-                
-                editMode = true;
-                $('modalTitle').textContent = 'Edit Pengajian';
-                $('pengajianId').value = data.id;
-                setFormData('pengajianForm', data);
-                showModal('pengajianModal');
-            } catch (error) {
-                showToast('Gagal memuat data', 'error');
-            }
+            var p = pengajianData.find(function(x) { return x.id === id; });
+            if (!p) { showToast('Data tidak ditemukan', 'error'); return; }
+            $('pengajianModalTitle').textContent = 'Edit Pengajian';
+            $('pengajianId').value = p.id;
+            $('formTingkat').value = p.wilayah_tingkat || 'kelompok';
+            onFormTingkatChange();
+            setTimeout(function() {
+                $('formWilayah').value = p.wilayah_id || '';
+                $('formJenjang').value = p.jenjang_id || '';
+                $('formTanggal').value = p.tanggal || '';
+                $('formWaktuMulai').value = p.waktu_mulai || '';
+                $('formWaktuSelesai').value = p.waktu_selesai || '';
+                $('formMateri').value = p.materi || '';
+            }, 100);
+            showModal('pengajianModal');
         }
         
-        async function savePengajian() {
-            const form = $('pengajianForm');
-            if (!form || !form.checkValidity()) { 
-                if (form) form.reportValidity(); 
-                return; 
-            }
-            
-            const btn = $('btnSave');
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = 'Menyimpan...';
-            }
-            
+        async function savePengajian(e) {
+            e.preventDefault();
+            var id = $('pengajianId').value;
+            var data = { wilayah_id: $('formWilayah').value, jenjang_id: $('formJenjang').value, tanggal: $('formTanggal').value, waktu_mulai: $('formWaktuMulai').value || null, waktu_selesai: $('formWaktuSelesai').value || null, materi: $('formMateri').value || null };
             try {
-                const formData = getFormData('pengajianForm');
-                const pengajianData = {
-                    jenjang_id: safeParseInt(formData.jenjang_id),
-                    wilayah_id: safeParseInt(formData.wilayah_id),
-                    tanggal: formData.tanggal || null,
-                    waktu_mulai: formData.waktu_mulai || null,
-                    waktu_selesai: formData.waktu_selesai || null,
-                    materi: formData.materi || null
-                };
-                
-                // Validasi
-                if (!pengajianData.jenjang_id || !pengajianData.wilayah_id || !pengajianData.tanggal) {
-                    showToast('Jenjang, Wilayah, dan Tanggal wajib diisi', 'error');
-                    return;
-                }
-                
-                let success = false;
-                if (editMode && formData.id) {
-                    // Gunakan api.js
-                    success = await pengajianApi.update(safeParseInt(formData.id), pengajianData);
-                } else {
-                    // Gunakan api.js
-                    const result = await pengajianApi.create(pengajianData);
-                    success = result !== null;
-                }
-                
-                if (success) {
-                    showToast('Pengajian berhasil disimpan', 'success');
-                    hideModal('pengajianModal');
-                    await loadStats();
-                    await loadPengajian();
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Gagal menyimpan: ' + (error.message || error), 'error');
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'Simpan';
-                }
-            }
+                var success = id ? await pengajianApi.update(id, data) : !!(await pengajianApi.create(data));
+                if (success) { showToast('Berhasil!', 'success'); hideModal('pengajianModal'); loadPengajian(); }
+            } catch (error) { console.error('Error:', error); showToast('Gagal menyimpan', 'error'); }
         }
         
         async function deletePengajian(id) {
-            if (!await confirmDialog('Yakin ingin menghapus pengajian ini? Data presensi juga akan ikut terhapus.')) return;
-            
-            try {
-                // Gunakan api.js
-                const success = await pengajianApi.delete(id);
-                
-                if (success) {
-                    showToast('Pengajian berhasil dihapus', 'success');
-                    await loadStats();
-                    await loadPengajian();
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Gagal menghapus: ' + (error.message || error), 'error');
-            }
+            if (!confirm('Hapus pengajian ini?')) return;
+            try { if (await pengajianApi.delete(id)) { showToast('Dihapus', 'success'); loadPengajian(); } } catch (e) { showToast('Gagal', 'error'); }
         }
+        
+        async function generateBulanIni() {
+            var bulan = $('filterBulan').value;
+            if (!bulan) { showToast('Pilih bulan', 'error'); return; }
+            if (!confirm('Generate jadwal dari template rutin?')) return;
+            var parts = bulan.split('-');
+            try {
+                var result = await jadwalRutinApi.generateBulanan(parseInt(parts[0]), parseInt(parts[1]));
+                var created = result.filter(function(r) { return r.status === 'created'; }).length;
+                showToast('Dibuat: ' + created + ' jadwal', 'success');
+                loadPengajian();
+            } catch (e) { showToast('Gagal generate', 'error'); }
+        }
+        
+        async function loadRutin() {
+            var container = $('rutinContainer');
+            container.innerHTML = '<div class="text-center py-4 text-muted">Memuat...</div>';
+            try { rutinData = await jadwalRutinApi.getAll(); renderRutin(rutinData); } catch (e) { container.innerHTML = '<div class="text-center py-4 text-danger">Gagal</div>'; }
+        }
+        
+        function renderRutin(data) {
+            var container = $('rutinContainer');
+            if (!data || !data.length) { container.innerHTML = '<div class="text-center py-4 text-muted">Belum ada jadwal rutin</div>'; return; }
+            var html = '';
+            data.forEach(function(r) {
+                var desc = getScheduleDescription(r);
+                var icon = r.tingkat === 'daerah' ? '🌍' : (r.tingkat === 'desa' ? '🏘️' : '🏠');
+                html += '<div class="rutin-item' + (r.is_aktif ? '' : ' inactive') + '">';
+                html += '<div class="rutin-header"><div class="rutin-title">' + escapeHtml(r.nama) + '</div><span class="badge ' + (r.is_aktif ? 'badge-success' : 'badge-secondary') + '">' + (r.is_aktif ? 'Aktif' : 'Off') + '</span></div>';
+                html += '<div class="rutin-meta">' + icon + ' ' + escapeHtml(r.wilayah_nama || '-') + ' • 📚 ' + escapeHtml(r.jenjang_nama || '-') + ' • 👥 ' + (r.jumlah_peserta || 0) + '</div>';
+                html += '<div class="rutin-schedule">' + desc + '</div>';
+                html += '<div class="rutin-actions"><button class="btn btn-sm btn-outline" onclick="editRutin(' + r.id + ')">✏️</button>';
+                html += '<button class="btn btn-sm btn-outline" onclick="toggleRutinAktif(' + r.id + ',' + !r.is_aktif + ')">' + (r.is_aktif ? '⏸️' : '▶️') + '</button>';
+                html += '<button class="btn btn-sm btn-danger" onclick="deleteRutin(' + r.id + ')">🗑️</button></div></div>';
+            });
+            container.innerHTML = html;
+        }
+        
+        function getScheduleDescription(r) {
+            var desc = '';
+            if (r.tipe === 'harian') {
+                var hari = [];
+                if (r.hari_minggu) hari.push('Min'); if (r.hari_senin) hari.push('Sen'); if (r.hari_selasa) hari.push('Sel');
+                if (r.hari_rabu) hari.push('Rab'); if (r.hari_kamis) hari.push('Kam'); if (r.hari_jumat) hari.push('Jum'); if (r.hari_sabtu) hari.push('Sab');
+                desc = '📅 Setiap ' + hari.join(', ');
+            } else if (r.tipe === 'mingguan') {
+                desc = '📅 Minggu ke-' + r.minggu_ke + ', ' + HARI_NAMA[r.hari_dalam_minggu];
+            } else if (r.tipe === 'bulanan') {
+                var bulan = [];
+                if (r.bulan_jan) bulan.push('Jan'); if (r.bulan_feb) bulan.push('Feb'); if (r.bulan_mar) bulan.push('Mar');
+                if (r.bulan_apr) bulan.push('Apr'); if (r.bulan_mei) bulan.push('Mei'); if (r.bulan_jun) bulan.push('Jun');
+                if (r.bulan_jul) bulan.push('Jul'); if (r.bulan_agt) bulan.push('Agt'); if (r.bulan_sep) bulan.push('Sep');
+                if (r.bulan_okt) bulan.push('Okt'); if (r.bulan_nov) bulan.push('Nov'); if (r.bulan_des) bulan.push('Des');
+                desc = '📅 ' + bulan.join(', ') + ', Minggu ke-' + r.minggu_ke_bulanan + ' ' + HARI_NAMA[r.hari_dalam_minggu_bulanan];
+            }
+            if (r.waktu_mulai) desc += ' 🕐 ' + r.waktu_mulai.substring(0, 5) + (r.waktu_selesai ? '-' + r.waktu_selesai.substring(0, 5) : '');
+            return desc;
+        }
+        
+        function showAddRutinModal() {
+            $('rutinModalTitle').textContent = 'Tambah Jadwal Rutin';
+            $('rutinId').value = '';
+            $('rutinForm').reset();
+            $('rutinWilayah').innerHTML = '<option value="">-- Pilih Tingkat --</option>';
+            $('settingHarian').style.display = 'none';
+            $('settingMingguan').style.display = 'none';
+            $('settingBulanan').style.display = 'none';
+            showModal('rutinModal');
+        }
+        
+        async function editRutin(id) {
+            var r = rutinData.find(function(x) { return x.id === id; });
+            if (!r) { showToast('Tidak ditemukan', 'error'); return; }
+            $('rutinModalTitle').textContent = 'Edit Jadwal Rutin';
+            $('rutinId').value = r.id;
+            $('rutinNama').value = r.nama || '';
+            $('rutinTingkat').value = r.tingkat || '';
+            onRutinTingkatChange();
+            setTimeout(function() {
+                $('rutinWilayah').value = r.wilayah_id || '';
+                $('rutinJenjang').value = r.jenjang_id || '';
+                var tipeRadio = document.querySelector('input[name="rutinTipe"][value="' + r.tipe + '"]');
+                if (tipeRadio) tipeRadio.checked = true;
+                onRutinTipeChange();
+                $('hariMinggu').checked = r.hari_minggu; $('hariSenin').checked = r.hari_senin; $('hariSelasa').checked = r.hari_selasa;
+                $('hariRabu').checked = r.hari_rabu; $('hariKamis').checked = r.hari_kamis; $('hariJumat').checked = r.hari_jumat; $('hariSabtu').checked = r.hari_sabtu;
+                $('mingguKe').value = r.minggu_ke || 1; $('hariMingguan').value = r.hari_dalam_minggu || 0;
+                $('bulanJan').checked = r.bulan_jan; $('bulanFeb').checked = r.bulan_feb; $('bulanMar').checked = r.bulan_mar;
+                $('bulanApr').checked = r.bulan_apr; $('bulanMei').checked = r.bulan_mei; $('bulanJun').checked = r.bulan_jun;
+                $('bulanJul').checked = r.bulan_jul; $('bulanAgt').checked = r.bulan_agt; $('bulanSep').checked = r.bulan_sep;
+                $('bulanOkt').checked = r.bulan_okt; $('bulanNov').checked = r.bulan_nov; $('bulanDes').checked = r.bulan_des;
+                $('mingguKeBulanan').value = r.minggu_ke_bulanan || 1; $('hariBulanan').value = r.hari_dalam_minggu_bulanan || 0;
+                $('rutinWaktuMulai').value = r.waktu_mulai || ''; $('rutinWaktuSelesai').value = r.waktu_selesai || '';
+                $('rutinMateri').value = r.materi_default || '';
+            }, 100);
+            showModal('rutinModal');
+        }
+        
+        async function saveRutin(e) {
+            e.preventDefault();
+            var id = $('rutinId').value;
+            var tipe = document.querySelector('input[name="rutinTipe"]:checked')?.value;
+            if (!tipe) { showToast('Pilih tipe', 'error'); return; }
+            var data = { nama: $('rutinNama').value, tingkat: $('rutinTingkat').value, wilayah_id: $('rutinWilayah').value, jenjang_id: $('rutinJenjang').value, tipe: tipe, waktu_mulai: $('rutinWaktuMulai').value || null, waktu_selesai: $('rutinWaktuSelesai').value || null, materi_default: $('rutinMateri').value || null };
+            if (tipe === 'harian') {
+                data.hari_minggu = $('hariMinggu').checked; data.hari_senin = $('hariSenin').checked; data.hari_selasa = $('hariSelasa').checked;
+                data.hari_rabu = $('hariRabu').checked; data.hari_kamis = $('hariKamis').checked; data.hari_jumat = $('hariJumat').checked; data.hari_sabtu = $('hariSabtu').checked;
+            } else if (tipe === 'mingguan') {
+                data.minggu_ke = $('mingguKe').value; data.hari_dalam_minggu = $('hariMingguan').value;
+            } else if (tipe === 'bulanan') {
+                data.bulan_jan = $('bulanJan').checked; data.bulan_feb = $('bulanFeb').checked; data.bulan_mar = $('bulanMar').checked;
+                data.bulan_apr = $('bulanApr').checked; data.bulan_mei = $('bulanMei').checked; data.bulan_jun = $('bulanJun').checked;
+                data.bulan_jul = $('bulanJul').checked; data.bulan_agt = $('bulanAgt').checked; data.bulan_sep = $('bulanSep').checked;
+                data.bulan_okt = $('bulanOkt').checked; data.bulan_nov = $('bulanNov').checked; data.bulan_des = $('bulanDes').checked;
+                data.minggu_ke_bulanan = $('mingguKeBulanan').value; data.hari_dalam_minggu_bulanan = $('hariBulanan').value;
+            }
+            try {
+                var success = id ? await jadwalRutinApi.update(id, data) : !!(await jadwalRutinApi.create(data));
+                if (success) { showToast('Berhasil!', 'success'); hideModal('rutinModal'); loadRutin(); }
+            } catch (e) { showToast('Gagal', 'error'); }
+        }
+        
+        async function toggleRutinAktif(id, isAktif) {
+            try { if (await jadwalRutinApi.toggleAktif(id, isAktif)) { showToast(isAktif ? 'Diaktifkan' : 'Dinonaktifkan', 'success'); loadRutin(); } } catch (e) { showToast('Gagal', 'error'); }
+        }
+        
+        async function deleteRutin(id) {
+            if (!confirm('Hapus jadwal rutin ini?')) return;
+            try { if (await jadwalRutinApi.delete(id)) { showToast('Dihapus', 'success'); loadRutin(); } } catch (e) { showToast('Gagal', 'error'); }
+        }
+        
+        async function loadLibur() {
+            var container = $('liburContainer');
+            container.innerHTML = '<div class="text-center py-4 text-muted">Memuat...</div>';
+            try { var data = await tanggalSkipApi.getAll($('filterTahunLibur').value); renderLibur(data); } catch (e) { container.innerHTML = '<div class="text-center py-4 text-danger">Gagal</div>'; }
+        }
+        
+        function renderLibur(data) {
+            var container = $('liburContainer');
+            if (!data || !data.length) { container.innerHTML = '<div class="text-center py-4 text-muted">Belum ada</div>'; return; }
+            var html = '';
+            data.forEach(function(l) {
+                html += '<div class="libur-item"><div><strong>' + formatTanggal(l.tanggal) + '</strong>';
+                if (l.keterangan) html += '<br><small class="text-muted">' + escapeHtml(l.keterangan) + '</small>';
+                html += '</div><button class="btn btn-sm btn-danger" onclick="deleteLibur(' + l.id + ')">🗑️</button></div>';
+            });
+            container.innerHTML = html;
+        }
+        
+        function showAddLiburModal() { $('liburForm').reset(); showModal('liburModal'); }
+        
+        async function saveLibur(e) {
+            e.preventDefault();
+            try { if (await tanggalSkipApi.add($('liburTanggal').value, $('liburKeterangan').value)) { showToast('Ditambahkan', 'success'); hideModal('liburModal'); loadLibur(); } } catch (e) { showToast('Gagal', 'error'); }
+        }
+        
+        async function deleteLibur(id) {
+            if (!confirm('Hapus?')) return;
+            try { if (await tanggalSkipApi.delete(id)) { showToast('Dihapus', 'success'); loadLibur(); } } catch (e) { showToast('Gagal', 'error'); }
+        }
+        
+        function showModal(id) { $(id).classList.add('show'); }
+        function hideModal(id) { $(id).classList.remove('show'); }
     </script>
-
-
-    <!-- Bottom Navigation for Mobile -->
-        <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
 </body>
 </html>
