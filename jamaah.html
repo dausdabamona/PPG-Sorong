@@ -84,38 +84,71 @@
                     <button class="btn btn-primary" id="btnTambah" onclick="showAddModal()" style="display:none;">➕ Tambah Jamaah</button>
                 </div>
                 
-                <!-- Filters -->
-                <div class="card mb-sm">
+                <!-- Filters: Status → Daerah → Kelompok → Jenjang -->
+                <div class="card mb-lg">
                     <div class="card-body">
-                        <!-- Row 1: Search + Status -->
-                        <div class="filter-grid">
-                            <input type="text" class="form-control" id="searchInput" placeholder="🔍 Cari nama..." onkeyup="debounceSearch()">
-                            <select class="form-control" id="filterStatus" onchange="loadJamaah()">
-                                <option value="aktif">Aktif</option>
-                                <option value="">Semua Status</option>
-                                <option value="nonaktif">Nonaktif</option>
-                                <option value="pindah">Pindah</option>
-                                <option value="meninggal">Meninggal</option>
-                            </select>
+                        <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;">
+                            <div class="search-box">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" class="form-control" id="searchInput" placeholder="Cari nama..." onkeyup="debounceSearch()">
+                            </div>
+                            <div>
+                                <label class="form-label">Status</label>
+                                <select class="form-control" id="filterStatus" onchange="loadJamaah()">
+                                    <option value="aktif">Aktif</option>
+                                    <option value="nonaktif">Nonaktif</option>
+                                    <option value="lulus">Lulus</option>
+                                    <option value="pindah">Pindah</option>
+                                    <option value="menikah">Menikah</option>
+                                    <option value="">Semua</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Daerah</label>
+                                <select class="form-control" id="filterDaerah" onchange="onFilterDaerahChange()">
+                                    <option value="">Semua Daerah</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Kelompok</label>
+                                <select class="form-control" id="filterKelompok" onchange="loadJamaah()">
+                                    <option value="">Semua Kelompok</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Jenjang</label>
+                                <select class="form-control" id="filterJenjang" onchange="loadJamaah()">
+                                    <option value="">Semua Jenjang</option>
+                                </select>
+                            </div>
                         </div>
-                        <!-- Row 2: Desa -->
-                        <div style="margin-top:8px;">
-                            <select class="form-control" id="filterDesa" onchange="loadJamaah()">
-                                <option value="">Semua Desa</option>
-                            </select>
-                        </div>
-                        <input type="hidden" id="filterDaerah" value="">
-                        <input type="hidden" id="filterKelompok" value="">
-                        <input type="hidden" id="filterJenjang" value="">
-                        <div style="margin-top:8px;">
-                            <small class="text-muted" id="infoTotal">Total: 0 jamaah</small>
+                        <div style="margin-top:0.75rem;">
+                            <small class="text-muted" id="infoTotal">Total: 0 santri</small>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Data Grouped by Kelompok -->
-                <div id="jamaahContainer">
-                    <div class="text-center text-muted py-4">Memuat data...</div>
+                <!-- Table -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table" id="santriTable">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama</th>
+                                        <th>L/P</th>
+                                        <th>Umur</th>
+                                        <th>Jenjang</th>
+                                        <th>Kelompok</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody><tr><td colspan="8" class="text-center text-muted py-4">Memuat data...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -267,6 +300,17 @@
                 }
             }
             
+            // Cek apakah user adalah admin
+            const isUserAdmin = userRoles.some(r => r.role?.kode?.toLowerCase() === 'admin');
+            if (!isUserAdmin) {
+                // Bukan admin, redirect ke halaman generus
+                showToast('Halaman ini hanya untuk Admin. Silakan gunakan halaman Data Generus.', 'warning');
+                setTimeout(() => {
+                    window.location.href = 'generus.html';
+                }, 2000);
+                return;
+            }
+            
             // Get wilayah dari role user
             // Format dari query: { wilayah_id: 22, wilayah: { id: 22, nama: 'Klasaman', ... }, role: {...} }
             const userRoleWithWilayah = userRoles.find(r => r.wilayah_id || r.wilayah);
@@ -281,7 +325,7 @@
             await loadFilters();
             await loadJamaah();
             
-            // FORCE tampilkan tombol tambah - halaman ini di Pengaturan untuk admin
+            // Tampilkan tombol tambah untuk admin
             $('btnTambah').style.display = 'block';
             
             if (getUrlParam('action') === 'add') showAddModal();
@@ -326,13 +370,7 @@
                 }
                 
                 $('filterDaerah').innerHTML = '<option value="">Semua Daerah</option>' + 
-                    daerahList.map(function(d) { return '<option value="' + d.id + '">' + d.nama + '</option>'; }).join('');
-                
-                // Populate filter desa
-                var desaList = allWilayah.filter(function(w) { return w.tingkat === 'desa'; });
-                allDesa = desaList;
-                $('filterDesa').innerHTML = '<option value="">Semua Desa</option>' + 
-                    desaList.map(function(d) { return '<option value="' + d.id + '">' + d.nama + '</option>'; }).join('');
+                    daerahList.map(d => `<option value="${d.id}">${d.nama}</option>`).join('');
                 
                 // Form daerah (hidden, auto-set ke daerah pertama)
                 if (daerahList.length > 0) {
@@ -340,30 +378,42 @@
                 }
                 
                 // Populate filter kelompok berdasarkan tingkat user
-                var kelompokList = allWilayah.filter(function(w) { return w.tingkat === 'kelompok'; });
-                allKelompok = kelompokList;
+                let kelompokList = allWilayah.filter(w => w.tingkat === 'kelompok');
                 
                 if (!isAdmin && userTingkat === 'kelompok') {
-                    kelompokList = kelompokList.filter(function(k) { return k.id === userWilayahId; });
+                    kelompokList = kelompokList.filter(k => k.id === userWilayahId);
                 } else if (!isAdmin && userTingkat === 'desa') {
-                    kelompokList = kelompokList.filter(function(k) { return k.parent_id === userWilayahId; });
+                    kelompokList = kelompokList.filter(k => k.parent_id === userWilayahId);
                 } else if (!isAdmin && userTingkat === 'daerah') {
-                    var desaIds = allWilayah.filter(function(w) { return w.tingkat === 'desa' && w.parent_id === userWilayahId; }).map(function(d) { return d.id; });
-                    kelompokList = kelompokList.filter(function(k) { return desaIds.includes(k.parent_id); });
+                    // Get semua desa di daerah ini
+                    const desaIds = allWilayah.filter(w => w.tingkat === 'desa' && w.parent_id === userWilayahId).map(d => d.id);
+                    kelompokList = kelompokList.filter(k => desaIds.includes(k.parent_id));
                 }
+                
+                $('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' + 
+                    kelompokList.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
                 
                 // Form kelompok (untuk tambah/edit santri)
                 $('formKelompok').innerHTML = '<option value="">-- Pilih Kelompok --</option>' + 
-                    kelompokList.map(function(k) { return '<option value="' + k.id + '">' + k.nama + '</option>'; }).join('');
+                    kelompokList.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
+                
+                // Auto-select jika hanya 1 kelompok
+                if (kelompokList.length === 1) {
+                    $('filterKelompok').value = kelompokList[0].id;
+                    $('formKelompok').value = kelompokList[0].id;
+                }
                 
                 // Load jenjang
-                var jenjangResult = await db.from('jenjang').select('*').eq('is_aktif', true).order('urutan');
-                allJenjang = jenjangResult.data || [];
+                const { data: jenjang } = await db.from('jenjang').select('*').eq('is_aktif', true).order('urutan');
+                allJenjang = jenjang || [];
+                
+                $('filterJenjang').innerHTML = '<option value="">Semua Jenjang</option>' + 
+                    allJenjang.map(j => `<option value="${j.id}">${j.nama}</option>`).join('');
                 
                 $('formJenjang').innerHTML = '<option value="">-- Pilih --</option>' + 
-                    allJenjang.map(function(j) {
-                        var usiaText = (j.usia_mulai && j.usia_sampai) ? ' (' + j.usia_mulai + '-' + j.usia_sampai + ' th)' : '';
-                        return '<option value="' + j.id + '">' + j.nama + usiaText + '</option>';
+                    allJenjang.map(j => {
+                        const usiaText = (j.usia_mulai && j.usia_sampai) ? ` (${j.usia_mulai}-${j.usia_sampai} th)` : '';
+                        return `<option value="${j.id}">${j.nama}${usiaText}</option>`;
                     }).join('');
                     
             } catch (error) {
@@ -371,28 +421,21 @@
             }
         }
         
-        var allDesa = [];
-        var allKelompok = [];
-        
-        // Filter daerah berubah -> update desa
+        // Filter daerah berubah -> update kelompok
         function onFilterDaerahChange() {
-            var daerahId = $('filterDaerah').value;
+            const daerahId = $('filterDaerah').value;
             
-            var filteredDesa;
+            let kelompokList;
             if (daerahId) {
-                filteredDesa = allDesa.filter(function(d) { return d.parent_id == daerahId; });
+                // Get kelompok dalam daerah ini (langsung dari parent_id karena struktur 2 level)
+                kelompokList = allWilayah.filter(w => w.tingkat === 'kelompok' && w.parent_id == daerahId);
             } else {
-                filteredDesa = allDesa;
+                kelompokList = allWilayah.filter(w => w.tingkat === 'kelompok');
             }
             
-            $('filterDesa').innerHTML = '<option value="">Semua Desa</option>' + 
-                filteredDesa.map(function(d) { return '<option value="' + d.id + '">' + d.nama + '</option>'; }).join('');
+            $('filterKelompok').innerHTML = '<option value="">Semua Kelompok</option>' + 
+                kelompokList.map(k => `<option value="${k.id}">${k.nama}</option>`).join('');
             
-            loadJamaah();
-        }
-        
-        // Filter desa berubah
-        function onFilterDesaChange() {
             loadJamaah();
         }
         
@@ -495,136 +538,113 @@
                 selectJenjang.value = matchedJenjang.id;
                 jenjangInfo.innerHTML = `<span class="text-success">✓ Otomatis: ${matchedJenjang.nama}</span>`;
             } else {
-                jenjangInfo.innerHTML = '<span class="text-warning">⚠ Tidak ada jenjang untuk umur ' + umur + ' tahun. Pilih manual.</span>';
+                jenjangInfo.innerHTML = `<span class="text-warning">⚠ Tidak ada jenjang untuk umur ${umur} tahun. Pilih manual.</span>`;
             }
         }
         
         async function loadJamaah() {
             try {
-                var search = $('searchInput').value.trim().toLowerCase();
-                var status = $('filterStatus').value || 'aktif';
-                var daerahId = $('filterDaerah').value;
-                var desaId = $('filterDesa').value;
+                const search = $('searchInput').value.trim().toLowerCase();
+                const status = $('filterStatus').value || 'aktif';
+                const daerahId = $('filterDaerah').value;
+                const kelompokId = $('filterKelompok').value;
+                const jenjangId = $('filterJenjang').value;
                 
-                // Determine which kelompok to load based on filters
-                var kelompokIds = [];
-                if (desaId) {
-                    kelompokIds = allKelompok.filter(function(k) { return k.parent_id == desaId; }).map(function(k) { return k.id; });
+                // Tentukan wilayah_id untuk query
+                let wilayahId = null;
+                
+                if (kelompokId) {
+                    wilayahId = parseInt(kelompokId);
                 } else if (daerahId) {
-                    var desaIds = allDesa.filter(function(d) { return d.parent_id == daerahId; }).map(function(d) { return d.id; });
-                    kelompokIds = allKelompok.filter(function(k) { return desaIds.includes(k.parent_id); }).map(function(k) { return k.id; });
-                } else {
-                    kelompokIds = allKelompok.map(function(k) { return k.id; });
+                    wilayahId = parseInt(daerahId);
+                } else if (userWilayahId) {
+                    wilayahId = userWilayahId;
                 }
                 
-                // Call RPC function
-                var result = await db.rpc('get_jamaah_by_wilayah', {
-                    p_wilayah_id: null,
-                    p_jenjang_id: null,
+                console.log('Loading jamaah with params:', { wilayahId, jenjangId, status });
+                
+                // Panggil RPC function
+                const { data, error } = await db.rpc('get_jamaah_by_wilayah', {
+                    p_wilayah_id: wilayahId,
+                    p_jenjang_id: jenjangId ? parseInt(jenjangId) : null,
                     p_status: status || null
                 });
                 
-                if (result.error) throw result.error;
+                console.log('RPC result:', { data, error });
                 
-                var allData = result.data || [];
+                if (error) throw error;
                 
-                // Filter by selected kelompok
-                var filtered = allData.filter(function(j) {
-                    return kelompokIds.length === 0 || kelompokIds.includes(j.kelompok_id);
-                });
-                
-                // Filter by search
+                // Filter by search (client-side)
+                let filtered = data || [];
                 if (search) {
-                    filtered = filtered.filter(function(j) {
-                        return j.nama.toLowerCase().includes(search) ||
-                            (j.nama_panggilan && j.nama_panggilan.toLowerCase().includes(search));
-                    });
+                    filtered = filtered.filter(s => 
+                        s.nama.toLowerCase().includes(search) ||
+                        (s.nama_panggilan && s.nama_panggilan.toLowerCase().includes(search))
+                    );
                 }
                 
-                $('infoTotal').textContent = 'Total: ' + filtered.length + ' jamaah';
-                renderGrouped(filtered);
+                $('infoTotal').textContent = `Total: ${filtered.length} jamaah`;
+                renderTable(filtered);
                 
             } catch (error) {
                 console.error('Error loading jamaah:', error);
-                showToast('Gagal memuat data: ' + (error.message || error), 'error');
+                showToast('Gagal memuat data jamaah: ' + (error.message || error), 'error');
             }
         }
         
-        function renderGrouped(data) {
-            var container = $('jamaahContainer');
-            
-            if (!data.length) {
-                container.innerHTML = '<div class="card"><div class="card-body text-center text-muted py-4">Tidak ada data</div></div>';
+        function renderTable(data) {
+            const tbody = $$('#santriTable tbody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Tidak ada data</td></tr>';
                 return;
             }
             
-            // Group by kelompok
-            var groups = {};
-            for (var i = 0; i < data.length; i++) {
-                var j = data[i];
-                var kelompok = j.kelompok_nama || 'Tanpa Kelompok';
-                if (!groups[kelompok]) {
-                    groups[kelompok] = [];
-                }
-                groups[kelompok].push(j);
-            }
+            // FORCE ENABLE CRUD - Halaman ini di menu Pengaturan, 
+            // hanya admin/mubaligh yang seharusnya bisa akses
+            // Jadi kita tampilkan tombol edit untuk semua yang bisa akses halaman ini
+            const canEdit = true;  // Force enable
+            const canDelete = true; // Force enable untuk admin
             
-            var html = '';
-            var kelompokNames = Object.keys(groups).sort();
+            // Debug
+            console.log('renderTable - FORCE CRUD ENABLED');
             
-            for (var k = 0; k < kelompokNames.length; k++) {
-                var kelompok = kelompokNames[k];
-                var members = groups[kelompok];
+            tbody.innerHTML = data.map((s, i) => {
+                // Data dari RPC sudah flat, bukan nested
+                const statusBadge = getStatusBadge(s.status);
                 
-                html += '<div class="card mb-sm">';
-                html += '<div class="card-header" style="background:#d1fae5;padding:8px 12px;">';
-                html += '<strong>🏠 ' + kelompok + '</strong>';
-                html += '<span class="badge badge-primary" style="margin-left:8px;">' + members.length + '</span>';
-                html += '</div>';
-                html += '<div class="card-body" style="padding:0;">';
-                html += '<div class="table-responsive">';
-                html += '<table class="table" style="margin:0;">';
-                html += '<thead><tr>';
-                html += '<th width="35">NO</th>';
-                html += '<th>NAMA</th>';
-                html += '<th width="40">L/P</th>';
-                html += '<th width="80">JENJANG</th>';
-                html += '<th width="70">AKSI</th>';
-                html += '</tr></thead>';
-                html += '<tbody>';
+                // Action buttons - always show edit & delete
+                const actionButtons = `
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline" onclick="editJamaah(${s.jamaah_id})" title="Edit">✏️</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteJamaah(${s.jamaah_id})" title="Hapus">🗑️</button>
+                    </div>`;
                 
-                for (var m = 0; m < members.length; m++) {
-                    var j = members[m];
-                    html += '<tr>';
-                    html += '<td>' + (m + 1) + '</td>';
-                    html += '<td><strong>' + j.nama + '</strong>';
-                    if (j.nama_panggilan) html += '<br><small class="text-muted">' + j.nama_panggilan + '</small>';
-                    html += '</td>';
-                    html += '<td>' + (j.jenis_kelamin || '-') + '</td>';
-                    html += '<td><span class="badge badge-info">' + (j.jenjang_nama || '-') + '</span></td>';
-                    html += '<td>';
-                    html += '<div class="btn-group">';
-                    html += '<button class="btn btn-sm btn-outline" onclick="editJamaah(' + j.jamaah_id + ')" title="Edit">✏️</button>';
-                    html += '<button class="btn btn-sm btn-danger" onclick="deleteJamaah(' + j.jamaah_id + ')" title="Hapus">🗑️</button>';
-                    html += '</div>';
-                    html += '</td>';
-                    html += '</tr>';
-                }
-                
-                html += '</tbody></table></div></div></div>';
-            }
-            
-            container.innerHTML = html;
+                return `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>
+                        <strong>${s.nama}</strong>
+                        ${s.nama_panggilan ? `<br><small class="text-muted">${s.nama_panggilan}</small>` : ''}
+                    </td>
+                    <td>${s.jenis_kelamin || '-'}</td>
+                    <td>${s.tanggal_lahir ? hitungUmur(s.tanggal_lahir) + ' th' : '-'}</td>
+                    <td><span class="badge badge-info">${s.jenjang_nama || '-'}</span></td>
+                    <td>${s.kelompok_nama || '-'}</td>
+                    <td>${statusBadge}</td>
+                    <td>${actionButtons}</td>
+                </tr>`;
+            }).join('');
         }
         
         function getStatusBadge(status) {
-            var badges = {
+            const badges = {
                 'aktif': '<span class="badge badge-success">Aktif</span>',
                 'nonaktif': '<span class="badge badge-secondary">Nonaktif</span>',
+                'lulus': '<span class="badge badge-primary">Lulus</span>',
                 'pindah': '<span class="badge badge-warning">Pindah</span>',
-                'meninggal': '<span class="badge badge-danger">Meninggal</span>'
+                'menikah': '<span class="badge badge-info">Menikah</span>'
             };
-            return badges[status] || '<span class="badge badge-secondary">' + (status || '-') + '</span>';
+            return badges[status] || `<span class="badge badge-secondary">${status || '-'}</span>`;
         }
         
         function viewJamaah(id) {
