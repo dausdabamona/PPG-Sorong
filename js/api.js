@@ -862,6 +862,88 @@ const progressApi = {
     },
 
     /**
+     * Get progress summary per bidang (bukan per kategori)
+     * @param {number} jamaahId
+     * @returns {Promise<Array>}
+     */
+    getSummaryByBidang: async function(jamaahId) {
+        try {
+            // Get all progress for jamaah with materi and kategori info
+            const { data, error } = await db
+                .from('progress_jamaah')
+                .select(`
+                    id, status, nilai,
+                    materi_item:materi_item_id(
+                        id, nama,
+                        kategori:kategori_id(
+                            id, nama,
+                            bidang:bidang_id(id, nama)
+                        )
+                    )
+                `)
+                .eq('jamaah_id', safeInt(jamaahId));
+            
+            if (error) throw error;
+            
+            // Get all materi grouped by bidang for total count
+            const { data: allMateri } = await db
+                .from('materi_item')
+                .select(`
+                    id,
+                    kategori:kategori_id(
+                        bidang:bidang_id(id, nama)
+                    )
+                `);
+            
+            // Count materi per bidang
+            const materiPerBidang = {};
+            (allMateri || []).forEach(function(m) {
+                const bidangNama = m.kategori?.bidang?.nama || 'Lainnya';
+                const bidangId = m.kategori?.bidang?.id || 0;
+                if (!materiPerBidang[bidangNama]) {
+                    materiPerBidang[bidangNama] = { id: bidangId, total: 0 };
+                }
+                materiPerBidang[bidangNama].total++;
+            });
+            
+            // Count progress per bidang
+            const progressPerBidang = {};
+            (data || []).forEach(function(p) {
+                const bidangNama = p.materi_item?.kategori?.bidang?.nama || 'Lainnya';
+                if (!progressPerBidang[bidangNama]) {
+                    progressPerBidang[bidangNama] = { selesai: 0, nilaiTotal: 0, nilaiCount: 0 };
+                }
+                if (p.status === 'selesai' || p.status === 'lulus') {
+                    progressPerBidang[bidangNama].selesai++;
+                }
+                if (p.nilai) {
+                    progressPerBidang[bidangNama].nilaiTotal += p.nilai;
+                    progressPerBidang[bidangNama].nilaiCount++;
+                }
+            });
+            
+            // Combine into result
+            const result = [];
+            Object.keys(materiPerBidang).forEach(function(bidangNama) {
+                const prog = progressPerBidang[bidangNama] || { selesai: 0, nilaiTotal: 0, nilaiCount: 0 };
+                const totalMateri = materiPerBidang[bidangNama].total;
+                result.push({
+                    bidang_id: materiPerBidang[bidangNama].id,
+                    bidang_nama: bidangNama,
+                    total_materi: totalMateri,
+                    total_selesai: prog.selesai,
+                    rata_nilai: prog.nilaiCount > 0 ? (prog.nilaiTotal / prog.nilaiCount).toFixed(1) : null
+                });
+            });
+            
+            return result;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat summary bidang');
+            return [];
+        }
+    },
+
+    /**
      * Update atau create progress
      * @param {number} jamaahId
      * @param {number} materiItemId
