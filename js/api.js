@@ -1,0 +1,1522 @@
+// ============================================================================
+// API.JS - Centralized Database API Layer
+// PPG SORONG
+// ============================================================================
+// File ini menyediakan semua fungsi untuk akses database
+// Semua halaman harus menggunakan file ini untuk query database
+// ============================================================================
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Handle API error dengan konsisten
+ */
+function handleApiError(error, customMessage = 'Terjadi kesalahan') {
+    console.error('API Error:', error);
+    const message = error?.message || error || 'Unknown error';
+    if (typeof showToast === 'function') {
+        showToast(`${customMessage}: ${message}`, 'error');
+    }
+    throw error;
+}
+
+/**
+ * Safe parse integer, return null jika invalid
+ */
+function safeInt(value) {
+    if (value === null || value === undefined || value === '') return null;
+    const parsed = parseInt(value);
+    return isNaN(parsed) ? null : parsed;
+}
+
+/**
+ * Build query dengan filters
+ */
+function applyFilters(query, filters = {}) {
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+            query = query.eq(key, value);
+        }
+    });
+    return query;
+}
+
+// ============================================================================
+// JAMAAH API
+// ============================================================================
+
+const jamaahApi = {
+    /**
+     * Get semua jamaah dengan filter opsional
+     * @param {Object} filters - { status_aktif, wilayah_id, jenjang_id, search }
+     * @returns {Promise<Array>}
+     */
+    getAll: async function(filters = {}) {
+        try {
+            let query = db.from('v_jamaah_lengkap').select('*');
+            
+            if (filters.status_aktif) {
+                query = query.eq('status_aktif', filters.status_aktif);
+            }
+            if (filters.wilayah_id) {
+                query = query.eq('wilayah_id', safeInt(filters.wilayah_id));
+            }
+            if (filters.jenjang_id) {
+                query = query.eq('jenjang_id', safeInt(filters.jenjang_id));
+            }
+            if (filters.desa_id) {
+                query = query.eq('desa_id', safeInt(filters.desa_id));
+            }
+            if (filters.daerah_id) {
+                query = query.eq('daerah_id', safeInt(filters.daerah_id));
+            }
+            
+            query = query.order('nama');
+            
+            const { data, error } = await query;
+            if (error) throw error;
+            
+            // Client-side search filter
+            let result = data || [];
+            if (filters.search) {
+                const searchLower = filters.search.toLowerCase();
+                result = result.filter(j => 
+                    (j.nama && j.nama.toLowerCase().includes(searchLower)) ||
+                    (j.nama_panggilan && j.nama_panggilan.toLowerCase().includes(searchLower)) ||
+                    (j.nomor_induk && j.nomor_induk.toLowerCase().includes(searchLower))
+                );
+            }
+            
+            return result;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat data jamaah');
+            return [];
+        }
+    },
+
+    /**
+     * Get jamaah by ID
+     * @param {number} id
+     * @returns {Promise<Object|null>}
+     */
+    getById: async function(id) {
+        try {
+            const { data, error } = await db
+                .from('v_jamaah_lengkap')
+                .select('*')
+                .eq('id', safeInt(id))
+                .single();
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat data jamaah');
+            return null;
+        }
+    },
+
+    /**
+     * Get jamaah detail (raw dari tabel jamaah)
+     * @param {number} id
+     * @returns {Promise<Object|null>}
+     */
+    getDetailById: async function(id) {
+        try {
+            const { data, error } = await db
+                .from('jamaah')
+                .select('*')
+                .eq('id', safeInt(id))
+                .single();
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat detail jamaah');
+            return null;
+        }
+    },
+
+    /**
+     * Create jamaah baru menggunakan stored procedure
+     * @param {Object} jamaahData - { nama, jenis_kelamin, tanggal_lahir, alamat, phone }
+     * @returns {Promise<number|null>} - ID jamaah baru
+     */
+    create: async function(jamaahData) {
+        try {
+            const { data, error } = await db.rpc('sp_daftar_jamaah_baru', {
+                p_nama: jamaahData.nama,
+                p_jenis_kelamin: jamaahData.jenis_kelamin,
+                p_tanggal_lahir: jamaahData.tanggal_lahir,
+                p_alamat: jamaahData.alamat_lengkap || jamaahData.alamat || null,
+                p_phone: jamaahData.phone || null,
+                p_created_by: jamaahData.created_by || null
+            });
+            
+            if (error) throw error;
+            return data; // Returns jamaah ID
+        } catch (error) {
+            handleApiError(error, 'Gagal menambah jamaah');
+            return null;
+        }
+    },
+
+    /**
+     * Update jamaah
+     * @param {number} id
+     * @param {Object} jamaahData
+     * @returns {Promise<boolean>}
+     */
+    update: async function(id, jamaahData) {
+        try {
+            // Filter hanya field yang valid untuk tabel jamaah
+            const validFields = [
+                'nama', 'nama_panggilan', 'jenis_kelamin', 'tempat_lahir',
+                'tanggal_lahir', 'golongan_darah', 'phone', 'email',
+                'alamat_lengkap', 'status_domisili', 'nomor_kk',
+                'pendidikan_terakhir', 'pekerjaan', 'penghasilan_range',
+                'foto_url', 'status_aktif', 'keterangan'
+            ];
+            
+            const updateData = {};
+            validFields.forEach(field => {
+                if (jamaahData[field] !== undefined) {
+                    updateData[field] = jamaahData[field];
+                }
+            });
+            updateData.updated_at = new Date().toISOString();
+            
+            const { error } = await db
+                .from('jamaah')
+                .update(updateData)
+                .eq('id', safeInt(id));
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal mengupdate jamaah');
+            return false;
+        }
+    },
+
+    /**
+     * Update status jamaah menggunakan stored procedure
+     * @param {number} id
+     * @param {string} statusBaru
+     * @param {string} keterangan
+     * @returns {Promise<boolean>}
+     */
+    updateStatus: async function(id, statusBaru, keterangan = null) {
+        try {
+            const { data, error } = await db.rpc('sp_update_status_jamaah', {
+                p_jamaah_id: safeInt(id),
+                p_status_baru: statusBaru,
+                p_keterangan: keterangan,
+                p_updated_by: currentUserData?.id || null
+            });
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal mengupdate status');
+            return false;
+        }
+    },
+
+    /**
+     * Delete jamaah
+     * @param {number} id
+     * @returns {Promise<boolean>}
+     */
+    delete: async function(id) {
+        try {
+            // Hapus enrollment dulu
+            await db.from('enrollment').delete().eq('jamaah_id', safeInt(id));
+            // Hapus fase_kehidupan
+            await db.from('fase_kehidupan').delete().eq('jamaah_id', safeInt(id));
+            // Hapus progress
+            await db.from('progress_jamaah').delete().eq('jamaah_id', safeInt(id));
+            // Hapus jamaah
+            const { error } = await db.from('jamaah').delete().eq('id', safeInt(id));
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menghapus jamaah');
+            return false;
+        }
+    },
+
+    /**
+     * Count jamaah dengan filter
+     * @param {Object} filters
+     * @returns {Promise<number>}
+     */
+    count: async function(filters = {}) {
+        try {
+            let query = db.from('jamaah').select('*', { count: 'exact', head: true });
+            
+            if (filters.status_aktif) {
+                query = query.eq('status_aktif', filters.status_aktif);
+            }
+            
+            const { count, error } = await query;
+            if (error) throw error;
+            return count || 0;
+        } catch (error) {
+            handleApiError(error, 'Gagal menghitung jamaah');
+            return 0;
+        }
+    }
+};
+
+// ============================================================================
+// GENERUS API
+// ============================================================================
+
+const generusApi = {
+    /**
+     * Get semua generus (jamaah belum menikah) dengan filter
+     * @param {Object} filters - { wilayah_id, jenjang_id, status, search }
+     * @returns {Promise<Array>}
+     */
+    getAll: async function(filters = {}) {
+        try {
+            // Gunakan stored procedure
+            const { data, error } = await db.rpc('get_generus_by_wilayah', {
+                p_wilayah_id: safeInt(filters.wilayah_id),
+                p_jenjang_id: safeInt(filters.jenjang_id),
+                p_status: filters.status || 'aktif'
+            });
+            
+            if (error) throw error;
+            
+            // Client-side search filter
+            let result = data || [];
+            if (filters.search) {
+                const searchLower = filters.search.toLowerCase();
+                result = result.filter(g => 
+                    (g.nama && g.nama.toLowerCase().includes(searchLower)) ||
+                    (g.nama_panggilan && g.nama_panggilan.toLowerCase().includes(searchLower))
+                );
+            }
+            
+            return result;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat data generus');
+            return [];
+        }
+    },
+
+    /**
+     * Get generus dari view (alternatif)
+     * @param {Object} filters
+     * @returns {Promise<Array>}
+     */
+    getFromView: async function(filters = {}) {
+        try {
+            let query = db.from('v_generus_aktif').select('*');
+            
+            if (filters.kelompok_id) {
+                query = query.eq('kelompok_id', safeInt(filters.kelompok_id));
+            }
+            if (filters.desa_id) {
+                query = query.eq('desa_id', safeInt(filters.desa_id));
+            }
+            if (filters.daerah_id) {
+                query = query.eq('daerah_id', safeInt(filters.daerah_id));
+            }
+            if (filters.jenjang_id) {
+                query = query.eq('jenjang_id', safeInt(filters.jenjang_id));
+            }
+            
+            query = query.order('nama');
+            
+            const { data, error } = await query;
+            if (error) throw error;
+            
+            // Client-side search
+            let result = data || [];
+            if (filters.search) {
+                const searchLower = filters.search.toLowerCase();
+                result = result.filter(g => 
+                    (g.nama && g.nama.toLowerCase().includes(searchLower)) ||
+                    (g.nama_panggilan && g.nama_panggilan.toLowerCase().includes(searchLower))
+                );
+            }
+            
+            return result;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat data generus');
+            return [];
+        }
+    }
+};
+
+// ============================================================================
+// ENROLLMENT API
+// ============================================================================
+
+const enrollmentApi = {
+    /**
+     * Get enrollment aktif untuk jamaah
+     * @param {number} jamaahId
+     * @returns {Promise<Object|null>}
+     */
+    getActiveByJamaah: async function(jamaahId) {
+        try {
+            const { data, error } = await db
+                .from('enrollment')
+                .select('*, jenjang:jenjang_id(id, nama, kode), wilayah:wilayah_id(id, nama, tingkat)')
+                .eq('jamaah_id', safeInt(jamaahId))
+                .eq('status', 'aktif')
+                .single();
+            
+            if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+            return data || null;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat enrollment');
+            return null;
+        }
+    },
+
+    /**
+     * Pindah kelompok menggunakan stored procedure
+     * @param {number} jamaahId
+     * @param {number} wilayahBaruId
+     * @param {number} jenjangBaruId (optional)
+     * @param {string} keterangan (optional)
+     * @returns {Promise<number|null>} - ID enrollment baru
+     */
+    pindahKelompok: async function(jamaahId, wilayahBaruId, jenjangBaruId = null, keterangan = null) {
+        try {
+            const { data, error } = await db.rpc('sp_pindah_kelompok', {
+                p_jamaah_id: safeInt(jamaahId),
+                p_wilayah_baru_id: safeInt(wilayahBaruId),
+                p_jenjang_baru_id: safeInt(jenjangBaruId),
+                p_keterangan: keterangan,
+                p_updated_by: currentUserData?.id || null
+            });
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            handleApiError(error, 'Gagal pindah kelompok');
+            return null;
+        }
+    },
+
+    /**
+     * Update enrollment
+     * @param {number} id
+     * @param {Object} enrollmentData
+     * @returns {Promise<boolean>}
+     */
+    update: async function(id, enrollmentData) {
+        try {
+            const updateData = { ...enrollmentData, updated_at: new Date().toISOString() };
+            
+            const { error } = await db
+                .from('enrollment')
+                .update(updateData)
+                .eq('id', safeInt(id));
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal mengupdate enrollment');
+            return false;
+        }
+    },
+
+    /**
+     * Create enrollment baru
+     * @param {Object} enrollmentData
+     * @returns {Promise<Object|null>}
+     */
+    create: async function(enrollmentData) {
+        try {
+            // Get tahun ajaran aktif jika tidak disediakan
+            if (!enrollmentData.tahun_ajaran_id) {
+                const { data: ta } = await db
+                    .from('tahun_ajaran')
+                    .select('id')
+                    .eq('is_aktif', true)
+                    .single();
+                enrollmentData.tahun_ajaran_id = ta?.id;
+            }
+            
+            const { data, error } = await db
+                .from('enrollment')
+                .insert({
+                    jamaah_id: safeInt(enrollmentData.jamaah_id),
+                    wilayah_id: safeInt(enrollmentData.wilayah_id),
+                    jenjang_id: safeInt(enrollmentData.jenjang_id),
+                    tahun_ajaran_id: safeInt(enrollmentData.tahun_ajaran_id),
+                    tanggal_mulai: enrollmentData.tanggal_mulai || new Date().toISOString().split('T')[0],
+                    status: 'aktif',
+                    created_by: currentUserData?.id || null
+                })
+                .select()
+                .single();
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            handleApiError(error, 'Gagal membuat enrollment');
+            return null;
+        }
+    }
+};
+
+// ============================================================================
+// PENGAJIAN API
+// ============================================================================
+
+const pengajianApi = {
+    /**
+     * Get semua pengajian dengan filter
+     * @param {Object} filters - { bulan (YYYY-MM), jenjang_id, wilayah_id }
+     * @returns {Promise<Array>}
+     */
+    getAll: async function(filters = {}) {
+        try {
+            let query = db
+                .from('v_pengajian_lengkap')
+                .select('*')
+                .order('tanggal', { ascending: false });
+            
+            if (filters.jenjang_id) {
+                query = query.eq('jenjang_id', safeInt(filters.jenjang_id));
+            }
+            if (filters.wilayah_id) {
+                query = query.eq('wilayah_id', safeInt(filters.wilayah_id));
+            }
+            if (filters.bulan) {
+                const [year, month] = filters.bulan.split('-');
+                const startDate = `${year}-${month}-01`;
+                const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+                const endDate = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
+                query = query.gte('tanggal', startDate).lte('tanggal', endDate);
+            }
+            if (filters.limit) {
+                query = query.limit(filters.limit);
+            }
+            
+            const { data, error } = await query;
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat data pengajian');
+            return [];
+        }
+    },
+
+    /**
+     * Get pengajian by ID
+     * @param {number} id
+     * @returns {Promise<Object|null>}
+     */
+    getById: async function(id) {
+        try {
+            const { data, error } = await db
+                .from('v_pengajian_lengkap')
+                .select('*')
+                .eq('id', safeInt(id))
+                .single();
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat pengajian');
+            return null;
+        }
+    },
+
+    /**
+     * Create pengajian baru
+     * @param {Object} pengajianData
+     * @returns {Promise<Object|null>}
+     */
+    create: async function(pengajianData) {
+        try {
+            const { data, error } = await db
+                .from('pengajian')
+                .insert({
+                    jenjang_id: safeInt(pengajianData.jenjang_id),
+                    wilayah_id: safeInt(pengajianData.wilayah_id),
+                    tanggal: pengajianData.tanggal,
+                    waktu_mulai: pengajianData.waktu_mulai || null,
+                    waktu_selesai: pengajianData.waktu_selesai || null,
+                    materi: pengajianData.materi || null,
+                    jenis_pengajian: pengajianData.jenis_pengajian || 'forum',
+                    created_by: currentUserData?.id || null
+                })
+                .select()
+                .single();
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            handleApiError(error, 'Gagal membuat pengajian');
+            return null;
+        }
+    },
+
+    /**
+     * Update pengajian
+     * @param {number} id
+     * @param {Object} pengajianData
+     * @returns {Promise<boolean>}
+     */
+    update: async function(id, pengajianData) {
+        try {
+            const updateData = {
+                jenjang_id: safeInt(pengajianData.jenjang_id),
+                wilayah_id: safeInt(pengajianData.wilayah_id),
+                tanggal: pengajianData.tanggal,
+                waktu_mulai: pengajianData.waktu_mulai || null,
+                waktu_selesai: pengajianData.waktu_selesai || null,
+                materi: pengajianData.materi || null
+            };
+            
+            const { error } = await db
+                .from('pengajian')
+                .update(updateData)
+                .eq('id', safeInt(id));
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal mengupdate pengajian');
+            return false;
+        }
+    },
+
+    /**
+     * Delete pengajian (beserta presensi)
+     * @param {number} id
+     * @returns {Promise<boolean>}
+     */
+    delete: async function(id) {
+        try {
+            // Hapus presensi dulu
+            await db.from('keaktifan_pengajian').delete().eq('pengajian_id', safeInt(id));
+            // Hapus pengajian
+            const { error } = await db.from('pengajian').delete().eq('id', safeInt(id));
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menghapus pengajian');
+            return false;
+        }
+    },
+
+    /**
+     * Count pengajian
+     * @param {Object} filters
+     * @returns {Promise<number>}
+     */
+    count: async function(filters = {}) {
+        try {
+            let query = db.from('pengajian').select('*', { count: 'exact', head: true });
+            
+            if (filters.bulan) {
+                const [year, month] = filters.bulan.split('-');
+                const startDate = `${year}-${month}-01`;
+                query = query.gte('tanggal', startDate);
+            }
+            
+            const { count, error } = await query;
+            if (error) throw error;
+            return count || 0;
+        } catch (error) {
+            handleApiError(error, 'Gagal menghitung pengajian');
+            return 0;
+        }
+    }
+};
+
+// ============================================================================
+// PRESENSI API
+// ============================================================================
+
+const presensiApi = {
+    /**
+     * Get presensi untuk pengajian tertentu
+     * @param {number} pengajianId
+     * @returns {Promise<Array>}
+     */
+    getByPengajian: async function(pengajianId) {
+        try {
+            const { data, error } = await db
+                .from('keaktifan_pengajian')
+                .select('*')
+                .eq('pengajian_id', safeInt(pengajianId));
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat presensi');
+            return [];
+        }
+    },
+
+    /**
+     * Get jamaah untuk input presensi (dari enrollment di wilayah pengajian)
+     * @param {number} wilayahId
+     * @returns {Promise<Array>}
+     */
+    getJamaahForPresensi: async function(wilayahId) {
+        try {
+            const { data, error } = await db
+                .from('enrollment')
+                .select('jamaah:jamaah_id(id, nama), jenjang:jenjang_id(nama)')
+                .eq('wilayah_id', safeInt(wilayahId))
+                .eq('status', 'aktif');
+            
+            if (error) throw error;
+            
+            // Flatten data
+            return (data || []).map(e => ({
+                id: e.jamaah?.id,
+                nama: e.jamaah?.nama,
+                jenjang: e.jenjang?.nama
+            })).filter(j => j.id);
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat jamaah');
+            return [];
+        }
+    },
+
+    /**
+     * Simpan presensi (upsert)
+     * @param {number} pengajianId
+     * @param {Array} presensiData - [{ jamaah_id, status, keterangan }]
+     * @returns {Promise<boolean>}
+     */
+    save: async function(pengajianId, presensiData) {
+        try {
+            // Hapus presensi lama
+            await db.from('keaktifan_pengajian').delete().eq('pengajian_id', safeInt(pengajianId));
+            
+            // Insert presensi baru
+            const insertData = presensiData.map(p => ({
+                pengajian_id: safeInt(pengajianId),
+                jamaah_id: safeInt(p.jamaah_id),
+                status: p.status || 'hadir',
+                keterangan: p.keterangan || null
+            }));
+            
+            const { error } = await db.from('keaktifan_pengajian').insert(insertData);
+            if (error) throw error;
+            
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menyimpan presensi');
+            return false;
+        }
+    },
+
+    /**
+     * Get rekap presensi jamaah
+     * @param {number} jamaahId
+     * @param {number} bulan
+     * @param {number} tahun
+     * @returns {Promise<Object>}
+     */
+    getRekapJamaah: async function(jamaahId, bulan = null, tahun = null) {
+        try {
+            const { data, error } = await db.rpc('get_presensi_rekap', {
+                p_jamaah_id: safeInt(jamaahId),
+                p_bulan: safeInt(bulan),
+                p_tahun: safeInt(tahun)
+            });
+            
+            if (error) throw error;
+            return data?.[0] || {
+                total_pengajian: 0,
+                total_hadir: 0,
+                total_izin: 0,
+                total_sakit: 0,
+                total_alpa: 0,
+                persentase_hadir: 0
+            };
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat rekap presensi');
+            return null;
+        }
+    }
+};
+
+// ============================================================================
+// PROGRESS API
+// ============================================================================
+
+const progressApi = {
+    /**
+     * Get progress hafalan jamaah
+     * @param {number} jamaahId
+     * @returns {Promise<Array>}
+     */
+    getByJamaah: async function(jamaahId) {
+        try {
+            const { data, error } = await db
+                .from('progress_jamaah')
+                .select('materi_item_id, status, nilai, catatan, tanggal_mulai, tanggal_selesai')
+                .eq('jamaah_id', safeInt(jamaahId));
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat progress');
+            return [];
+        }
+    },
+
+    /**
+     * Get progress sebagai object { materi_item_id: progressData }
+     * @param {number} jamaahId
+     * @returns {Promise<Object>}
+     */
+    getByJamaahAsMap: async function(jamaahId) {
+        const data = await this.getByJamaah(jamaahId);
+        const map = {};
+        data.forEach(p => {
+            map[p.materi_item_id] = p;
+        });
+        return map;
+    },
+
+    /**
+     * Get summary progress jamaah menggunakan stored procedure
+     * @param {number} jamaahId
+     * @returns {Promise<Array>}
+     */
+    getSummary: async function(jamaahId) {
+        try {
+            const { data, error } = await db.rpc('get_progress_summary', {
+                p_jamaah_id: safeInt(jamaahId)
+            });
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat summary progress');
+            return [];
+        }
+    },
+
+    /**
+     * Update atau create progress
+     * @param {number} jamaahId
+     * @param {number} materiItemId
+     * @param {Object} progressData - { status, nilai, catatan }
+     * @returns {Promise<boolean>}
+     */
+    upsert: async function(jamaahId, materiItemId, progressData) {
+        try {
+            const now = new Date();
+            const payload = {
+                jamaah_id: safeInt(jamaahId),
+                materi_item_id: safeInt(materiItemId),
+                status: progressData.status,
+                nilai: progressData.nilai || null,
+                catatan: progressData.catatan || null,
+                periode_bulan: now.getMonth() + 1,
+                periode_tahun: now.getFullYear(),
+                updated_at: now.toISOString()
+            };
+            
+            // Set tanggal
+            if (progressData.status === 'sedang') {
+                payload.tanggal_mulai = now.toISOString().split('T')[0];
+            }
+            if (progressData.status === 'selesai' || progressData.status === 'lulus') {
+                payload.tanggal_selesai = now.toISOString().split('T')[0];
+            }
+            
+            // Check existing
+            const { data: existing } = await db
+                .from('progress_jamaah')
+                .select('id')
+                .eq('jamaah_id', safeInt(jamaahId))
+                .eq('materi_item_id', safeInt(materiItemId))
+                .single();
+            
+            if (existing) {
+                // Update
+                const { error } = await db
+                    .from('progress_jamaah')
+                    .update(payload)
+                    .eq('jamaah_id', safeInt(jamaahId))
+                    .eq('materi_item_id', safeInt(materiItemId));
+                if (error) throw error;
+            } else {
+                // Insert
+                payload.tanggal_mulai = now.toISOString().split('T')[0];
+                const { error } = await db.from('progress_jamaah').insert(payload);
+                if (error) throw error;
+            }
+            
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menyimpan progress');
+            return false;
+        }
+    }
+};
+
+// ============================================================================
+// WILAYAH API
+// ============================================================================
+
+const wilayahApi = {
+    /**
+     * Get semua wilayah
+     * @param {Object} filters - { tingkat, is_aktif, parent_id }
+     * @returns {Promise<Array>}
+     */
+    getAll: async function(filters = {}) {
+        try {
+            let query = db.from('wilayah').select('*');
+            
+            if (filters.tingkat) {
+                query = query.eq('tingkat', filters.tingkat);
+            }
+            if (filters.is_aktif !== undefined) {
+                query = query.eq('is_aktif', filters.is_aktif);
+            }
+            if (filters.parent_id) {
+                query = query.eq('parent_id', safeInt(filters.parent_id));
+            }
+            
+            query = query.order('nama');
+            
+            const { data, error } = await query;
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat wilayah');
+            return [];
+        }
+    },
+
+    /**
+     * Get wilayah dengan hierarki
+     * @returns {Promise<Array>}
+     */
+    getHierarki: async function() {
+        try {
+            const { data, error } = await db
+                .from('v_wilayah_hierarki')
+                .select('*')
+                .order('nama');
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat hierarki wilayah');
+            return [];
+        }
+    },
+
+    /**
+     * Get wilayah by tingkat
+     * @param {string} tingkat - 'daerah', 'desa', 'kelompok'
+     * @returns {Promise<Array>}
+     */
+    getByTingkat: async function(tingkat) {
+        return this.getAll({ tingkat, is_aktif: true });
+    },
+
+    /**
+     * Get children wilayah
+     * @param {number} parentId
+     * @returns {Promise<Array>}
+     */
+    getChildren: async function(parentId) {
+        return this.getAll({ parent_id: parentId, is_aktif: true });
+    },
+
+    /**
+     * Get wilayah by ID
+     * @param {number} id
+     * @returns {Promise<Object|null>}
+     */
+    getById: async function(id) {
+        try {
+            const { data, error } = await db
+                .from('wilayah')
+                .select('*')
+                .eq('id', safeInt(id))
+                .single();
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat wilayah');
+            return null;
+        }
+    },
+
+    /**
+     * Create wilayah
+     * @param {Object} wilayahData
+     * @returns {Promise<Object|null>}
+     */
+    create: async function(wilayahData) {
+        try {
+            const { data, error } = await db
+                .from('wilayah')
+                .insert({
+                    kode: wilayahData.kode,
+                    nama: wilayahData.nama,
+                    tingkat: wilayahData.tingkat,
+                    parent_id: safeInt(wilayahData.parent_id),
+                    is_aktif: wilayahData.is_aktif !== false
+                })
+                .select()
+                .single();
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            handleApiError(error, 'Gagal membuat wilayah');
+            return null;
+        }
+    },
+
+    /**
+     * Update wilayah
+     * @param {number} id
+     * @param {Object} wilayahData
+     * @returns {Promise<boolean>}
+     */
+    update: async function(id, wilayahData) {
+        try {
+            const { error } = await db
+                .from('wilayah')
+                .update({
+                    kode: wilayahData.kode,
+                    nama: wilayahData.nama,
+                    tingkat: wilayahData.tingkat,
+                    parent_id: safeInt(wilayahData.parent_id),
+                    is_aktif: wilayahData.is_aktif
+                })
+                .eq('id', safeInt(id));
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal mengupdate wilayah');
+            return false;
+        }
+    },
+
+    /**
+     * Delete wilayah
+     * @param {number} id
+     * @returns {Promise<boolean>}
+     */
+    delete: async function(id) {
+        try {
+            const { error } = await db.from('wilayah').delete().eq('id', safeInt(id));
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menghapus wilayah');
+            return false;
+        }
+    },
+
+    /**
+     * Count wilayah
+     * @param {Object} filters
+     * @returns {Promise<number>}
+     */
+    count: async function(filters = {}) {
+        try {
+            let query = db.from('wilayah').select('*', { count: 'exact', head: true });
+            
+            if (filters.tingkat) {
+                query = query.eq('tingkat', filters.tingkat);
+            }
+            if (filters.is_aktif !== undefined) {
+                query = query.eq('is_aktif', filters.is_aktif);
+            }
+            
+            const { count, error } = await query;
+            if (error) throw error;
+            return count || 0;
+        } catch (error) {
+            handleApiError(error, 'Gagal menghitung wilayah');
+            return 0;
+        }
+    }
+};
+
+// ============================================================================
+// MASTER DATA API
+// ============================================================================
+
+const masterApi = {
+    /**
+     * Get semua jenjang
+     * @returns {Promise<Array>}
+     */
+    getJenjang: async function() {
+        try {
+            const { data, error } = await db
+                .from('jenjang')
+                .select('*')
+                .eq('is_aktif', true)
+                .order('urutan');
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat jenjang');
+            return [];
+        }
+    },
+
+    /**
+     * Get semua bidang
+     * @returns {Promise<Array>}
+     */
+    getBidang: async function() {
+        try {
+            const { data, error } = await db
+                .from('bidang')
+                .select('*')
+                .order('urutan');
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat bidang');
+            return [];
+        }
+    },
+
+    /**
+     * Get semua kategori materi
+     * @param {number} bidangId (optional)
+     * @returns {Promise<Array>}
+     */
+    getKategori: async function(bidangId = null) {
+        try {
+            let query = db
+                .from('kategori_materi')
+                .select('*, bidang:bidang_id(nama)')
+                .eq('is_aktif', true)
+                .order('urutan');
+            
+            if (bidangId) {
+                query = query.eq('bidang_id', safeInt(bidangId));
+            }
+            
+            const { data, error } = await query;
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat kategori');
+            return [];
+        }
+    },
+
+    /**
+     * Get materi item
+     * @param {Object} filters - { kategori_id, tipe }
+     * @returns {Promise<Array>}
+     */
+    getMateri: async function(filters = {}) {
+        try {
+            let query = db.from('materi_item').select('*');
+            
+            if (filters.kategori_id) {
+                query = query.eq('kategori_id', safeInt(filters.kategori_id));
+            }
+            if (filters.tipe) {
+                query = query.eq('tipe', filters.tipe);
+            }
+            
+            query = query.order('nomor');
+            
+            const { data, error } = await query;
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat materi');
+            return [];
+        }
+    },
+
+    /**
+     * Get materi dengan kategori dan bidang (dari view)
+     * @returns {Promise<Array>}
+     */
+    getMateriLengkap: async function() {
+        try {
+            const { data, error } = await db
+                .from('v_materi_kurikulum')
+                .select('*');
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat materi');
+            return [];
+        }
+    },
+
+    /**
+     * Get tahun ajaran
+     * @param {boolean} aktifOnly
+     * @returns {Promise<Array>}
+     */
+    getTahunAjaran: async function(aktifOnly = false) {
+        try {
+            let query = db.from('tahun_ajaran').select('*').order('kode', { ascending: false });
+            
+            if (aktifOnly) {
+                query = query.eq('is_aktif', true);
+            }
+            
+            const { data, error } = await query;
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat tahun ajaran');
+            return [];
+        }
+    },
+
+    /**
+     * Get tahun ajaran aktif
+     * @returns {Promise<Object|null>}
+     */
+    getTahunAjaranAktif: async function() {
+        try {
+            const { data, error } = await db
+                .from('tahun_ajaran')
+                .select('*')
+                .eq('is_aktif', true)
+                .single();
+            
+            if (error && error.code !== 'PGRST116') throw error;
+            return data || null;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat tahun ajaran aktif');
+            return null;
+        }
+    },
+
+    /**
+     * Get semua role
+     * @returns {Promise<Array>}
+     */
+    getRole: async function() {
+        try {
+            const { data, error } = await db
+                .from('role')
+                .select('*')
+                .order('level');
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat role');
+            return [];
+        }
+    },
+
+    /**
+     * Get status jamaah
+     * @returns {Promise<Array>}
+     */
+    getStatusJamaah: async function() {
+        try {
+            const { data, error } = await db
+                .from('status_jamaah')
+                .select('*')
+                .eq('is_aktif', true)
+                .order('urutan');
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat status jamaah');
+            return [];
+        }
+    }
+};
+
+// ============================================================================
+// USER API
+// ============================================================================
+
+const userApi = {
+    /**
+     * Get semua users
+     * @returns {Promise<Array>}
+     */
+    getAll: async function() {
+        try {
+            const { data, error } = await db
+                .from('users')
+                .select('*')
+                .order('nama');
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat users');
+            return [];
+        }
+    },
+
+    /**
+     * Get user dengan role (dari view)
+     * @returns {Promise<Array>}
+     */
+    getAllWithRoles: async function() {
+        try {
+            const { data, error } = await db
+                .from('v_user_role_lengkap')
+                .select('*')
+                .eq('is_aktif', true);
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat user roles');
+            return [];
+        }
+    },
+
+    /**
+     * Update user
+     * @param {number} id
+     * @param {Object} userData
+     * @returns {Promise<boolean>}
+     */
+    update: async function(id, userData) {
+        try {
+            const { error } = await db
+                .from('users')
+                .update({
+                    nama: userData.nama,
+                    phone: userData.phone,
+                    alamat: userData.alamat,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', safeInt(id));
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal mengupdate user');
+            return false;
+        }
+    },
+
+    /**
+     * Assign role ke user
+     * @param {number} userId
+     * @param {number} roleId
+     * @param {number} wilayahId (optional)
+     * @returns {Promise<boolean>}
+     */
+    assignRole: async function(userId, roleId, wilayahId = null) {
+        try {
+            const { error } = await db.from('user_role').insert({
+                user_id: safeInt(userId),
+                role_id: safeInt(roleId),
+                wilayah_id: safeInt(wilayahId),
+                is_aktif: true
+            });
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal assign role');
+            return false;
+        }
+    },
+
+    /**
+     * Remove role dari user
+     * @param {number} userRoleId
+     * @returns {Promise<boolean>}
+     */
+    removeRole: async function(userRoleId) {
+        try {
+            const { error } = await db
+                .from('user_role')
+                .delete()
+                .eq('id', safeInt(userRoleId));
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menghapus role');
+            return false;
+        }
+    },
+
+    /**
+     * Toggle status role
+     * @param {number} userRoleId
+     * @param {boolean} isAktif
+     * @returns {Promise<boolean>}
+     */
+    toggleRoleStatus: async function(userRoleId, isAktif) {
+        try {
+            const { error } = await db
+                .from('user_role')
+                .update({ is_aktif: isAktif })
+                .eq('id', safeInt(userRoleId));
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal mengubah status role');
+            return false;
+        }
+    }
+};
+
+// ============================================================================
+// DASHBOARD API
+// ============================================================================
+
+const dashboardApi = {
+    /**
+     * Get statistik dashboard
+     * @returns {Promise<Object>}
+     */
+    getStats: async function() {
+        try {
+            const { data, error } = await db
+                .from('v_dashboard_stats')
+                .select('*')
+                .single();
+            
+            if (error) throw error;
+            return data || {
+                total_jamaah_aktif: 0,
+                total_generus: 0,
+                total_kelompok: 0,
+                total_desa: 0,
+                total_materi: 0,
+                pengajian_bulan_ini: 0
+            };
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat statistik');
+            return null;
+        }
+    },
+
+    /**
+     * Get statistik per jenjang
+     * @returns {Promise<Array>}
+     */
+    getStatistikJenjang: async function() {
+        try {
+            const { data, error } = await db
+                .from('v_statistik_jenjang')
+                .select('*')
+                .order('urutan');
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat statistik jenjang');
+            return [];
+        }
+    },
+
+    /**
+     * Get pengajian terbaru
+     * @param {number} limit
+     * @returns {Promise<Array>}
+     */
+    getRecentPengajian: async function(limit = 5) {
+        return pengajianApi.getAll({ limit });
+    },
+
+    /**
+     * Get progress terbaru
+     * @param {number} limit
+     * @returns {Promise<Array>}
+     */
+    getRecentProgress: async function(limit = 5) {
+        try {
+            const { data, error } = await db
+                .from('progress_jamaah')
+                .select('*, jamaah:jamaah_id(nama), materi_item:materi_item_id(nama)')
+                .eq('status', 'selesai')
+                .order('tanggal_selesai', { ascending: false })
+                .limit(limit);
+            
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat progress terbaru');
+            return [];
+        }
+    }
+};
+
+// ============================================================================
+// PERNIKAHAN API
+// ============================================================================
+
+const pernikahanApi = {
+    /**
+     * Proses pernikahan menggunakan stored procedure
+     * @param {number} jamaahId
+     * @param {number} pasanganId (optional)
+     * @param {string} tanggalMenikah
+     * @returns {Promise<boolean>}
+     */
+    proses: async function(jamaahId, pasanganId = null, tanggalMenikah = null) {
+        try {
+            const { data, error } = await db.rpc('sp_proses_pernikahan', {
+                p_jamaah_id: safeInt(jamaahId),
+                p_pasangan_id: safeInt(pasanganId),
+                p_tanggal_menikah: tanggalMenikah || new Date().toISOString().split('T')[0],
+                p_updated_by: currentUserData?.id || null
+            });
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal memproses pernikahan');
+            return false;
+        }
+    }
+};
+
+// ============================================================================
+// EXPORT - Make APIs available globally
+// ============================================================================
+
+window.jamaahApi = jamaahApi;
+window.generusApi = generusApi;
+window.enrollmentApi = enrollmentApi;
+window.pengajianApi = pengajianApi;
+window.presensiApi = presensiApi;
+window.progressApi = progressApi;
+window.wilayahApi = wilayahApi;
+window.masterApi = masterApi;
+window.userApi = userApi;
+window.dashboardApi = dashboardApi;
+window.pernikahanApi = pernikahanApi;
+
+// Export helper juga
+window.safeInt = safeInt;
