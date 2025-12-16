@@ -459,6 +459,30 @@ const enrollmentApi = {
     },
 
     /**
+     * Update jenjang saja
+     * @param {number} enrollmentId
+     * @param {number} jenjangId
+     * @returns {Promise<boolean>}
+     */
+    updateJenjang: async function(enrollmentId, jenjangId) {
+        try {
+            const { error } = await db
+                .from('enrollment')
+                .update({ 
+                    jenjang_id: safeInt(jenjangId),
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', safeInt(enrollmentId));
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal mengupdate jenjang');
+            return false;
+        }
+    },
+
+    /**
      * Create enrollment baru
      * @param {Object} enrollmentData
      * @returns {Promise<Object|null>}
@@ -1531,6 +1555,382 @@ const pernikahanApi = {
 };
 
 // ============================================================================
+// JADWAL RUTIN API
+// ============================================================================
+
+const jadwalRutinApi = {
+    /**
+     * Get semua jadwal rutin dengan filter
+     * @param {Object} filters - { wilayah_id, jenjang_id, tingkat, is_aktif }
+     * @returns {Promise<Array>}
+     */
+    getAll: async function(filters = {}) {
+        try {
+            var query = db.from('v_jadwal_rutin_lengkap').select('*');
+            
+            if (filters.wilayah_id) {
+                query = query.eq('wilayah_id', safeInt(filters.wilayah_id));
+            }
+            if (filters.jenjang_id) {
+                query = query.eq('jenjang_id', safeInt(filters.jenjang_id));
+            }
+            if (filters.tingkat) {
+                query = query.eq('tingkat', filters.tingkat);
+            }
+            if (filters.is_aktif !== undefined) {
+                query = query.eq('is_aktif', filters.is_aktif);
+            }
+            
+            query = query.order('nama');
+            
+            var result = await query;
+            if (result.error) throw result.error;
+            return result.data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat jadwal rutin');
+            return [];
+        }
+    },
+    
+    /**
+     * Get jadwal rutin by ID
+     * @param {number} id
+     * @returns {Promise<Object|null>}
+     */
+    getById: async function(id) {
+        try {
+            var result = await db
+                .from('v_jadwal_rutin_lengkap')
+                .select('*')
+                .eq('id', safeInt(id))
+                .single();
+            
+            if (result.error) throw result.error;
+            return result.data;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat jadwal rutin');
+            return null;
+        }
+    },
+    
+    /**
+     * Create jadwal rutin baru
+     * @param {Object} data
+     * @returns {Promise<number|null>}
+     */
+    create: async function(data) {
+        try {
+            var insertData = {
+                nama: data.nama,
+                tingkat: data.tingkat,
+                wilayah_id: safeInt(data.wilayah_id),
+                jenjang_id: safeInt(data.jenjang_id),
+                tipe: data.tipe,
+                waktu_mulai: data.waktu_mulai || null,
+                waktu_selesai: data.waktu_selesai || null,
+                materi_default: data.materi_default || null,
+                is_aktif: data.is_aktif !== false,
+                created_by: currentUserData?.id || null
+            };
+            
+            // Setting HARIAN
+            if (data.tipe === 'harian') {
+                insertData.hari_minggu = data.hari_minggu || false;
+                insertData.hari_senin = data.hari_senin || false;
+                insertData.hari_selasa = data.hari_selasa || false;
+                insertData.hari_rabu = data.hari_rabu || false;
+                insertData.hari_kamis = data.hari_kamis || false;
+                insertData.hari_jumat = data.hari_jumat || false;
+                insertData.hari_sabtu = data.hari_sabtu || false;
+            }
+            
+            // Setting MINGGUAN
+            if (data.tipe === 'mingguan') {
+                insertData.minggu_ke = safeInt(data.minggu_ke);
+                insertData.hari_dalam_minggu = safeInt(data.hari_dalam_minggu);
+            }
+            
+            // Setting BULANAN
+            if (data.tipe === 'bulanan') {
+                insertData.bulan_jan = data.bulan_jan || false;
+                insertData.bulan_feb = data.bulan_feb || false;
+                insertData.bulan_mar = data.bulan_mar || false;
+                insertData.bulan_apr = data.bulan_apr || false;
+                insertData.bulan_mei = data.bulan_mei || false;
+                insertData.bulan_jun = data.bulan_jun || false;
+                insertData.bulan_jul = data.bulan_jul || false;
+                insertData.bulan_agt = data.bulan_agt || false;
+                insertData.bulan_sep = data.bulan_sep || false;
+                insertData.bulan_okt = data.bulan_okt || false;
+                insertData.bulan_nov = data.bulan_nov || false;
+                insertData.bulan_des = data.bulan_des || false;
+                insertData.minggu_ke_bulanan = safeInt(data.minggu_ke_bulanan);
+                insertData.hari_dalam_minggu_bulanan = safeInt(data.hari_dalam_minggu_bulanan);
+            }
+            
+            var result = await db
+                .from('jadwal_rutin')
+                .insert(insertData)
+                .select('id')
+                .single();
+            
+            if (result.error) throw result.error;
+            return result.data?.id || null;
+        } catch (error) {
+            handleApiError(error, 'Gagal membuat jadwal rutin');
+            return null;
+        }
+    },
+    
+    /**
+     * Update jadwal rutin
+     * @param {number} id
+     * @param {Object} data
+     * @returns {Promise<boolean>}
+     */
+    update: async function(id, data) {
+        try {
+            var updateData = {
+                nama: data.nama,
+                tingkat: data.tingkat,
+                wilayah_id: safeInt(data.wilayah_id),
+                jenjang_id: safeInt(data.jenjang_id),
+                tipe: data.tipe,
+                waktu_mulai: data.waktu_mulai || null,
+                waktu_selesai: data.waktu_selesai || null,
+                materi_default: data.materi_default || null,
+                is_aktif: data.is_aktif !== false,
+                updated_at: new Date().toISOString()
+            };
+            
+            // Reset semua setting
+            updateData.hari_minggu = false;
+            updateData.hari_senin = false;
+            updateData.hari_selasa = false;
+            updateData.hari_rabu = false;
+            updateData.hari_kamis = false;
+            updateData.hari_jumat = false;
+            updateData.hari_sabtu = false;
+            updateData.minggu_ke = null;
+            updateData.hari_dalam_minggu = null;
+            updateData.bulan_jan = false;
+            updateData.bulan_feb = false;
+            updateData.bulan_mar = false;
+            updateData.bulan_apr = false;
+            updateData.bulan_mei = false;
+            updateData.bulan_jun = false;
+            updateData.bulan_jul = false;
+            updateData.bulan_agt = false;
+            updateData.bulan_sep = false;
+            updateData.bulan_okt = false;
+            updateData.bulan_nov = false;
+            updateData.bulan_des = false;
+            updateData.minggu_ke_bulanan = null;
+            updateData.hari_dalam_minggu_bulanan = null;
+            
+            // Setting sesuai tipe
+            if (data.tipe === 'harian') {
+                updateData.hari_minggu = data.hari_minggu || false;
+                updateData.hari_senin = data.hari_senin || false;
+                updateData.hari_selasa = data.hari_selasa || false;
+                updateData.hari_rabu = data.hari_rabu || false;
+                updateData.hari_kamis = data.hari_kamis || false;
+                updateData.hari_jumat = data.hari_jumat || false;
+                updateData.hari_sabtu = data.hari_sabtu || false;
+            } else if (data.tipe === 'mingguan') {
+                updateData.minggu_ke = safeInt(data.minggu_ke);
+                updateData.hari_dalam_minggu = safeInt(data.hari_dalam_minggu);
+            } else if (data.tipe === 'bulanan') {
+                updateData.bulan_jan = data.bulan_jan || false;
+                updateData.bulan_feb = data.bulan_feb || false;
+                updateData.bulan_mar = data.bulan_mar || false;
+                updateData.bulan_apr = data.bulan_apr || false;
+                updateData.bulan_mei = data.bulan_mei || false;
+                updateData.bulan_jun = data.bulan_jun || false;
+                updateData.bulan_jul = data.bulan_jul || false;
+                updateData.bulan_agt = data.bulan_agt || false;
+                updateData.bulan_sep = data.bulan_sep || false;
+                updateData.bulan_okt = data.bulan_okt || false;
+                updateData.bulan_nov = data.bulan_nov || false;
+                updateData.bulan_des = data.bulan_des || false;
+                updateData.minggu_ke_bulanan = safeInt(data.minggu_ke_bulanan);
+                updateData.hari_dalam_minggu_bulanan = safeInt(data.hari_dalam_minggu_bulanan);
+            }
+            
+            var result = await db
+                .from('jadwal_rutin')
+                .update(updateData)
+                .eq('id', safeInt(id));
+            
+            if (result.error) throw result.error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal mengupdate jadwal rutin');
+            return false;
+        }
+    },
+    
+    /**
+     * Delete jadwal rutin
+     * @param {number} id
+     * @returns {Promise<boolean>}
+     */
+    delete: async function(id) {
+        try {
+            var result = await db
+                .from('jadwal_rutin')
+                .delete()
+                .eq('id', safeInt(id));
+            
+            if (result.error) throw result.error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menghapus jadwal rutin');
+            return false;
+        }
+    },
+    
+    /**
+     * Toggle status aktif
+     * @param {number} id
+     * @param {boolean} isAktif
+     * @returns {Promise<boolean>}
+     */
+    toggleAktif: async function(id, isAktif) {
+        try {
+            var result = await db
+                .from('jadwal_rutin')
+                .update({ is_aktif: isAktif, updated_at: new Date().toISOString() })
+                .eq('id', safeInt(id));
+            
+            if (result.error) throw result.error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal mengubah status');
+            return false;
+        }
+    },
+    
+    /**
+     * Preview tanggal yang akan di-generate
+     * @param {number} jadwalRutinId
+     * @param {number} tahun
+     * @param {number} bulan
+     * @returns {Promise<Array>}
+     */
+    previewTanggal: async function(jadwalRutinId, tahun, bulan) {
+        try {
+            var result = await db.rpc('generate_tanggal_jadwal', {
+                p_jadwal_rutin_id: safeInt(jadwalRutinId),
+                p_tahun: tahun,
+                p_bulan: bulan
+            });
+            
+            if (result.error) throw result.error;
+            return result.data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal preview tanggal');
+            return [];
+        }
+    },
+    
+    /**
+     * Generate pengajian untuk bulan tertentu
+     * @param {number} tahun
+     * @param {number} bulan
+     * @returns {Promise<Array>}
+     */
+    generateBulanan: async function(tahun, bulan) {
+        try {
+            var result = await db.rpc('sp_generate_pengajian_bulanan', {
+                p_tahun: tahun,
+                p_bulan: bulan,
+                p_created_by: currentUserData?.id || null
+            });
+            
+            if (result.error) throw result.error;
+            return result.data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal generate jadwal');
+            return [];
+        }
+    }
+};
+
+// ============================================================================
+// TANGGAL SKIP (LIBUR) API
+// ============================================================================
+
+const tanggalSkipApi = {
+    /**
+     * Get semua tanggal skip
+     * @param {number} tahun - filter tahun (optional)
+     * @returns {Promise<Array>}
+     */
+    getAll: async function(tahun) {
+        try {
+            var query = db.from('tanggal_skip').select('*').eq('is_aktif', true);
+            
+            if (tahun) {
+                var startDate = tahun + '-01-01';
+                var endDate = tahun + '-12-31';
+                query = query.gte('tanggal', startDate).lte('tanggal', endDate);
+            }
+            
+            query = query.order('tanggal');
+            
+            var result = await query;
+            if (result.error) throw result.error;
+            return result.data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat tanggal libur');
+            return [];
+        }
+    },
+    
+    /**
+     * Tambah tanggal skip
+     * @param {string} tanggal
+     * @param {string} keterangan
+     * @returns {Promise<boolean>}
+     */
+    add: async function(tanggal, keterangan) {
+        try {
+            var result = await db
+                .from('tanggal_skip')
+                .insert({ tanggal: tanggal, keterangan: keterangan || null })
+                .select();
+            
+            if (result.error) throw result.error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menambah tanggal libur');
+            return false;
+        }
+    },
+    
+    /**
+     * Hapus tanggal skip
+     * @param {number} id
+     * @returns {Promise<boolean>}
+     */
+    delete: async function(id) {
+        try {
+            var result = await db
+                .from('tanggal_skip')
+                .delete()
+                .eq('id', safeInt(id));
+            
+            if (result.error) throw result.error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menghapus tanggal libur');
+            return false;
+        }
+    }
+};
+
+// ============================================================================
 // EXPORT - Make APIs available globally
 // ============================================================================
 
@@ -1545,6 +1945,8 @@ window.masterApi = masterApi;
 window.userApi = userApi;
 window.dashboardApi = dashboardApi;
 window.pernikahanApi = pernikahanApi;
+window.jadwalRutinApi = jadwalRutinApi;
+window.tanggalSkipApi = tanggalSkipApi;
 
 // Export helper juga
 window.safeInt = safeInt;
