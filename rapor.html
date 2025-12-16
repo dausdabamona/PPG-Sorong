@@ -145,15 +145,16 @@
                             </div>
                             
                             <div class="rapor-section">
-                                <div class="rapor-section-title">📝 Progress Hafalan</div>
+                                <div class="rapor-section-title">📝 Progress Hafalan per Bidang</div>
                                 <div class="table-container">
                                     <table class="table" id="progressTable">
                                         <thead>
                                             <tr>
-                                                <th>Kategori</th>
+                                                <th>Bidang</th>
                                                 <th>Selesai</th>
                                                 <th>Target</th>
-                                                <th>Persentase</th>
+                                                <th>Rata-rata</th>
+                                                <th>Progress</th>
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -301,10 +302,7 @@
                 if (raporTAEl) raporTAEl.textContent = escapeHtml(ta?.kode || '-');
                 if (tanggalRaporEl) tanggalRaporEl.textContent = formatTanggal(new Date().toISOString());
                 
-                // Get progress summary menggunakan api.js
-                var progressSummary = await progressApi.getSummary(jamaahId);
-                
-                // Calculate nilai per bidang dari progress
+                // Get progress untuk nilai per bidang
                 var progress = await progressApi.getByJamaah(jamaahId);
                 var nilaiAlim = [], nilaiAkhlak = [], nilaiMandiri = [];
                 
@@ -342,17 +340,20 @@
                 if (persenKeaktifanEl) persenKeaktifanEl.textContent = (presensiRekap?.persentase_hadir || 0) + '%';
                 if (progressBarEl) progressBarEl.style.width = (presensiRekap?.persentase_hadir || 0) + '%';
                 
-                // Progress per kategori
+                // Progress per bidang (bukan kategori)
+                var progressBidang = await progressApi.getSummaryByBidang(jamaahId);
+                
                 var progressHtml = '';
-                if (progressSummary && progressSummary.length > 0) {
-                    progressSummary.forEach(function(s) {
+                if (progressBidang && progressBidang.length > 0) {
+                    progressBidang.forEach(function(s) {
                         var persen = s.total_materi > 0 ? ((s.total_selesai || 0) / s.total_materi * 100).toFixed(0) : 0;
                         var barClass = persen >= 80 ? 'success' : persen >= 50 ? 'warning' : '';
                         
                         progressHtml += '<tr>';
-                        progressHtml += '<td>' + escapeHtml(s.kategori_nama || '-') + '</td>';
+                        progressHtml += '<td><strong>' + escapeHtml(s.bidang_nama || '-') + '</strong></td>';
                         progressHtml += '<td>' + (s.total_selesai || 0) + '</td>';
                         progressHtml += '<td>' + (s.total_materi || 0) + '</td>';
+                        progressHtml += '<td>' + (s.rata_nilai || '-') + '</td>';
                         progressHtml += '<td><div style="display:flex;align-items:center;gap:0.5rem;">';
                         progressHtml += '<div class="progress" style="flex:1;height:8px;">';
                         progressHtml += '<div class="progress-bar ' + barClass + '" style="width:' + persen + '%;"></div>';
@@ -360,7 +361,7 @@
                         progressHtml += '</tr>';
                     });
                 } else {
-                    progressHtml = '<tr><td colspan="4" class="text-center text-muted">Tidak ada data</td></tr>';
+                    progressHtml = '<tr><td colspan="5" class="text-center text-muted">Tidak ada data</td></tr>';
                 }
                 
                 var progressTbody = $$('#progressTable tbody');
