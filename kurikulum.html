@@ -567,10 +567,16 @@
         });
         
         function updateUserUI() {
-            if (currentUserData) {
-                $('userName').textContent = currentUserData.nama || currentUserData.email;
-                $('userAvatar').textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
-                if (userRoles.length > 0) $('userRole').textContent = userRoles[0].role?.nama || '-';
+            if (!currentUserData) return;
+            
+            var userNameEl = $('userName');
+            var userAvatarEl = $('userAvatar');
+            var userRoleEl = $('userRole');
+            
+            if (userNameEl) userNameEl.textContent = currentUserData.nama || currentUserData.email || 'User';
+            if (userAvatarEl) userAvatarEl.textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
+            if (userRoleEl && userRoles && userRoles.length > 0) {
+                userRoleEl.textContent = userRoles[0].role?.nama || '-';
             }
         }
         
