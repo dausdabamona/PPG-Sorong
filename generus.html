@@ -78,6 +78,21 @@
         /* Grid View Avatar */
         .member-grid-avatar.putra { background: linear-gradient(135deg, #059669, #10b981); }
         .member-grid-avatar.putri { background: linear-gradient(135deg, #db2777, #ec4899); }
+        
+        /* Loading State */
+        .loading-state { text-align: center; padding: 3rem 1rem; color: #6b7280; }
+        .loading-spinner { width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Empty State */
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #6b7280; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .desktop-only { display: none !important; }
+            .info-bar { padding: 0 0.75rem !important; }
+        }
     </style>
 </head>
 <body>
@@ -165,9 +180,9 @@
                 </div>
                 
                 <!-- Info Total -->
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;padding:0 0.25rem;">
+                <div class="info-bar" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;padding:0 0.75rem;">
                     <span id="infoTotal" style="font-size:0.85rem;color:#6b7280;">Total: -</span>
-                    <div style="display:flex;gap:0.5rem;">
+                    <div style="display:flex;gap:0.5rem;" class="desktop-only">
                         <button class="btn btn-sm btn-primary" onclick="showAddModal()" id="btnAddGenerus" style="display:none;">➕ Tambah</button>
                         <button class="btn btn-sm btn-outline" onclick="toggleAllGroups()" id="btnToggleAll">📂 Buka Semua</button>
                     </div>
@@ -175,17 +190,23 @@
                 
                 <!-- Grouped Data Container -->
                 <div id="dataContainer">
-                    <div class="text-center py-4 text-muted">Memuat data...</div>
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <div>Memuat data...</div>
+                    </div>
                 </div>
             </div>
+            
+            <!-- FAB (Floating Action Button) for Mobile -->
+            <button class="fab" id="fabAdd" onclick="showAddModal()" style="display:none;">➕</button>
             
             <!-- Mobile Bottom Nav -->
             <nav class="pwa-bottom-nav" id="mobileBottomNav" style="display:none;">
                 <a href="dashboard.html" class="pwa-nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
                 <a href="generus.html" class="pwa-nav-item active"><span class="nav-icon">👶</span><span class="nav-label">Generus</span></a>
-                <a href="penilaian-hafalan.html" class="pwa-nav-item"><span class="nav-icon">📝</span><span class="nav-label">Nilai</span></a>
+                <a href="pengajian.html" class="pwa-nav-item"><span class="nav-icon">📖</span><span class="nav-label">Pengajian</span></a>
                 <a href="rapor.html" class="pwa-nav-item"><span class="nav-icon">📊</span><span class="nav-label">Rapor</span></a>
-                <a href="jamaah.html" class="pwa-nav-item"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></a>
+                <a href="settings.html" class="pwa-nav-item"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></a>
             </nav>
         </main>
     </div>
@@ -474,12 +495,23 @@
                 if (mobileBottomNav) mobileBottomNav.style.display = 'flex';
                 if (sidebar) sidebar.classList.remove('show');
                 document.body.style.paddingBottom = '70px';
+                // Hide desktop buttons on mobile
+                document.querySelectorAll('.desktop-only').forEach(function(el) {
+                    el.style.display = 'none';
+                });
             } else {
                 if (desktopHeader) desktopHeader.style.display = 'flex';
                 if (mobileHeader) mobileHeader.style.display = 'none';
                 if (desktopPageHeader) desktopPageHeader.style.display = 'block';
                 if (mobileBottomNav) mobileBottomNav.style.display = 'none';
                 document.body.style.paddingBottom = '0';
+                // Show desktop buttons
+                document.querySelectorAll('.desktop-only').forEach(function(el) {
+                    el.style.display = 'flex';
+                });
+                // Hide FAB on desktop
+                var fab = $('fabAdd');
+                if (fab) fab.style.display = 'none';
             }
         }
         
@@ -491,6 +523,7 @@
                 var filterDaerah = $('filterDaerah');
                 var filterKelompok = $('filterKelompok');
                 var btnAddGenerus = $('btnAddGenerus');
+                var fabAdd = $('fabAdd');
                 
                 // Cek apakah user bisa edit (admin atau imam kelompok)
                 var canEdit = userRoles && userRoles.some(function(r) {
@@ -503,8 +536,12 @@
                 });
                 
                 // Tampilkan tombol tambah jika bisa edit
-                if (btnAddGenerus && canEdit) {
-                    btnAddGenerus.style.display = 'inline-flex';
+                if (canEdit) {
+                    if (btnAddGenerus) btnAddGenerus.style.display = 'inline-flex';
+                    // Tampilkan FAB di mobile
+                    if (fabAdd && window.innerWidth <= 768) {
+                        fabAdd.style.display = 'flex';
+                    }
                 }
                 
                 // Jika bukan admin dan punya wilayah assignment, sembunyikan filter daerah/kelompok
@@ -521,6 +558,7 @@
                         if (wInfo) {
                             userWilayahList.push(wInfo);
                             wilayahNames.push(wInfo.nama);
+                        }
                         }
                     }
                     
@@ -661,6 +699,16 @@
             
             if (!data || !data.length) {
                 container.innerHTML = '<div class="card"><div class="card-body text-center py-4 text-muted">Tidak ada data generus</div></div>';
+                return;
+            }
+            
+            // Filter data yang punya jamaah_id valid
+            data = data.filter(function(g) {
+                return g.jamaah_id && g.jamaah_id !== null && g.jamaah_id !== 'null';
+            });
+            
+            if (!data.length) {
+                container.innerHTML = '<div class="card"><div class="card-body text-center py-4 text-muted">Tidak ada data generus yang valid</div></div>';
                 return;
             }
             
@@ -862,6 +910,13 @@
         
         // ========== EDIT ==========
         async function editGenerus(id) {
+            // Validasi ID
+            if (!id || id === 'null' || id === 'undefined') {
+                showToast('ID tidak valid', 'error');
+                console.error('Invalid ID:', id);
+                return;
+            }
+            
             try {
                 var jamaah = await jamaahApi.getDetailById(id);
                 if (!jamaah) {
