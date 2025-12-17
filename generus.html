@@ -704,7 +704,7 @@
             
             // Filter data yang punya jamaah_id valid
             data = data.filter(function(g) {
-                return g.jamaah_id && g.jamaah_id !== null && g.jamaah_id !== 'null';
+                return g.id && g.id !== null && g.id !== 'null';
             });
             
             if (!data.length) {
@@ -801,7 +801,7 @@
                         group.putra.forEach(function(m) {
                             var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
                             var initial = (m.nama || '?').charAt(0).toUpperCase();
-                            html += '<div class="member-grid-item" onclick="editGenerus(' + m.jamaah_id + ')">';
+                            html += '<div class="member-grid-item" onclick="editGenerus(' + m.id + ')">';
                             html += '<div class="member-grid-avatar putra">' + initial + '</div>';
                             html += '<div class="member-grid-name">' + escapeHtml(m.nama_panggilan || m.nama || '-') + '</div>';
                             html += '<div class="member-grid-age">' + umur + ' thn</div>';
@@ -823,7 +823,7 @@
                             html += '</div>';
                             if (canEdit) {
                                 html += '<div class="member-action">';
-                                html += '<button class="btn btn-sm btn-outline" onclick="event.stopPropagation();editGenerus(' + m.jamaah_id + ')">✏️</button>';
+                                html += '<button class="btn btn-sm btn-outline" onclick="event.stopPropagation();editGenerus(' + m.id + ')">✏️</button>';
                                 html += '</div>';
                             }
                             html += '</div>';
@@ -846,7 +846,7 @@
                         group.putri.forEach(function(m) {
                             var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
                             var initial = (m.nama || '?').charAt(0).toUpperCase();
-                            html += '<div class="member-grid-item" onclick="editGenerus(' + m.jamaah_id + ')">';
+                            html += '<div class="member-grid-item" onclick="editGenerus(' + m.id + ')">';
                             html += '<div class="member-grid-avatar putri">' + initial + '</div>';
                             html += '<div class="member-grid-name">' + escapeHtml(m.nama_panggilan || m.nama || '-') + '</div>';
                             html += '<div class="member-grid-age">' + umur + ' thn</div>';
@@ -868,7 +868,7 @@
                             html += '</div>';
                             if (canEdit) {
                                 html += '<div class="member-action">';
-                                html += '<button class="btn btn-sm btn-outline" onclick="event.stopPropagation();editGenerus(' + m.jamaah_id + ')">✏️</button>';
+                                html += '<button class="btn btn-sm btn-outline" onclick="event.stopPropagation();editGenerus(' + m.id + ')">✏️</button>';
                                 html += '</div>';
                             }
                             html += '</div>';
