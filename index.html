@@ -10,8 +10,8 @@
     <meta name="description" content="Sistem Manajemen Pengajian dan Pembinaan Generasi Penerus Sorong">
     <title>Login - PPG Sorong</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
-    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <link rel="apple-touch-icon" href="images/icon-192x192.png">
+    <link rel="icon" type="image/png" href="images/icon-72x72.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
@@ -64,9 +64,22 @@
     <script src="js/auth.js"></script>
     
     <script>
+        // Register Service Worker untuk PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registered:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+        
         // Cek jika sudah login, redirect ke dashboard
         (async function() {
-            const isLoggedIn = await checkSession();
+            var isLoggedIn = await checkSession();
             if (isLoggedIn) {
                 window.location.href = 'dashboard.html';
             }
@@ -75,33 +88,44 @@
         async function handleLogin(event) {
             event.preventDefault();
             
-            const email = $('email').value.trim();
-            const password = $('password').value;
-            const btnLogin = $('btnLogin');
-            const errorMessage = $('errorMessage');
+            var emailEl = $('email');
+            var passwordEl = $('password');
+            var btnLogin = $('btnLogin');
+            var errorMessage = $('errorMessage');
+            
+            var email = emailEl ? emailEl.value.trim() : '';
+            var password = passwordEl ? passwordEl.value : '';
             
             // Reset error
-            errorMessage.style.display = 'none';
+            if (errorMessage) errorMessage.style.display = 'none';
             
             // Disable button
-            btnLogin.disabled = true;
-            btnLogin.innerHTML = 'Memproses...';
+            if (btnLogin) {
+                btnLogin.disabled = true;
+                btnLogin.innerHTML = 'Memproses...';
+            }
             
             try {
-                const result = await login(email, password);
+                var result = await login(email, password);
                 
                 if (result.success) {
                     window.location.href = 'dashboard.html';
                 } else {
-                    errorMessage.textContent = result.error || 'Email atau password salah';
-                    errorMessage.style.display = 'block';
+                    if (errorMessage) {
+                        errorMessage.textContent = result.error || 'Email atau password salah';
+                        errorMessage.style.display = 'block';
+                    }
                 }
             } catch (error) {
-                errorMessage.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
-                errorMessage.style.display = 'block';
+                if (errorMessage) {
+                    errorMessage.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
+                    errorMessage.style.display = 'block';
+                }
             } finally {
-                btnLogin.disabled = false;
-                btnLogin.innerHTML = 'Masuk';
+                if (btnLogin) {
+                    btnLogin.disabled = false;
+                    btnLogin.innerHTML = 'Masuk';
+                }
             }
         }
     </script>

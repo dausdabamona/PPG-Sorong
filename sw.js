@@ -2,21 +2,27 @@
 // SERVICE WORKER - PPG SORONG PWA
 // ============================================================================
 
-const CACHE_NAME = 'ppg-sorong-v1.0.0';
+const CACHE_NAME = 'ppg-sorong-v1.0.1';
 const urlsToCache = [
   '/',
-  '/index-quick-login.html',
-  '/quick-testing.html',
+  '/index.html',
+  '/generus.html',
   '/jamaah.html',
-  '/dashboard.html',
+  '/pengajian.html',
+  '/presensi.html',
+  '/progress.html',
+  '/rapor.html',
+  '/kurikulum.html',
+  '/wilayah.html',
   '/css/style.css',
   '/js/config.js',
   '/js/auth.js',
   '/js/sidebar.js',
   '/js/utils.js',
-  '/js/quick-testing.js',
-  '/js/jamaah.js',
+  '/js/api.js',
   '/manifest.json',
+  '/images/icon-192x192.png',
+  '/images/icon-512x512.png',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
 ];
