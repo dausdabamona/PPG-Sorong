@@ -146,7 +146,10 @@
                 <!-- Info Total -->
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;padding:0 0.25rem;">
                     <span id="infoTotal" style="font-size:0.85rem;color:#6b7280;">Total: -</span>
-                    <button class="btn btn-sm btn-outline" onclick="toggleAllGroups()" id="btnToggleAll">📂 Buka Semua</button>
+                    <div style="display:flex;gap:0.5rem;">
+                        <button class="btn btn-sm btn-primary" onclick="showAddModal()" id="btnAddGenerus" style="display:none;">➕ Tambah</button>
+                        <button class="btn btn-sm btn-outline" onclick="toggleAllGroups()" id="btnToggleAll">📂 Buka Semua</button>
+                    </div>
                 </div>
                 
                 <!-- Grouped Data Container -->
@@ -323,7 +326,66 @@
                     </div>
                     
                     <button class="btn btn-warning w-100" onclick="saveStatus()">💾 Simpan Status</button>
+                    
+                    <hr style="margin:1rem 0;border-color:#fee2e2;">
+                    <div style="background:#fef2f2;padding:0.75rem;border-radius:0.5rem;">
+                        <p style="font-size:0.8rem;color:#991b1b;margin-bottom:0.5rem;">⚠️ Hapus permanen data generus ini?</p>
+                        <button class="btn btn-danger btn-sm w-100" onclick="deleteGenerus()">🗑️ Hapus Generus</button>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Tambah Generus Baru -->
+    <div class="modal" id="addModal">
+        <div class="modal-content" style="max-height:92vh;">
+            <div class="modal-header">
+                <h3 class="modal-title">➕ Tambah Generus Baru</h3>
+                <button class="modal-close" onclick="closeAddModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="overflow-y:auto;">
+                <div class="form-group">
+                    <label class="form-label">Nama Lengkap *</label>
+                    <input type="text" class="form-control" id="addNama" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nama Panggilan</label>
+                    <input type="text" class="form-control" id="addNamaPanggilan">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Jenis Kelamin *</label>
+                        <select class="form-control" id="addJenisKelamin" required>
+                            <option value="">Pilih</option>
+                            <option value="L">Laki-laki</option>
+                            <option value="P">Perempuan</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tanggal Lahir</label>
+                        <input type="date" class="form-control" id="addTanggalLahir" onchange="onAddTanggalLahirChange()">
+                        <small id="addUmurInfo" class="text-muted"></small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Jenjang *</label>
+                    <select class="form-control" id="addJenjang" required></select>
+                    <small id="addJenjangInfo" class="text-muted"></small>
+                </div>
+                <div class="form-group" id="addKelompokGroup">
+                    <label class="form-label">Kelompok *</label>
+                    <select class="form-control" id="addKelompok" required></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">No. HP/WA</label>
+                    <input type="text" class="form-control" id="addPhone">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Alamat</label>
+                    <textarea class="form-control" id="addAlamat" rows="2"></textarea>
+                </div>
+                <button class="btn btn-primary w-100" onclick="saveNewGenerus()">💾 Simpan Generus</button>
             </div>
         </div>
     </div>
@@ -344,6 +406,7 @@
         var allGroupsExpanded = false;
         var searchTimeout = null;
         var currentViewMode = 'list'; // 'list' or 'grid'
+        var userWilayahList = []; // Wilayah yang dimiliki user
         
         document.addEventListener('DOMContentLoaded', async function() {
             if (!await requireAuth()) return;
@@ -401,6 +464,18 @@
                 var filterCard = $('filterCard');
                 var filterDaerah = $('filterDaerah');
                 var filterKelompok = $('filterKelompok');
+                var btnAddGenerus = $('btnAddGenerus');
+                
+                // Cek apakah user bisa edit (admin atau imam kelompok)
+                var canEdit = userRoles && userRoles.some(function(r) {
+                    var kode = r.role && r.role.kode ? r.role.kode.toLowerCase() : '';
+                    return ['admin', 'mubaligh', 'mubaligh_daerah', 'mubaligh_desa', 'imam_kelompok'].includes(kode);
+                });
+                
+                // Tampilkan tombol tambah jika bisa edit
+                if (btnAddGenerus && canEdit) {
+                    btnAddGenerus.style.display = 'inline-flex';
+                }
                 
                 // Jika bukan admin dan punya wilayah assignment, sembunyikan filter daerah/kelompok
                 if (!isUserAdmin && userWilayahIds && userWilayahIds.length > 0) {
@@ -408,11 +483,15 @@
                     if (filterDaerah) filterDaerah.parentElement.style.display = 'none';
                     if (filterKelompok) filterKelompok.parentElement.style.display = 'none';
                     
-                    // Tampilkan info wilayah user
+                    // Load dan simpan info wilayah user
+                    userWilayahList = [];
                     var wilayahNames = [];
                     for (var i = 0; i < userWilayahIds.length; i++) {
                         var wInfo = await wilayahApi.getById(userWilayahIds[i]);
-                        if (wInfo) wilayahNames.push(wInfo.nama);
+                        if (wInfo) {
+                            userWilayahList.push(wInfo);
+                            wilayahNames.push(wInfo.nama);
+                        }
                     }
                     
                     // Tambah info di atas search
@@ -1110,6 +1189,203 @@
             } catch (error) {
                 console.error('Error tambah pasangan:', error);
                 showToast('Gagal: ' + (error.message || error), 'error');
+            }
+        }
+        
+        // ============================================================================
+        // FUNGSI TAMBAH GENERUS BARU
+        // ============================================================================
+        
+        function showAddModal() {
+            // Reset form
+            $('addNama').value = '';
+            $('addNamaPanggilan').value = '';
+            $('addJenisKelamin').value = '';
+            $('addTanggalLahir').value = '';
+            $('addJenjang').value = '';
+            $('addPhone').value = '';
+            $('addAlamat').value = '';
+            if ($('addUmurInfo')) $('addUmurInfo').textContent = '';
+            if ($('addJenjangInfo')) $('addJenjangInfo').textContent = '';
+            
+            // Populate jenjang dropdown
+            var addJenjang = $('addJenjang');
+            if (addJenjang && allJenjang) {
+                var html = '<option value="">-- Pilih Jenjang --</option>';
+                allJenjang.forEach(function(j) {
+                    html += '<option value="' + j.id + '" data-usia-min="' + (j.usia_mulai || 0) + '" data-usia-max="' + (j.usia_sampai || 99) + '">' + escapeHtml(j.nama) + '</option>';
+                });
+                addJenjang.innerHTML = html;
+            }
+            
+            // Populate kelompok dropdown berdasarkan role
+            var addKelompok = $('addKelompok');
+            var addKelompokGroup = $('addKelompokGroup');
+            
+            if (!isAdmin() && userWilayahList && userWilayahList.length > 0) {
+                // Non-admin: gunakan wilayah yang ditugaskan
+                if (userWilayahList.length === 1) {
+                    // Single kelompok - auto select dan hide dropdown
+                    addKelompok.innerHTML = '<option value="' + userWilayahList[0].id + '">' + escapeHtml(userWilayahList[0].nama) + '</option>';
+                    addKelompokGroup.style.display = 'none';
+                } else {
+                    // Multiple kelompok - tampilkan pilihan
+                    var html = '<option value="">-- Pilih Kelompok --</option>';
+                    userWilayahList.forEach(function(w) {
+                        html += '<option value="' + w.id + '">' + escapeHtml(w.nama) + '</option>';
+                    });
+                    addKelompok.innerHTML = html;
+                    addKelompokGroup.style.display = 'block';
+                }
+            } else {
+                // Admin: tampilkan semua kelompok
+                var html = '<option value="">-- Pilih Kelompok --</option>';
+                if (allKelompok) {
+                    allKelompok.forEach(function(k) {
+                        html += '<option value="' + k.id + '">' + escapeHtml(k.nama) + '</option>';
+                    });
+                }
+                addKelompok.innerHTML = html;
+                addKelompokGroup.style.display = 'block';
+            }
+            
+            $('addModal').classList.add('show');
+        }
+        
+        function closeAddModal() {
+            $('addModal').classList.remove('show');
+        }
+        
+        function onAddTanggalLahirChange() {
+            var tglLahir = $('addTanggalLahir').value;
+            var umurInfo = $('addUmurInfo');
+            var jenjangInfo = $('addJenjangInfo');
+            var jenjangSelect = $('addJenjang');
+            
+            if (!tglLahir) {
+                if (umurInfo) umurInfo.textContent = '';
+                if (jenjangInfo) jenjangInfo.textContent = '';
+                return;
+            }
+            
+            var umur = hitungUmur(tglLahir);
+            if (umurInfo) umurInfo.textContent = 'Umur: ' + umur + ' tahun';
+            
+            // Auto-recommend jenjang
+            if (jenjangSelect && allJenjang) {
+                var recommended = null;
+                allJenjang.forEach(function(j) {
+                    var min = j.usia_mulai || 0;
+                    var max = j.usia_sampai || 99;
+                    if (umur >= min && umur <= max) {
+                        recommended = j;
+                    }
+                });
+                
+                if (recommended) {
+                    jenjangSelect.value = recommended.id;
+                    if (jenjangInfo) jenjangInfo.textContent = '💡 Rekomendasi: ' + recommended.nama;
+                }
+            }
+        }
+        
+        async function saveNewGenerus() {
+            var nama = $('addNama').value.trim();
+            var namaPanggilan = $('addNamaPanggilan').value.trim();
+            var jk = $('addJenisKelamin').value;
+            var tglLahir = $('addTanggalLahir').value;
+            var jenjangId = $('addJenjang').value;
+            var kelompokId = $('addKelompok').value;
+            var phone = $('addPhone').value.trim();
+            var alamat = $('addAlamat').value.trim();
+            
+            // Validasi
+            if (!nama) {
+                showToast('Nama wajib diisi!', 'error');
+                return;
+            }
+            if (!jk) {
+                showToast('Jenis kelamin wajib dipilih!', 'error');
+                return;
+            }
+            if (!jenjangId) {
+                showToast('Jenjang wajib dipilih!', 'error');
+                return;
+            }
+            if (!kelompokId) {
+                showToast('Kelompok wajib dipilih!', 'error');
+                return;
+            }
+            
+            try {
+                var jamaahData = {
+                    nama: nama,
+                    nama_panggilan: namaPanggilan || null,
+                    jenis_kelamin: jk,
+                    tanggal_lahir: tglLahir || null,
+                    phone: phone || null,
+                    alamat: alamat || null,
+                    status_aktif: 'aktif',
+                    kelompok_id: parseInt(kelompokId),
+                    jenjang_id: parseInt(jenjangId)
+                };
+                
+                console.log('Creating new generus:', jamaahData);
+                var newId = await jamaahApi.create(jamaahData);
+                
+                if (newId) {
+                    showToast('Generus berhasil ditambahkan!', 'success');
+                    closeAddModal();
+                    await loadGenerus(); // Refresh data
+                } else {
+                    showToast('Gagal menambah generus', 'error');
+                }
+            } catch (error) {
+                console.error('Error tambah generus:', error);
+                showToast('Gagal: ' + (error.message || error), 'error');
+            }
+        }
+        
+        async function deleteGenerus() {
+            if (!currentEditData || !currentEditData.jamaah) {
+                showToast('Data tidak ditemukan', 'error');
+                return;
+            }
+            
+            var jamaahId = currentEditData.jamaah.id;
+            var nama = currentEditData.jamaah.nama;
+            
+            if (!confirm('Yakin ingin menghapus data "' + nama + '"?\n\nData yang terkait (enrollment, presensi, progress) juga akan terhapus.')) {
+                return;
+            }
+            
+            // Double confirm untuk keamanan
+            if (!confirm('KONFIRMASI AKHIR:\n\nHapus permanen data generus ini?')) {
+                return;
+            }
+            
+            try {
+                // Hapus data terkait terlebih dahulu
+                // 1. Hapus enrollment
+                await db.from('enrollment').delete().eq('jamaah_id', jamaahId);
+                
+                // 2. Hapus presensi
+                await db.from('presensi').delete().eq('jamaah_id', jamaahId);
+                
+                // 3. Hapus progress
+                await db.from('progress_jamaah').delete().eq('jamaah_id', jamaahId);
+                
+                // 4. Hapus jamaah
+                var result = await db.from('jamaah').delete().eq('id', jamaahId);
+                if (result.error) throw result.error;
+                
+                showToast('Data berhasil dihapus', 'success');
+                closeEditModal();
+                await loadGenerus(); // Refresh data
+                
+            } catch (error) {
+                console.error('Error hapus generus:', error);
+                showToast('Gagal menghapus: ' + (error.message || error), 'error');
             }
         }
     </script>
