@@ -1072,6 +1072,27 @@ const progressApi = {
 
 const wilayahApi = {
     /**
+     * Get wilayah by ID
+     * @param {number} id
+     * @returns {Promise<Object|null>}
+     */
+    getById: async function(id) {
+        try {
+            const { data, error } = await db
+                .from('wilayah')
+                .select('*')
+                .eq('id', safeInt(id))
+                .single();
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat wilayah');
+            return null;
+        }
+    },
+
+    /**
      * Get semua wilayah
      * @param {Object} filters - { tingkat, is_aktif, parent_id }
      * @returns {Promise<Array>}
@@ -1136,6 +1157,38 @@ const wilayahApi = {
      */
     getChildren: async function(parentId) {
         return this.getAll({ parent_id: parentId, is_aktif: true });
+    },
+
+    /**
+     * Get semua daerah
+     * @returns {Promise<Array>}
+     */
+    getDaerah: async function() {
+        return this.getByTingkat('daerah');
+    },
+
+    /**
+     * Get semua desa
+     * @param {number} daerahId - optional, filter by daerah
+     * @returns {Promise<Array>}
+     */
+    getDesa: async function(daerahId) {
+        if (daerahId) {
+            return this.getAll({ tingkat: 'desa', parent_id: daerahId, is_aktif: true });
+        }
+        return this.getByTingkat('desa');
+    },
+
+    /**
+     * Get semua kelompok
+     * @param {number} desaId - optional, filter by desa
+     * @returns {Promise<Array>}
+     */
+    getKelompok: async function(desaId) {
+        if (desaId) {
+            return this.getAll({ tingkat: 'kelompok', parent_id: desaId, is_aktif: true });
+        }
+        return this.getByTingkat('kelompok');
     },
 
     /**
