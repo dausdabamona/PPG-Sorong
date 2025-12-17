@@ -31,32 +31,53 @@
         .selected-person { background: #dcfce7; padding: 0.5rem; border-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
         .selected-person .remove { cursor: pointer; color: #ef4444; font-size: 1.1rem; }
         
-        /* Group Styles */
-        .group-card { margin-bottom: 1rem; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .group-header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 0.75rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .group-header:active { opacity: 0.9; }
-        .group-header h4 { margin: 0; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; }
-        .group-badge { background: rgba(255,255,255,0.25); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; }
+        /* Jenjang Group Card */
+        .group-card { margin-bottom: 1rem; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); background: white; }
+        .jenjang-main-header { background: linear-gradient(135deg, #065f46, #059669); color: white; padding: 0.85rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .jenjang-main-header:active { opacity: 0.9; }
+        .jenjang-main-header h4 { margin: 0; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .group-badge { background: rgba(255,255,255,0.25); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.8rem; font-weight: 600; }
         .group-content { background: white; }
         .group-content.collapsed { display: none; }
         
-        /* Jenjang sub-group */
-        .jenjang-header { background: #f0fdf4; padding: 0.5rem 1rem; font-weight: 600; font-size: 0.8rem; color: #065f46; border-bottom: 1px solid #d1fae5; display: flex; justify-content: space-between; }
-        .jenjang-badge { background: #059669; color: white; padding: 0.15rem 0.5rem; border-radius: 0.5rem; font-size: 0.7rem; }
+        /* Summary with Ikhwan/Akhwat */
+        .group-summary { display: flex; gap: 1rem; padding: 0.6rem 1rem; background: linear-gradient(90deg, #f0fdf4, #fdf2f8); font-size: 0.8rem; border-bottom: 1px solid #e5e7eb; }
+        .ikhwan-count { color: #065f46; font-weight: 500; }
+        .akhwat-count { color: #9d174d; font-weight: 500; }
+        
+        /* Gender Section */
+        .gender-section { margin-bottom: 0; }
+        .gender-header { padding: 0.5rem 1rem; font-weight: 600; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
+        .gender-badge { padding: 0.15rem 0.6rem; border-radius: 0.5rem; font-size: 0.7rem; color: white; }
+        
+        /* Ikhwan (Laki-laki) - Hijau */
+        .ikhwan-header { background: linear-gradient(90deg, #d1fae5, #ecfdf5); color: #065f46; border-left: 4px solid #059669; }
+        .ikhwan-header .gender-badge { background: #059669; }
+        .ikhwan-item { background: #f0fdf4; border-left: 3px solid #10b981; }
+        .ikhwan-item:hover { background: #dcfce7; }
+        .ikhwan-avatar { color: #059669; }
+        
+        /* Akhwat (Perempuan) - Pink/Ungu */
+        .akhwat-header { background: linear-gradient(90deg, #fce7f3, #fdf2f8); color: #9d174d; border-left: 4px solid #db2777; }
+        .akhwat-header .gender-badge { background: #db2777; }
+        .akhwat-item { background: #fdf2f8; border-left: 3px solid #ec4899; }
+        .akhwat-item:hover { background: #fce7f3; }
+        .akhwat-avatar { color: #db2777; }
         
         /* Member list */
-        .member-item { display: flex; align-items: center; padding: 0.6rem 1rem; border-bottom: 1px solid #f1f5f9; gap: 0.75rem; }
+        .member-item { display: flex; align-items: center; padding: 0.65rem 1rem; border-bottom: 1px solid rgba(0,0,0,0.05); gap: 0.75rem; transition: background 0.2s; }
         .member-item:last-child { border-bottom: none; }
-        .member-no { width: 24px; height: 24px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #6b7280; flex-shrink: 0; }
-        .member-avatar { font-size: 1.25rem; }
+        .member-no { width: 26px; height: 26px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: #6b7280; flex-shrink: 0; font-weight: 600; }
+        .member-avatar { font-size: 1.4rem; }
         .member-info { flex: 1; min-width: 0; }
-        .member-name { font-weight: 500; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .member-meta { font-size: 0.7rem; color: #6b7280; }
+        .member-name { font-weight: 500; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1f2937; }
+        .member-name small { color: #9ca3af; font-weight: 400; }
+        .member-meta { font-size: 0.75rem; color: #6b7280; margin-top: 0.1rem; }
         .member-action { flex-shrink: 0; }
         
-        /* Summary stats */
-        .group-summary { display: flex; gap: 1rem; padding: 0.5rem 1rem; background: #f8fafc; font-size: 0.75rem; color: #6b7280; }
-        .group-summary span { display: flex; align-items: center; gap: 0.25rem; }
+        /* Grid View Avatar */
+        .member-grid-avatar.ikhwan { background: linear-gradient(135deg, #059669, #10b981); }
+        .member-grid-avatar.akhwat { background: linear-gradient(135deg, #db2777, #ec4899); }
     </style>
 </head>
 <body>
@@ -606,9 +627,9 @@
                 // Update info
                 var infoEl = $('infoTotal');
                 if (infoEl) {
-                    var maleCount = generusData.filter(function(g) { return g.jenis_kelamin === 'L'; }).length;
-                    var femaleCount = generusData.filter(function(g) { return g.jenis_kelamin === 'P'; }).length;
-                    infoEl.textContent = 'Total: ' + generusData.length + ' (L:' + maleCount + ' P:' + femaleCount + ')';
+                    var ikhwanCount = generusData.filter(function(g) { return g.jenis_kelamin === 'L'; }).length;
+                    var akhwatCount = generusData.filter(function(g) { return g.jenis_kelamin === 'P'; }).length;
+                    infoEl.innerHTML = 'Total: <strong>' + generusData.length + '</strong> &nbsp;|&nbsp; 🧔 ' + ikhwanCount + ' &nbsp; 🧕 ' + akhwatCount;
                 }
                 
                 renderGroupedData(generusData);
@@ -636,119 +657,156 @@
             var isMobile = window.innerWidth <= 768;
             var useGridView = isMobile && currentViewMode === 'grid';
             
-            // Group by Kelompok first, then by Jenjang
+            // Group by Jenjang first, then by Jenis Kelamin
             var groups = {};
             data.forEach(function(g) {
-                var kelompok = g.kelompok_nama || 'Belum Ada Kelompok';
                 var jenjang = g.jenjang_nama || 'Tanpa Jenjang';
+                var gender = g.jenis_kelamin || 'L';
                 
-                if (!groups[kelompok]) {
-                    groups[kelompok] = { members: [], jenjangGroups: {} };
+                if (!groups[jenjang]) {
+                    groups[jenjang] = { 
+                        members: [], 
+                        ikhwan: [],  // Laki-laki
+                        akhwat: []   // Perempuan
+                    };
                 }
                 
-                if (!groups[kelompok].jenjangGroups[jenjang]) {
-                    groups[kelompok].jenjangGroups[jenjang] = [];
+                groups[jenjang].members.push(g);
+                if (gender === 'L') {
+                    groups[jenjang].ikhwan.push(g);
+                } else {
+                    groups[jenjang].akhwat.push(g);
                 }
-                
-                groups[kelompok].members.push(g);
-                groups[kelompok].jenjangGroups[jenjang].push(g);
             });
             
-            // Sort kelompok
-            var sortedKelompok = Object.keys(groups).sort();
+            // Sort jenjang
+            var jenjangOrder = ['PAUD', 'Caberawit', 'Pra Remaja', 'Remaja Awal', 'Remaja', 'Pra Nikah'];
+            var sortedJenjang = Object.keys(groups).sort(function(a, b) {
+                var idxA = jenjangOrder.indexOf(a);
+                var idxB = jenjangOrder.indexOf(b);
+                if (idxA === -1) idxA = 999;
+                if (idxB === -1) idxB = 999;
+                return idxA - idxB;
+            });
+            
+            // Icon Islami per jenjang
+            var jenjangIcons = {
+                'PAUD': '🌙',
+                'Caberawit': '⭐',
+                'Pra Remaja': '🌟',
+                'Remaja Awal': '☪️',
+                'Remaja': '📖',
+                'Pra Nikah': '🕌'
+            };
             
             var html = '';
-            sortedKelompok.forEach(function(kelompokName, kIdx) {
-                var group = groups[kelompokName];
+            sortedJenjang.forEach(function(jenjangName, jIdx) {
+                var group = groups[jenjangName];
                 var totalMembers = group.members.length;
-                var maleCount = group.members.filter(function(m) { return m.jenis_kelamin === 'L'; }).length;
-                var femaleCount = group.members.filter(function(m) { return m.jenis_kelamin === 'P'; }).length;
+                var ikhwanCount = group.ikhwan.length;
+                var akhwatCount = group.akhwat.length;
+                var icon = jenjangIcons[jenjangName] || '📿';
                 
-                html += '<div class="group-card">';
-                html += '<div class="group-header" onclick="toggleGroup(' + kIdx + ')">';
-                html += '<h4>🏠 ' + escapeHtml(kelompokName) + '</h4>';
-                html += '<span class="group-badge">' + totalMembers + ' orang</span>';
+                html += '<div class="group-card jenjang-group">';
+                html += '<div class="group-header jenjang-main-header" onclick="toggleGroup(' + jIdx + ')">';
+                html += '<h4>' + icon + ' ' + escapeHtml(jenjangName) + '</h4>';
+                html += '<span class="group-badge">' + totalMembers + '</span>';
                 html += '</div>';
                 html += '<div class="group-summary">';
-                html += '<span>👦 ' + maleCount + ' Laki-laki</span>';
-                html += '<span>👧 ' + femaleCount + ' Perempuan</span>';
+                html += '<span class="ikhwan-count">🧔 ' + ikhwanCount + ' Ikhwan</span>';
+                html += '<span class="akhwat-count">🧕 ' + akhwatCount + ' Akhwat</span>';
                 html += '</div>';
-                html += '<div class="group-content" id="groupContent' + kIdx + '">';
+                html += '<div class="group-content" id="groupContent' + jIdx + '">';
                 
-                // Sort jenjang (PAUD, TK, SD, SMP, SMA, dll)
-                var jenjangOrder = ['PAUD', 'TK', 'Caberawit', 'Pra Remaja', 'Remaja Awal', 'Remaja', 'Pra Nikah'];
-                var sortedJenjang = Object.keys(group.jenjangGroups).sort(function(a, b) {
-                    var idxA = jenjangOrder.indexOf(a);
-                    var idxB = jenjangOrder.indexOf(b);
-                    if (idxA === -1) idxA = 999;
-                    if (idxB === -1) idxB = 999;
-                    return idxA - idxB;
-                });
-                
-                sortedJenjang.forEach(function(jenjangName) {
-                    var members = group.jenjangGroups[jenjangName];
+                // Render Ikhwan (Laki-laki) - Warna Biru/Hijau
+                if (group.ikhwan.length > 0) {
+                    html += '<div class="gender-section ikhwan-section">';
+                    html += '<div class="gender-header ikhwan-header">';
+                    html += '<span>🧔 Ikhwan</span>';
+                    html += '<span class="gender-badge">' + ikhwanCount + '</span>';
+                    html += '</div>';
                     
                     if (useGridView) {
-                        // Grid View - Jenjang section
-                        html += '<div class="jenjang-section-grid">';
-                        html += '<div class="jenjang-header">';
-                        html += '<span>📚 ' + escapeHtml(jenjangName) + '</span>';
-                        html += '<span class="jenjang-badge">' + members.length + '</span>';
-                        html += '</div>';
                         html += '<div class="member-grid">';
-                        
-                        // Sort members by name
-                        members.sort(function(a, b) {
-                            return (a.nama || '').localeCompare(b.nama || '');
-                        });
-                        
-                        members.forEach(function(m) {
+                        group.ikhwan.sort(function(a, b) { return (a.nama || '').localeCompare(b.nama || ''); });
+                        group.ikhwan.forEach(function(m) {
                             var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
-                            var genderClass = m.jenis_kelamin === 'L' ? 'male' : 'female';
                             var initial = (m.nama || '?').charAt(0).toUpperCase();
-                            
                             html += '<div class="member-grid-item" onclick="editGenerus(' + m.jamaah_id + ')">';
-                            html += '<div class="member-grid-avatar ' + genderClass + '">' + initial + '</div>';
+                            html += '<div class="member-grid-avatar ikhwan">' + initial + '</div>';
                             html += '<div class="member-grid-name">' + escapeHtml(m.nama_panggilan || m.nama || '-') + '</div>';
                             html += '<div class="member-grid-age">' + umur + ' thn</div>';
                             html += '</div>';
                         });
-                        
-                        html += '</div></div>';
-                    } else {
-                        // List View (default)
-                        html += '<div class="jenjang-header">';
-                        html += '<span>📚 ' + escapeHtml(jenjangName) + '</span>';
-                        html += '<span class="jenjang-badge">' + members.length + '</span>';
                         html += '</div>';
-                        
-                        // Sort members by name
-                        members.sort(function(a, b) {
-                            return (a.nama || '').localeCompare(b.nama || '');
-                        });
-                        
-                        members.forEach(function(m, idx) {
+                    } else {
+                        group.ikhwan.sort(function(a, b) { return (a.nama || '').localeCompare(b.nama || ''); });
+                        group.ikhwan.forEach(function(m, idx) {
                             var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
-                            var genderIcon = m.jenis_kelamin === 'L' ? '👦' : '👧';
-                            
-                            html += '<div class="member-item">';
+                            html += '<div class="member-item ikhwan-item">';
                             html += '<div class="member-no">' + (idx + 1) + '</div>';
-                            html += '<div class="member-avatar">' + genderIcon + '</div>';
+                            html += '<div class="member-avatar ikhwan-avatar">🧔</div>';
                             html += '<div class="member-info">';
                             html += '<div class="member-name">' + escapeHtml(m.nama || '-');
-                            if (m.nama_panggilan) html += ' <small style="color:#6b7280;">(' + escapeHtml(m.nama_panggilan) + ')</small>';
+                            if (m.nama_panggilan) html += ' <small>(' + escapeHtml(m.nama_panggilan) + ')</small>';
                             html += '</div>';
                             html += '<div class="member-meta">' + umur + ' tahun</div>';
                             html += '</div>';
                             if (canEdit) {
                                 html += '<div class="member-action">';
-                                html += '<button class="btn btn-sm btn-outline" onclick="editGenerus(' + m.jamaah_id + ')">✏️</button>';
+                                html += '<button class="btn btn-sm btn-outline" onclick="event.stopPropagation();editGenerus(' + m.jamaah_id + ')">✏️</button>';
                                 html += '</div>';
                             }
                             html += '</div>';
                         });
                     }
-                });
+                    html += '</div>';
+                }
+                
+                // Render Akhwat (Perempuan) - Warna Pink/Ungu
+                if (group.akhwat.length > 0) {
+                    html += '<div class="gender-section akhwat-section">';
+                    html += '<div class="gender-header akhwat-header">';
+                    html += '<span>🧕 Akhwat</span>';
+                    html += '<span class="gender-badge">' + akhwatCount + '</span>';
+                    html += '</div>';
+                    
+                    if (useGridView) {
+                        html += '<div class="member-grid">';
+                        group.akhwat.sort(function(a, b) { return (a.nama || '').localeCompare(b.nama || ''); });
+                        group.akhwat.forEach(function(m) {
+                            var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
+                            var initial = (m.nama || '?').charAt(0).toUpperCase();
+                            html += '<div class="member-grid-item" onclick="editGenerus(' + m.jamaah_id + ')">';
+                            html += '<div class="member-grid-avatar akhwat">' + initial + '</div>';
+                            html += '<div class="member-grid-name">' + escapeHtml(m.nama_panggilan || m.nama || '-') + '</div>';
+                            html += '<div class="member-grid-age">' + umur + ' thn</div>';
+                            html += '</div>';
+                        });
+                        html += '</div>';
+                    } else {
+                        group.akhwat.sort(function(a, b) { return (a.nama || '').localeCompare(b.nama || ''); });
+                        group.akhwat.forEach(function(m, idx) {
+                            var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
+                            html += '<div class="member-item akhwat-item">';
+                            html += '<div class="member-no">' + (idx + 1) + '</div>';
+                            html += '<div class="member-avatar akhwat-avatar">🧕</div>';
+                            html += '<div class="member-info">';
+                            html += '<div class="member-name">' + escapeHtml(m.nama || '-');
+                            if (m.nama_panggilan) html += ' <small>(' + escapeHtml(m.nama_panggilan) + ')</small>';
+                            html += '</div>';
+                            html += '<div class="member-meta">' + umur + ' tahun</div>';
+                            html += '</div>';
+                            if (canEdit) {
+                                html += '<div class="member-action">';
+                                html += '<button class="btn btn-sm btn-outline" onclick="event.stopPropagation();editGenerus(' + m.jamaah_id + ')">✏️</button>';
+                                html += '</div>';
+                            }
+                            html += '</div>';
+                        });
+                    }
+                    html += '</div>';
+                }
                 
                 html += '</div>';
                 html += '</div>';
