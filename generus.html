@@ -396,14 +396,43 @@
         
         async function loadFilterData() {
             try {
-                daerahList = await wilayahApi.getDaerah();
+                var userWilayahIds = getUserWilayahIds();
+                var isUserAdmin = isAdmin();
+                var filterCard = $('filterCard');
                 var filterDaerah = $('filterDaerah');
-                if (filterDaerah && daerahList) {
-                    var html = '<option value="">Semua Daerah</option>';
-                    daerahList.forEach(function(d) {
-                        html += '<option value="' + d.id + '">' + escapeHtml(d.nama) + '</option>';
-                    });
-                    filterDaerah.innerHTML = html;
+                var filterKelompok = $('filterKelompok');
+                
+                // Jika bukan admin dan punya wilayah assignment, sembunyikan filter daerah/kelompok
+                if (!isUserAdmin && userWilayahIds && userWilayahIds.length > 0) {
+                    // Sembunyikan dropdown filter, hanya tampilkan search
+                    if (filterDaerah) filterDaerah.parentElement.style.display = 'none';
+                    if (filterKelompok) filterKelompok.parentElement.style.display = 'none';
+                    
+                    // Tampilkan info wilayah user
+                    var wilayahNames = [];
+                    for (var i = 0; i < userWilayahIds.length; i++) {
+                        var wInfo = await wilayahApi.getById(userWilayahIds[i]);
+                        if (wInfo) wilayahNames.push(wInfo.nama);
+                    }
+                    
+                    // Tambah info di atas search
+                    var searchInput = $('searchInput');
+                    if (searchInput && wilayahNames.length > 0) {
+                        var infoDiv = document.createElement('div');
+                        infoDiv.style.cssText = 'background:#d1fae5;padding:0.5rem;border-radius:0.5rem;margin-bottom:0.5rem;font-size:0.85rem;color:#065f46;';
+                        infoDiv.innerHTML = '📍 Wilayah: <strong>' + wilayahNames.join(', ') + '</strong>';
+                        searchInput.parentElement.insertBefore(infoDiv, searchInput);
+                    }
+                } else {
+                    // Admin - tampilkan semua filter
+                    daerahList = await wilayahApi.getDaerah();
+                    if (filterDaerah && daerahList) {
+                        var html = '<option value="">Semua Daerah</option>';
+                        daerahList.forEach(function(d) {
+                            html += '<option value="' + d.id + '">' + escapeHtml(d.nama) + '</option>';
+                        });
+                        filterDaerah.innerHTML = html;
+                    }
                 }
             } catch (error) {
                 console.error('Error load filter:', error);
@@ -470,19 +499,30 @@
             if (container) container.innerHTML = '<div class="text-center py-4 text-muted">Memuat data...</div>';
             
             try {
-                var filters = {
-                    status_aktif: 'aktif'
-                };
+                var filters = {};
                 
                 var daerahId = $('filterDaerah')?.value;
                 var kelompokId = $('filterKelompok')?.value;
                 var search = $('searchInput')?.value;
                 
-                if (daerahId) filters.daerah_id = daerahId;
-                if (kelompokId) filters.wilayah_id = kelompokId;
+                if (daerahId) filters.daerah_id = parseInt(daerahId);
+                if (kelompokId) filters.kelompok_id = parseInt(kelompokId);
                 if (search) filters.search = search;
                 
-                generusData = await generusApi.getAll(filters);
+                // Load data dari view v_generus_aktif
+                generusData = await generusApi.getFromView(filters);
+                
+                // Filter berdasarkan role user (jika bukan admin)
+                if (!isAdmin()) {
+                    var userWilayahIds = getUserWilayahIds();
+                    if (userWilayahIds && userWilayahIds.length > 0) {
+                        // Filter data hanya yang sesuai wilayah user
+                        generusData = generusData.filter(function(g) {
+                            // Cek apakah kelompok_id generus ada di wilayah user
+                            return userWilayahIds.includes(g.kelompok_id);
+                        });
+                    }
+                }
                 
                 // Update info
                 var infoEl = $('infoTotal');
