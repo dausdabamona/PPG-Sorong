@@ -546,11 +546,26 @@ const pengajianApi = {
                 query = query.eq('wilayah_id', safeInt(filters.wilayah_id));
             }
             if (filters.bulan) {
-                const [year, month] = filters.bulan.split('-');
-                const startDate = `${year}-${month}-01`;
-                const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
-                const endDate = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
-                query = query.gte('tanggal', startDate).lte('tanggal', endDate);
+                // Handle both string (YYYY-MM) and Date object
+                let year, month;
+                if (typeof filters.bulan === 'string') {
+                    [year, month] = filters.bulan.split('-');
+                } else if (filters.bulan instanceof Date) {
+                    year = filters.bulan.getFullYear();
+                    month = String(filters.bulan.getMonth() + 1).padStart(2, '0');
+                } else {
+                    // Try to convert to string
+                    const bulanStr = String(filters.bulan);
+                    if (bulanStr.includes('-')) {
+                        [year, month] = bulanStr.split('-');
+                    }
+                }
+                if (year && month) {
+                    const startDate = `${year}-${month}-01`;
+                    const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+                    const endDate = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
+                    query = query.gte('tanggal', startDate).lte('tanggal', endDate);
+                }
             }
             if (filters.limit) {
                 query = query.limit(filters.limit);
@@ -676,9 +691,23 @@ const pengajianApi = {
             let query = db.from('pengajian').select('*', { count: 'exact', head: true });
             
             if (filters.bulan) {
-                const [year, month] = filters.bulan.split('-');
-                const startDate = `${year}-${month}-01`;
-                query = query.gte('tanggal', startDate);
+                // Handle both string (YYYY-MM) and Date object
+                let year, month;
+                if (typeof filters.bulan === 'string') {
+                    [year, month] = filters.bulan.split('-');
+                } else if (filters.bulan instanceof Date) {
+                    year = filters.bulan.getFullYear();
+                    month = String(filters.bulan.getMonth() + 1).padStart(2, '0');
+                } else {
+                    const bulanStr = String(filters.bulan);
+                    if (bulanStr.includes('-')) {
+                        [year, month] = bulanStr.split('-');
+                    }
+                }
+                if (year && month) {
+                    const startDate = `${year}-${month}-01`;
+                    query = query.gte('tanggal', startDate);
+                }
             }
             
             const { count, error } = await query;
