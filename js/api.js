@@ -862,20 +862,66 @@ const progressApi = {
     },
 
     /**
-     * Get progress summary per bidang (bukan per kategori)
+     * Get progress summary per bidang sesuai target jenjang
      * @param {number} jamaahId
-     * @param {number} jenjangId - optional, jika ada akan filter target berdasarkan jenjang
+     * @param {number} jenjangId - jika ada akan filter target berdasarkan jenjang
      * @returns {Promise<Array>}
      */
     getSummaryByBidang: async function(jamaahId, jenjangId = null) {
         try {
-            // Get all progress for jamaah with materi and kategori info
-            const { data, error } = await db
+            // Get target per kategori untuk jenjang ini
+            let targetPerKategori = {};
+            let kategoriIds = null;
+            
+            if (jenjangId) {
+                const { data: targetData } = await db
+                    .from('target_jenjang')
+                    .select('kategori_id, target_jumlah')
+                    .eq('jenjang_id', safeInt(jenjangId));
+                
+                if (targetData && targetData.length > 0) {
+                    kategoriIds = [];
+                    targetData.forEach(function(t) {
+                        targetPerKategori[t.kategori_id] = t.target_jumlah;
+                        kategoriIds.push(t.kategori_id);
+                    });
+                }
+            }
+            
+            // Get kategori dengan bidang info
+            let kategoriQuery = db
+                .from('kategori_materi')
+                .select('id, nama, bidang:bidang_id(id, nama)');
+            
+            if (kategoriIds && kategoriIds.length > 0) {
+                kategoriQuery = kategoriQuery.in('id', kategoriIds);
+            }
+            
+            const { data: kategoriData } = await kategoriQuery;
+            
+            // Group target per bidang
+            const targetPerBidang = {};
+            (kategoriData || []).forEach(function(k) {
+                const bidangNama = k.bidang?.nama || 'Lainnya';
+                const bidangId = k.bidang?.id || 0;
+                
+                if (!targetPerBidang[bidangNama]) {
+                    targetPerBidang[bidangNama] = { id: bidangId, target: 0, kategoriIds: [] };
+                }
+                
+                // Tambahkan target dari kategori ini
+                const targetKat = targetPerKategori[k.id] || 0;
+                targetPerBidang[bidangNama].target += targetKat;
+                targetPerBidang[bidangNama].kategoriIds.push(k.id);
+            });
+            
+            // Get progress jamaah
+            const { data: progressData, error } = await db
                 .from('progress_jamaah')
                 .select(`
                     id, status, nilai,
                     materi_item:materi_item_id(
-                        id, nama,
+                        id, nama, kategori_id,
                         kategori:kategori_id(
                             id, nama,
                             bidang:bidang_id(id, nama)
@@ -886,52 +932,13 @@ const progressApi = {
             
             if (error) throw error;
             
-            // Get target materi based on jenjang if provided
-            let targetMateriIds = null;
-            if (jenjangId) {
-                const { data: targetData } = await db
-                    .from('target_jenjang')
-                    .select('materi_item_id')
-                    .eq('jenjang_id', safeInt(jenjangId));
-                
-                if (targetData && targetData.length > 0) {
-                    targetMateriIds = targetData.map(function(t) { return t.materi_item_id; });
-                }
-            }
-            
-            // Get materi - either filtered by jenjang target or all
-            let materiQuery = db
-                .from('materi_item')
-                .select(`
-                    id,
-                    kategori:kategori_id(
-                        bidang:bidang_id(id, nama)
-                    )
-                `);
-            
-            if (targetMateriIds && targetMateriIds.length > 0) {
-                materiQuery = materiQuery.in('id', targetMateriIds);
-            }
-            
-            const { data: allMateri } = await materiQuery;
-            
-            // Count materi per bidang
-            const materiPerBidang = {};
-            (allMateri || []).forEach(function(m) {
-                const bidangNama = m.kategori?.bidang?.nama || 'Lainnya';
-                const bidangId = m.kategori?.bidang?.id || 0;
-                if (!materiPerBidang[bidangNama]) {
-                    materiPerBidang[bidangNama] = { id: bidangId, total: 0, materiIds: [] };
-                }
-                materiPerBidang[bidangNama].total++;
-                materiPerBidang[bidangNama].materiIds.push(m.id);
-            });
-            
-            // Count progress per bidang (only for target materi if jenjang specified)
+            // Count progress per bidang (hanya untuk kategori target jika jenjang specified)
             const progressPerBidang = {};
-            (data || []).forEach(function(p) {
-                // Skip if not in target materi (when jenjang is specified)
-                if (targetMateriIds && targetMateriIds.indexOf(p.materi_item?.id) === -1) {
+            (progressData || []).forEach(function(p) {
+                const kategoriId = p.materi_item?.kategori_id;
+                
+                // Skip jika bukan kategori target (ketika jenjang di-specify)
+                if (kategoriIds && kategoriIds.indexOf(kategoriId) === -1) {
                     return;
                 }
                 
@@ -950,13 +957,14 @@ const progressApi = {
             
             // Combine into result
             const result = [];
-            Object.keys(materiPerBidang).forEach(function(bidangNama) {
+            Object.keys(targetPerBidang).forEach(function(bidangNama) {
+                const target = targetPerBidang[bidangNama];
                 const prog = progressPerBidang[bidangNama] || { selesai: 0, nilaiTotal: 0, nilaiCount: 0 };
-                const totalMateri = materiPerBidang[bidangNama].total;
+                
                 result.push({
-                    bidang_id: materiPerBidang[bidangNama].id,
+                    bidang_id: target.id,
                     bidang_nama: bidangNama,
-                    total_materi: totalMateri,
+                    total_materi: target.target, // Target dari target_jenjang
                     total_selesai: prog.selesai,
                     rata_nilai: prog.nilaiCount > 0 ? (prog.nilaiTotal / prog.nilaiCount).toFixed(1) : null
                 });
