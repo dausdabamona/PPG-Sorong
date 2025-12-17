@@ -432,6 +432,10 @@
         document.addEventListener('DOMContentLoaded', async function() {
             if (!await requireAuth()) return;
             
+            // Debug: Log userRoles
+            console.log('User Roles:', userRoles);
+            console.log('Is Admin:', isAdmin());
+            
             // Setup mobile/desktop view
             setupResponsiveView();
             window.addEventListener('resize', setupResponsiveView);
@@ -439,10 +443,11 @@
             // Load jenjang untuk form edit
             await loadJenjangOptions();
             
-            await Promise.all([
-                loadFilterData(),
-                loadGenerus()
-            ]);
+            // Load filter data dulu (untuk set userWilayahList)
+            await loadFilterData();
+            
+            // Baru load generus
+            await loadGenerus();
         });
         
         function setViewMode(mode) {
@@ -490,7 +495,11 @@
                 // Cek apakah user bisa edit (admin atau imam kelompok)
                 var canEdit = userRoles && userRoles.some(function(r) {
                     var kode = r.role && r.role.kode ? r.role.kode.toLowerCase() : '';
-                    return ['admin', 'mubaligh', 'mubaligh_daerah', 'mubaligh_desa', 'imam_kelompok'].includes(kode);
+                    // Role yang bisa edit: admin, mubaligh, ki, pjp, mt di semua tingkat
+                    return ['admin', 'operator',
+                            'ki_daerah', 'wakil_ki_daerah', 'mubaligh_daerah', 'pakar_pendidik',
+                            'ki_desa', 'wakil_ki_desa', 'pjp_desa', 'mubaligh_desa',
+                            'ki_kelompok', 'pjp_kelompok', 'mt_kelompok'].includes(kode);
                 });
                 
                 // Tampilkan tombol tambah jika bisa edit
@@ -611,16 +620,22 @@
                 
                 // Load data dari view v_generus_aktif
                 generusData = await generusApi.getFromView(filters);
+                console.log('Data dari API:', generusData.length, 'records');
                 
                 // Filter berdasarkan role user (jika bukan admin)
                 if (!isAdmin()) {
                     var userWilayahIds = getUserWilayahIds();
+                    console.log('User Wilayah IDs:', userWilayahIds);
+                    
                     if (userWilayahIds && userWilayahIds.length > 0) {
                         // Filter data hanya yang sesuai wilayah user
                         generusData = generusData.filter(function(g) {
                             // Cek apakah kelompok_id generus ada di wilayah user
                             return userWilayahIds.includes(g.kelompok_id);
                         });
+                        console.log('Setelah filter wilayah:', generusData.length, 'records');
+                    } else {
+                        console.log('User tidak punya wilayah assignment, tampilkan semua');
                     }
                 }
                 
@@ -651,8 +666,14 @@
             
             var canEdit = userRoles && userRoles.some(function(r) {
                 var kode = r.role && r.role.kode ? r.role.kode.toLowerCase() : '';
-                return ['admin', 'mubaligh', 'mubaligh_daerah', 'mubaligh_desa', 'imam_kelompok'].includes(kode);
+                // Role yang bisa edit: admin, mubaligh, ki, pjp, mt di semua tingkat
+                return ['admin', 'operator',
+                        'ki_daerah', 'wakil_ki_daerah', 'mubaligh_daerah', 'pakar_pendidik',
+                        'ki_desa', 'wakil_ki_desa', 'pjp_desa', 'mubaligh_desa',
+                        'ki_kelompok', 'pjp_kelompok', 'mt_kelompok'].includes(kode);
             });
+            
+            console.log('canEdit:', canEdit, 'userRoles:', userRoles);
             
             var isMobile = window.innerWidth <= 768;
             var useGridView = isMobile && currentViewMode === 'grid';
