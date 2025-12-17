@@ -113,6 +113,10 @@
             <div class="pwa-page-header" id="mobileHeader" style="display:none;">
                 <button class="pwa-back-btn" onclick="location.href='dashboard.html'">←</button>
                 <h1 class="pwa-page-title">👶 Data Generus</h1>
+                <div class="view-toggle" id="viewToggle">
+                    <button class="view-toggle-btn active" onclick="setViewMode('list')" id="btnListView">☰</button>
+                    <button class="view-toggle-btn" onclick="setViewMode('grid')" id="btnGridView">⊞</button>
+                </div>
             </div>
             
             <div class="page-content">
@@ -339,6 +343,7 @@
         var currentEditData = null;
         var allGroupsExpanded = false;
         var searchTimeout = null;
+        var currentViewMode = 'list'; // 'list' or 'grid'
         
         document.addEventListener('DOMContentLoaded', async function() {
             if (!await requireAuth()) return;
@@ -355,6 +360,15 @@
                 loadGenerus()
             ]);
         });
+        
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            var btnList = $('btnListView');
+            var btnGrid = $('btnGridView');
+            if (btnList) btnList.classList.toggle('active', mode === 'list');
+            if (btnGrid) btnGrid.classList.toggle('active', mode === 'grid');
+            renderGroupedData(generusData);
+        }
         
         function setupResponsiveView() {
             var isMobile = window.innerWidth <= 768;
@@ -500,6 +514,9 @@
                 return ['admin', 'mubaligh', 'mubaligh_daerah', 'mubaligh_desa', 'imam_kelompok'].includes(kode);
             });
             
+            var isMobile = window.innerWidth <= 768;
+            var useGridView = isMobile && currentViewMode === 'grid';
+            
             // Group by Kelompok first, then by Jenjang
             var groups = {};
             data.forEach(function(g) {
@@ -551,36 +568,67 @@
                 
                 sortedJenjang.forEach(function(jenjangName) {
                     var members = group.jenjangGroups[jenjangName];
-                    html += '<div class="jenjang-header">';
-                    html += '<span>📚 ' + escapeHtml(jenjangName) + '</span>';
-                    html += '<span class="jenjang-badge">' + members.length + '</span>';
-                    html += '</div>';
                     
-                    // Sort members by name
-                    members.sort(function(a, b) {
-                        return (a.nama || '').localeCompare(b.nama || '');
-                    });
-                    
-                    members.forEach(function(m, idx) {
-                        var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
-                        var genderIcon = m.jenis_kelamin === 'L' ? '👦' : '👧';
+                    if (useGridView) {
+                        // Grid View - Jenjang section
+                        html += '<div class="jenjang-section-grid">';
+                        html += '<div class="jenjang-header">';
+                        html += '<span>📚 ' + escapeHtml(jenjangName) + '</span>';
+                        html += '<span class="jenjang-badge">' + members.length + '</span>';
+                        html += '</div>';
+                        html += '<div class="member-grid">';
                         
-                        html += '<div class="member-item">';
-                        html += '<div class="member-no">' + (idx + 1) + '</div>';
-                        html += '<div class="member-avatar">' + genderIcon + '</div>';
-                        html += '<div class="member-info">';
-                        html += '<div class="member-name">' + escapeHtml(m.nama || '-');
-                        if (m.nama_panggilan) html += ' <small style="color:#6b7280;">(' + escapeHtml(m.nama_panggilan) + ')</small>';
-                        html += '</div>';
-                        html += '<div class="member-meta">' + umur + ' tahun</div>';
-                        html += '</div>';
-                        if (canEdit) {
-                            html += '<div class="member-action">';
-                            html += '<button class="btn btn-sm btn-outline" onclick="editGenerus(' + m.jamaah_id + ')">✏️</button>';
+                        // Sort members by name
+                        members.sort(function(a, b) {
+                            return (a.nama || '').localeCompare(b.nama || '');
+                        });
+                        
+                        members.forEach(function(m) {
+                            var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
+                            var genderClass = m.jenis_kelamin === 'L' ? 'male' : 'female';
+                            var initial = (m.nama || '?').charAt(0).toUpperCase();
+                            
+                            html += '<div class="member-grid-item" onclick="editGenerus(' + m.jamaah_id + ')">';
+                            html += '<div class="member-grid-avatar ' + genderClass + '">' + initial + '</div>';
+                            html += '<div class="member-grid-name">' + escapeHtml(m.nama_panggilan || m.nama || '-') + '</div>';
+                            html += '<div class="member-grid-age">' + umur + ' thn</div>';
                             html += '</div>';
-                        }
+                        });
+                        
+                        html += '</div></div>';
+                    } else {
+                        // List View (default)
+                        html += '<div class="jenjang-header">';
+                        html += '<span>📚 ' + escapeHtml(jenjangName) + '</span>';
+                        html += '<span class="jenjang-badge">' + members.length + '</span>';
                         html += '</div>';
-                    });
+                        
+                        // Sort members by name
+                        members.sort(function(a, b) {
+                            return (a.nama || '').localeCompare(b.nama || '');
+                        });
+                        
+                        members.forEach(function(m, idx) {
+                            var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
+                            var genderIcon = m.jenis_kelamin === 'L' ? '👦' : '👧';
+                            
+                            html += '<div class="member-item">';
+                            html += '<div class="member-no">' + (idx + 1) + '</div>';
+                            html += '<div class="member-avatar">' + genderIcon + '</div>';
+                            html += '<div class="member-info">';
+                            html += '<div class="member-name">' + escapeHtml(m.nama || '-');
+                            if (m.nama_panggilan) html += ' <small style="color:#6b7280;">(' + escapeHtml(m.nama_panggilan) + ')</small>';
+                            html += '</div>';
+                            html += '<div class="member-meta">' + umur + ' tahun</div>';
+                            html += '</div>';
+                            if (canEdit) {
+                                html += '<div class="member-action">';
+                                html += '<button class="btn btn-sm btn-outline" onclick="editGenerus(' + m.jamaah_id + ')">✏️</button>';
+                                html += '</div>';
+                            }
+                            html += '</div>';
+                        });
+                    }
                 });
                 
                 html += '</div>';
