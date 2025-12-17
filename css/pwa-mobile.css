@@ -384,6 +384,110 @@
 /* ============================================================================
    PWA BOTTOM NAVIGATION
    ============================================================================ */
+
+/* Member Grid View - Icon style seperti home screen HP */
+.member-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    padding: 0.75rem;
+}
+
+.member-grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 0.25rem;
+    border-radius: var(--pwa-radius-sm);
+    text-decoration: none;
+    color: var(--pwa-dark);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.member-grid-item:active {
+    background: var(--pwa-light);
+    transform: scale(0.95);
+}
+
+.member-grid-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.member-grid-avatar.male {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.member-grid-avatar.female {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+}
+
+.member-grid-name {
+    font-size: 0.65rem;
+    text-align: center;
+    font-weight: 500;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    color: var(--pwa-dark);
+}
+
+.member-grid-age {
+    font-size: 0.55rem;
+    color: var(--pwa-gray);
+    margin-top: 0.1rem;
+}
+
+/* View Toggle Button */
+.view-toggle {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--pwa-light);
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+}
+
+.view-toggle-btn {
+    padding: 0.35rem 0.6rem;
+    border: none;
+    background: transparent;
+    border-radius: 0.35rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.view-toggle-btn.active {
+    background: var(--pwa-white);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Jenjang section in grid view */
+.jenjang-section-grid {
+    margin-bottom: 0.5rem;
+}
+
+.jenjang-section-grid .jenjang-header {
+    padding: 0.5rem 0.75rem;
+    background: var(--pwa-primary-light);
+    margin: 0;
+    border-radius: 0;
+}
+
 .pwa-bottom-nav {
     position: fixed;
     bottom: 0;
