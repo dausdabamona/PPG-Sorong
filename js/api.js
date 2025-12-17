@@ -1945,7 +1945,7 @@ const jadwalRutinApi = {
         try {
             var result = await db
                 .from('jadwal_rutin')
-                .update({ is_aktif: isAktif, updated_at: new Date().toISOString() })
+                .update({ is_aktif: isAktif })
                 .eq('id', safeInt(id));
             
             if (result.error) throw result.error;
