@@ -21,7 +21,8 @@ const PWA_MENU = {
         { icon: '🗺️', label: 'Wilayah', href: 'wilayah.html', color: 'gray' },
         { icon: '📚', label: 'Kurikulum', href: 'kurikulum.html', color: 'gray' },
         { icon: '👥', label: 'Jamaah', href: 'jamaah.html', color: 'gray' },
-        { icon: '👤', label: 'Users', href: 'users.html', color: 'gray' }
+        { icon: '👤', label: 'Users', href: 'users.html', color: 'gray' },
+        { icon: '💾', label: 'Backup', href: 'backup.html', color: 'gray' }
     ]
 };
 

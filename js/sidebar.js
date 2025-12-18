@@ -61,6 +61,10 @@ function getSidebarHTML(activePage = '') {
                     <span class="nav-icon">👤</span>
                     <span class="nav-text">Manajemen User</span>
                 </a>
+                <a href="backup.html" class="nav-item admin-only ${activePage === 'backup' ? 'active' : ''}" style="display:none;">
+                    <span class="nav-icon">💾</span>
+                    <span class="nav-text">Backup & Database</span>
+                </a>
             </nav>
             
             <div class="sidebar-footer">
@@ -160,6 +164,13 @@ function updateSidebarUserInfo() {
         if (headerAvatar) headerAvatar.textContent = initial;
         if (headerName) headerName.textContent = name;
         if (headerRole) headerRole.textContent = role;
+        
+        // Show/hide admin-only menu items
+        const adminOnlyItems = document.querySelectorAll('.admin-only');
+        const userIsAdmin = isAdmin();
+        adminOnlyItems.forEach(function(item) {
+            item.style.display = userIsAdmin ? 'flex' : 'none';
+        });
     }
 }
 
