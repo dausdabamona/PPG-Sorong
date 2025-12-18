@@ -4,91 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
     <title>Kurikulum - PPG Sorong</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Tabs */
-        .tabs { display: flex; border-bottom: 2px solid #e5e7eb; margin-bottom: 1.5rem; overflow-x: auto; }
-        .tab { padding: 0.75rem 1.25rem; cursor: pointer; font-weight: 500; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all 0.2s; }
-        .tab:hover { color: #059669; }
-        .tab.active { color: #059669; border-bottom-color: #059669; background: #f0fdf4; }
+        .tabs { display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 1rem; overflow-x: auto; }
+        .tab-btn { padding: 0.75rem 1rem; border: none; background: none; cursor: pointer; font-weight: 500; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; font-size: 0.85rem; }
+        .tab-btn:hover { color: #059669; }
+        .tab-btn.active { color: #059669; border-bottom-color: #059669; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        
-        /* Stats */
-        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-        .stat-card { background: white; border-radius: 0.75rem; padding: 1rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .stat-card.hafalan { border-left: 4px solid #059669; background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
-        .stat-card.regular { border-left: 4px solid #6b7280; }
-        .stat-value { font-size: 1.75rem; font-weight: 700; color: #1f2937; }
-        .stat-label { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; }
-        
-        /* Kategori Card */
-        .kategori-card { background: white; border-radius: 0.75rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
-        .kategori-header { padding: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s; }
-        .kategori-header:hover { background: #f9fafb; }
-        .kategori-header.hafalan { background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border-left: 4px solid #059669; }
-        .kategori-header.expanded { background: #f0fdf4; }
-        .kategori-info { flex: 1; }
-        .kategori-nama { font-weight: 600; font-size: 1rem; color: #1f2937; display: flex; align-items: center; gap: 0.5rem; }
-        .kategori-nama .icon { font-size: 1.25rem; }
-        .kategori-meta { font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
-        .kategori-badges { display: flex; gap: 0.5rem; align-items: center; }
-        .badge { padding: 0.25rem 0.6rem; border-radius: 1rem; font-size: 0.7rem; font-weight: 500; }
-        .badge-hafalan { background: #059669; color: white; }
-        .badge-count { background: #e5e7eb; color: #374151; }
-        .badge-jenis { background: #dbeafe; color: #1d4ed8; }
-        
-        /* Toggle Hafalan */
-        .toggle-hafalan { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s; border: 2px solid #e5e7eb; background: white; }
-        .toggle-hafalan:hover { border-color: #059669; }
-        .toggle-hafalan.active { background: #059669; color: white; border-color: #059669; }
-        .toggle-hafalan input { display: none; }
-        .toggle-icon { font-size: 1rem; }
-        .toggle-text { font-size: 0.8rem; font-weight: 500; }
-        
-        /* Kategori Body (Materi List) */
-        .kategori-body { display: none; border-top: 1px solid #e5e7eb; padding: 1rem; background: #fafafa; }
-        .kategori-body.show { display: block; }
-        
-        /* Materi Item */
-        .materi-list { display: flex; flex-direction: column; gap: 0.5rem; }
-        .materi-item { background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; transition: all 0.2s; }
-        .materi-item:hover { border-color: #059669; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .materi-no { width: 32px; height: 32px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #059669; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8rem; flex-shrink: 0; }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+        .stat-card { background: white; border-radius: 0.75rem; padding: 0.75rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-card.alim { border-left: 4px solid #3b82f6; }
+        .stat-card.akhlaq { border-left: 4px solid #22c55e; }
+        .stat-card.mandiri { border-left: 4px solid #f59e0b; }
+        .stat-card.hafalan { border-left: 4px solid #8b5cf6; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: #1f2937; }
+        .stat-label { font-size: 0.7rem; color: #6b7280; }
+        .kategori-group { margin-bottom: 1rem; }
+        .kategori-header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 0.6rem 1rem; border-radius: 0.5rem 0.5rem 0 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .kategori-header h4 { margin: 0; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+        .kategori-header .badge { background: rgba(255,255,255,0.25); }
+        .kategori-body { background: white; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 0.5rem 0.5rem; padding: 0.5rem; }
+        .kategori-body.collapsed { display: none; }
+        .kategori-meta-row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+        .bulk-bar { background: #f8fafc; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+        .badge-pilar { padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.7rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem; }
+        .badge-pilar.alim_faqih { background: #dbeafe; color: #1d4ed8; }
+        .badge-pilar.akhlaq { background: #dcfce7; color: #16a34a; }
+        .badge-pilar.kemandirian { background: #fef3c7; color: #b45309; }
+        .badge-teknik { padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.7rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem; }
+        .badge-teknik.hafalan { background: #f3e8ff; color: #7c3aed; }
+        .badge-teknik.level { background: #e0f2fe; color: #0369a1; }
+        .badge-teknik.checklist { background: #fce7f3; color: #be185d; }
+        .badge-teknik.status { background: #ecfdf5; color: #059669; }
+        .btn-expand { font-size: 0.75rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 0.25rem; cursor: pointer; }
+        .materi-expand-content { padding: 0.5rem 0; }
+        .materi-expand-content .materi-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.5rem 0.75rem; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem; }
+        .materi-expand-content .materi-no { width: 28px; height: 28px; background: #d1fae5; color: #059669; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem; flex-shrink: 0; }
+        .materi-expand-content .materi-nama { font-size: 0.85rem; flex: 1; }
+        .materi-expand-content .materi-tipe { font-size: 0.7rem; color: #6b7280; background: #e5e7eb; padding: 0.1rem 0.4rem; border-radius: 0.25rem; }
+        .materi-card { background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
         .materi-info { flex: 1; min-width: 0; }
-        .materi-nama { font-weight: 500; font-size: 0.9rem; color: #1f2937; }
-        .materi-detail { font-size: 0.75rem; color: #6b7280; margin-top: 0.15rem; }
-        .materi-badges { display: flex; gap: 0.25rem; }
-        .materi-badge { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 0.25rem; background: #f3f4f6; color: #6b7280; }
-        
-        /* Empty State */
-        .empty-state { text-align: center; padding: 2rem; color: #6b7280; }
-        .empty-icon { font-size: 3rem; margin-bottom: 0.5rem; opacity: 0.5; }
-        
-        /* Loading */
-        .loading { text-align: center; padding: 2rem; color: #6b7280; }
-        .loading-spinner { width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* Info Box */
-        .info-box { background: #dbeafe; border-left: 4px solid #3b82f6; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #1e40af; }
-        .info-box h4 { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
-        .info-box ul { margin: 0; padding-left: 1.25rem; }
-        .info-box li { margin-bottom: 0.25rem; }
-        
-        /* Action Buttons */
-        .action-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-        
-        /* Expand Icon */
-        .expand-icon { transition: transform 0.2s; font-size: 1.25rem; color: #6b7280; }
-        .expanded .expand-icon { transform: rotate(180deg); }
-        
-        /* Search */
-        .search-box { margin-bottom: 1rem; }
+        .materi-nama { font-weight: 600; font-size: 0.9rem; }
+        .materi-meta { font-size: 0.75rem; color: #6b7280; display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.25rem; }
+        .materi-actions { display: flex; gap: 0.25rem; flex-shrink: 0; }
+        .readonly-info { background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #f59e0b; padding: 0.75rem 1rem; border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 1rem; font-size: 0.85rem; color: #92400e; display: none; }
+        .editable { display: inline-flex; }
+        body.readonly-mode .editable { display: none !important; }
+        body.readonly-mode .readonly-info { display: block; }
     </style>
 </head>
 <body>
@@ -98,7 +65,7 @@
                 <div class="sidebar-logo">PPG</div>
                 <div class="sidebar-brand">
                     <div class="sidebar-title">PPG Sorong</div>
-                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                    <div class="sidebar-subtitle">Pembinaan Generus Penerus</div>
                 </div>
                 <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
             </div>
@@ -135,74 +102,158 @@
         <main class="main-content">
             <header class="header">
                 <div class="header-left">
-                    <button class="btn-icon" onclick="toggleSidebar()">☰</button>
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
                     <h1 class="header-title">📚 Kurikulum</h1>
                 </div>
             </header>
             
             <div class="page-content">
-                <!-- Info Box -->
-                <div class="info-box">
-                    <h4>📋 Panduan Pengaturan Kurikulum</h4>
-                    <ul>
-                        <li><strong>Materi Hafalan</strong> = materi yang dinilai bertahap (0-100%), seperti: Surat, Doa, Dalil</li>
-                        <li>Klik tombol <strong>"📖 Hafalan"</strong> pada kategori untuk menandai sebagai materi hafalan</li>
-                        <li>Klik <strong>nama kategori</strong> untuk melihat daftar materi di dalamnya</li>
-                    </ul>
+                <div class="readonly-info" id="readonlyInfo">
+                    <strong>🔒 Mode Baca Saja</strong><br>
+                    Anda tidak memiliki izin mengubah kurikulum. Hubungi Administrator atau Bidang Kurikulum.
                 </div>
                 
-                <!-- Stats -->
                 <div class="stats-row">
-                    <div class="stat-card hafalan">
-                        <div class="stat-value" id="statKategoriHafalan">-</div>
-                        <div class="stat-label">📖 Kategori Hafalan</div>
-                    </div>
-                    <div class="stat-card hafalan">
-                        <div class="stat-value" id="statMateriHafalan">-</div>
-                        <div class="stat-label">📝 Materi Hafalan</div>
-                    </div>
-                    <div class="stat-card regular">
-                        <div class="stat-value" id="statKategoriTotal">-</div>
-                        <div class="stat-label">📂 Total Kategori</div>
-                    </div>
-                    <div class="stat-card regular">
-                        <div class="stat-value" id="statMateriTotal">-</div>
-                        <div class="stat-label">📄 Total Materi</div>
-                    </div>
+                    <div class="stat-card alim"><div class="stat-value" id="statAlim">0</div><div class="stat-label">📘 Alim-Faqih</div></div>
+                    <div class="stat-card akhlaq"><div class="stat-value" id="statAkhlaq">0</div><div class="stat-label">🤝 Akhlaq</div></div>
+                    <div class="stat-card mandiri"><div class="stat-value" id="statMandiri">0</div><div class="stat-label">💪 Kemandirian</div></div>
+                    <div class="stat-card hafalan"><div class="stat-value" id="statHafalan">0</div><div class="stat-label">📖 Hafalan</div></div>
                 </div>
                 
-                <!-- Tabs -->
                 <div class="tabs">
-                    <div class="tab active" onclick="switchTab('semua')">📂 Semua Kategori</div>
-                    <div class="tab" onclick="switchTab('hafalan')">📖 Materi Hafalan</div>
+                    <button class="tab-btn active" onclick="switchTab('kategori', this)">📁 Kategori</button>
+                    <button class="tab-btn" onclick="switchTab('materi', this)">📚 Materi</button>
+                    <button class="tab-btn" onclick="switchTab('bidang', this)">📊 Bidang</button>
+                    <button class="tab-btn" onclick="switchTab('jenjang', this)">🎓 Jenjang</button>
                 </div>
                 
-                <!-- Search -->
-                <div class="search-box">
-                    <input type="text" class="form-control" id="searchKategori" placeholder="🔍 Cari kategori atau materi..." oninput="filterKategori()">
-                </div>
-                
-                <!-- Tab Content: Semua -->
-                <div class="tab-content active" id="tabSemua">
-                    <div id="kategoriList">
-                        <div class="loading">
-                            <div class="loading-spinner"></div>
-                            <div>Memuat data kurikulum...</div>
-                        </div>
+                <div class="tab-content active" id="tabKategori">
+                    <div class="bulk-bar">
+                        <select class="form-control" id="filterPilar" onchange="renderKategoriList()" style="width:auto;">
+                            <option value="">Semua Pilar</option>
+                            <option value="alim_faqih">📘 Alim-Faqih</option>
+                            <option value="akhlaq">🤝 Akhlaq</option>
+                            <option value="kemandirian">💪 Kemandirian</option>
+                        </select>
+                        <select class="form-control" id="filterTeknik" onchange="renderKategoriList()" style="width:auto;">
+                            <option value="">Semua Teknik</option>
+                            <option value="hafalan">📖 Hafalan</option>
+                            <option value="level">🅰️ Level</option>
+                            <option value="checklist">☑️ Checklist</option>
+                            <option value="status">⏳ Status</option>
+                        </select>
+                        <input type="text" class="form-control" id="searchKategori" placeholder="Cari..." oninput="renderKategoriList()" style="width:auto;min-width:120px;">
+                        <button class="btn btn-primary btn-sm editable" onclick="showKategoriModal()">➕ Tambah</button>
                     </div>
+                    <div id="kategoriList"><div class="text-center py-4 text-muted">Memuat...</div></div>
                 </div>
                 
-                <!-- Tab Content: Hafalan -->
-                <div class="tab-content" id="tabHafalan">
-                    <div id="kategoriHafalanList">
-                        <div class="loading">
-                            <div class="loading-spinner"></div>
-                            <div>Memuat data...</div>
-                        </div>
+                <div class="tab-content" id="tabMateri">
+                    <div class="bulk-bar">
+                        <select class="form-control" id="filterKategoriMateri" onchange="renderMateriList()" style="width:auto;min-width:180px;">
+                            <option value="">Semua Kategori</option>
+                        </select>
+                        <input type="text" class="form-control" id="searchMateri" placeholder="Cari materi..." oninput="renderMateriList()" style="width:auto;min-width:150px;">
+                        <button class="btn btn-primary btn-sm editable" onclick="showMateriModal()">➕ Tambah</button>
                     </div>
+                    <div id="materiList"><div class="text-center py-4 text-muted">Memuat...</div></div>
+                </div>
+                
+                <div class="tab-content" id="tabBidang">
+                    <div class="bulk-bar">
+                        <button class="btn btn-primary btn-sm editable" onclick="showBidangModal()">➕ Tambah Bidang</button>
+                    </div>
+                    <table class="table" id="bidangTable">
+                        <thead><tr><th>No</th><th>Kode</th><th>Nama</th><th>Deskripsi</th><th class="editable">Aksi</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                
+                <div class="tab-content" id="tabJenjang">
+                    <table class="table" id="jenjangTable">
+                        <thead><tr><th>No</th><th>Kode</th><th>Nama</th><th>Usia</th><th>Deskripsi</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
             </div>
         </main>
+    </div>
+    
+    <div class="modal" id="kategoriModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3 id="kategoriModalTitle">Tambah Kategori</h3><button class="modal-close" onclick="hideModal('kategoriModal')">×</button></div>
+            <div class="modal-body">
+                <form id="kategoriForm" onsubmit="saveKategori(event)">
+                    <input type="hidden" id="kategoriId">
+                    <div class="form-group"><label class="form-label">Bidang</label><select class="form-control" id="kategoriBidang"></select></div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Kode</label><input type="text" class="form-control" id="kategoriKode"></div>
+                        <div class="form-group"><label class="form-label">Urutan</label><input type="number" class="form-control" id="kategoriUrutan" value="1" min="1"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Nama *</label><input type="text" class="form-control" id="kategoriNama" required></div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Pilar *</label>
+                            <select class="form-control" id="kategoriPilar" required>
+                                <option value="">-- Pilih --</option>
+                                <option value="alim_faqih">📘 Alim-Faqih</option>
+                                <option value="akhlaq">🤝 Akhlaq</option>
+                                <option value="kemandirian">💪 Kemandirian</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label class="form-label">Teknik *</label>
+                            <select class="form-control" id="kategoriTeknik" required>
+                                <option value="">-- Pilih --</option>
+                                <option value="hafalan">📖 Hafalan</option>
+                                <option value="level">🅰️ Level</option>
+                                <option value="checklist">☑️ Checklist</option>
+                                <option value="status">⏳ Status</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Status</label>
+                        <select class="form-control" id="kategoriAktif"><option value="true">Aktif</option><option value="false">Nonaktif</option></select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="materiModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3 id="materiModalTitle">Tambah Materi</h3><button class="modal-close" onclick="hideModal('materiModal')">×</button></div>
+            <div class="modal-body">
+                <form id="materiForm" onsubmit="saveMateri(event)">
+                    <input type="hidden" id="materiId">
+                    <div class="form-group"><label class="form-label">Kategori *</label><select class="form-control" id="materiKategori" required></select></div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Kode</label><input type="text" class="form-control" id="materiKode"></div>
+                        <div class="form-group"><label class="form-label">Nomor</label><input type="number" class="form-control" id="materiNomor" min="1"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Nama *</label><input type="text" class="form-control" id="materiNama" required></div>
+                    <div class="form-group"><label class="form-label">Tipe</label><input type="text" class="form-control" id="materiTipe"></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="bidangModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3 id="bidangModalTitle">Tambah Bidang</h3><button class="modal-close" onclick="hideModal('bidangModal')">×</button></div>
+            <div class="modal-body">
+                <form id="bidangForm" onsubmit="saveBidang(event)">
+                    <input type="hidden" id="bidangId">
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Kode</label><input type="text" class="form-control" id="bidangKode"></div>
+                        <div class="form-group"><label class="form-label">Urutan</label><input type="number" class="form-control" id="bidangUrutan" value="1" min="1"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Nama *</label><input type="text" class="form-control" id="bidangNama" required></div>
+                    <div class="form-group"><label class="form-label">Deskripsi</label><textarea class="form-control" id="bidangDeskripsi" rows="2"></textarea></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
+                </form>
+            </div>
+        </div>
     </div>
     
     <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
@@ -214,281 +265,366 @@
     <script src="js/api.js"></script>
     
     <script>
-        var kategoriData = [];
-        var materiData = [];
-        var currentTab = 'semua';
-        var expandedKategori = {};
+        var canEditKurikulum = false;
+        var allKategori = [];
+        var allMateri = [];
+        var allBidang = [];
+        var allJenjang = [];
+        
+        function initPermission() {
+            canEditKurikulum = false;
+            var allowedRoles = ['administrator', 'kurikulum'];
+            if (userRoles && userRoles.length > 0) {
+                canEditKurikulum = userRoles.some(function(ur) {
+                    var roleKode = (ur.role && ur.role.kode) ? ur.role.kode.toLowerCase() : '';
+                    return allowedRoles.indexOf(roleKode) !== -1;
+                });
+            }
+            if (canEditKurikulum) {
+                document.body.classList.remove('readonly-mode');
+            } else {
+                document.body.classList.add('readonly-mode');
+            }
+        }
+        
+        function guardEdit(action) {
+            if (!canEditKurikulum) {
+                showToast('Anda tidak memiliki izin mengubah kurikulum', 'warning');
+                return false;
+            }
+            return true;
+        }
+        
+        function isKategoriHafalan(k) { return k.teknik_penilaian === 'hafalan'; }
+        
+        function badgeTeknik(t) {
+            var map = {
+                hafalan: '<span class="badge-teknik hafalan">📖 Hafalan</span>',
+                level: '<span class="badge-teknik level">🅰️ Level</span>',
+                checklist: '<span class="badge-teknik checklist">☑️ Checklist</span>',
+                status: '<span class="badge-teknik status">⏳ Status</span>'
+            };
+            return map[t] || '<span class="badge badge-secondary">-</span>';
+        }
+        
+        function badgePilar(p) {
+            var map = {
+                alim_faqih: '<span class="badge-pilar alim_faqih">📘 Alim-Faqih</span>',
+                akhlaq: '<span class="badge-pilar akhlaq">🤝 Akhlaq</span>',
+                kemandirian: '<span class="badge-pilar kemandirian">💪 Kemandirian</span>'
+            };
+            return map[p] || '<span class="badge badge-secondary">-</span>';
+        }
         
         function toggleSidebar() {
-            var sidebar = $('sidebar');
-            var overlay = $('sidebarOverlay');
-            if (sidebar) sidebar.classList.toggle('show');
-            if (overlay) overlay.classList.toggle('show');
+            var s = $('sidebar'), o = $('sidebarOverlay');
+            if (s) s.classList.toggle('show');
+            if (o) o.classList.toggle('show');
         }
         
         document.addEventListener('DOMContentLoaded', async function() {
             if (!await requireAuth()) return;
-            await loadData();
+            initPermission();
+            await loadAllData();
         });
         
-        async function loadData() {
+        async function loadAllData() {
             try {
-                // Load kategori dengan count materi
-                var kategoriResult = await db
-                    .from('kategori_materi')
-                    .select('*')
-                    .order('nama');
+                var r1 = await db.from('kategori_materi').select('id, kode, nama, urutan, is_aktif, bidang_id, teknik_penilaian, pilar_trisukses, bidang(id, nama)').order('nama');
+                if (r1.error) throw r1.error;
+                allKategori = r1.data || [];
                 
-                if (kategoriResult.error) throw kategoriResult.error;
-                kategoriData = kategoriResult.data || [];
+                var r2 = await db.from('materi_item').select('id, kode, nama, nomor, tipe, kategori_id, kategori:kategori_materi(id, nama, teknik_penilaian, pilar_trisukses)').order('nomor');
+                if (r2.error) throw r2.error;
+                allMateri = r2.data || [];
                 
-                // Load semua materi
-                var materiResult = await db
-                    .from('materi_item')
-                    .select('*')
-                    .order('nomor');
+                var r3 = await db.from('bidang').select('*').order('urutan');
+                if (r3.error) throw r3.error;
+                allBidang = r3.data || [];
                 
-                if (materiResult.error) throw materiResult.error;
-                materiData = materiResult.data || [];
-                
-                // Hitung materi per kategori
-                kategoriData.forEach(function(k) {
-                    k.materi_count = materiData.filter(function(m) { return m.kategori_id === k.id; }).length;
-                });
+                var r4 = await db.from('jenjang').select('*').order('urutan');
+                if (r4.error) throw r4.error;
+                allJenjang = r4.data || [];
                 
                 updateStats();
+                updateFilters();
                 renderKategoriList();
-                renderKategoriHafalanList();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Gagal memuat data: ' + error.message, 'error');
+                renderBidangTable();
+                renderJenjangTable();
+            } catch (e) {
+                console.error(e);
+                showToast('Gagal memuat: ' + e.message, 'error');
             }
         }
         
         function updateStats() {
-            var kategoriHafalan = kategoriData.filter(function(k) { return k.is_hafalan; });
-            var materiHafalan = materiData.filter(function(m) {
-                var kat = kategoriData.find(function(k) { return k.id === m.kategori_id; });
-                return kat && kat.is_hafalan;
-            });
-            
-            $('statKategoriHafalan').textContent = kategoriHafalan.length;
-            $('statMateriHafalan').textContent = materiHafalan.length;
-            $('statKategoriTotal').textContent = kategoriData.length;
-            $('statMateriTotal').textContent = materiData.length;
+            var alim = allKategori.filter(function(k) { return k.pilar_trisukses === 'alim_faqih'; }).length;
+            var akhlaq = allKategori.filter(function(k) { return k.pilar_trisukses === 'akhlaq'; }).length;
+            var mandiri = allKategori.filter(function(k) { return k.pilar_trisukses === 'kemandirian'; }).length;
+            var hafalan = allMateri.filter(function(m) {
+                var k = allKategori.find(function(x) { return x.id === m.kategori_id; });
+                return k && isKategoriHafalan(k);
+            }).length;
+            $('statAlim').textContent = alim;
+            $('statAkhlaq').textContent = akhlaq;
+            $('statMandiri').textContent = mandiri;
+            $('statHafalan').textContent = hafalan;
         }
         
-        function switchTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab').forEach(function(t, i) {
-                t.classList.toggle('active', (tab === 'semua' && i === 0) || (tab === 'hafalan' && i === 1));
-            });
-            document.querySelectorAll('.tab-content').forEach(function(c) {
-                c.classList.remove('active');
-            });
-            $(tab === 'semua' ? 'tabSemua' : 'tabHafalan').classList.add('active');
+        function updateFilters() {
+            var opts = '<option value="">Semua Kategori</option>';
+            allKategori.forEach(function(k) { opts += '<option value="' + k.id + '">' + escapeHtml(k.nama) + '</option>'; });
+            $('filterKategoriMateri').innerHTML = opts;
+            $('materiKategori').innerHTML = opts.replace('Semua Kategori', '-- Pilih --');
+            
+            var bOpts = '<option value="">-- Pilih --</option>';
+            allBidang.forEach(function(b) { bOpts += '<option value="' + b.id + '">' + escapeHtml(b.nama) + '</option>'; });
+            $('kategoriBidang').innerHTML = bOpts;
         }
         
-        function filterKategori() {
-            var query = $('searchKategori').value.toLowerCase().trim();
-            var cards = document.querySelectorAll('.kategori-card');
-            
-            cards.forEach(function(card) {
-                var nama = card.dataset.nama.toLowerCase();
-                var kode = card.dataset.kode.toLowerCase();
-                var match = nama.includes(query) || kode.includes(query);
-                card.style.display = match ? 'block' : 'none';
-            });
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+            btn.classList.add('active');
+            $('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            if (tab === 'kategori') renderKategoriList();
+            else if (tab === 'materi') renderMateriList();
+            else if (tab === 'bidang') renderBidangTable();
+            else if (tab === 'jenjang') renderJenjangTable();
         }
         
         function renderKategoriList() {
-            var container = $('kategoriList');
-            var html = '';
+            var c = $('kategoriList');
+            var fp = $('filterPilar').value;
+            var ft = $('filterTeknik').value;
+            var s = ($('searchKategori').value || '').toLowerCase();
             
-            if (!kategoriData.length) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div>Belum ada kategori</div></div>';
-                return;
-            }
-            
-            // Group by bidang
-            var bidangMap = {};
-            kategoriData.forEach(function(k) {
-                var bidang = k.bidang_id || 0;
-                if (!bidangMap[bidang]) bidangMap[bidang] = [];
-                bidangMap[bidang].push(k);
+            var filtered = allKategori.filter(function(k) {
+                if (fp && k.pilar_trisukses !== fp) return false;
+                if (ft && k.teknik_penilaian !== ft) return false;
+                if (s && (k.nama || '').toLowerCase().indexOf(s) === -1 && (k.kode || '').toLowerCase().indexOf(s) === -1) return false;
+                return true;
             });
             
-            kategoriData.forEach(function(k) {
-                html += renderKategoriCard(k);
-            });
-            
-            container.innerHTML = html;
-        }
-        
-        function renderKategoriHafalanList() {
-            var container = $('kategoriHafalanList');
-            var hafalanKategori = kategoriData.filter(function(k) { return k.is_hafalan; });
-            
-            if (!hafalanKategori.length) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon">📖</div><div>Belum ada kategori yang ditandai sebagai Materi Hafalan</div><p style="font-size:0.85rem;margin-top:0.5rem;">Klik tombol "📖 Hafalan" pada kategori untuk menambahkannya</p></div>';
-                return;
-            }
+            if (!filtered.length) { c.innerHTML = '<div class="text-center py-4 text-muted">Tidak ada data</div>'; return; }
             
             var html = '';
-            hafalanKategori.forEach(function(k) {
-                html += renderKategoriCard(k, true);
-            });
-            
-            container.innerHTML = html;
-        }
-        
-        function renderKategoriCard(k, isHafalanTab) {
-            var isExpanded = expandedKategori[k.id];
-            var isHafalan = k.is_hafalan;
-            var jenisNilai = k.jenis_nilai || '-';
-            var materiCount = k.materi_count || 0;
-            
-            var html = '<div class="kategori-card" data-id="' + k.id + '" data-nama="' + escapeHtml(k.nama) + '" data-kode="' + escapeHtml(k.kode || '') + '">';
-            
-            // Header
-            html += '<div class="kategori-header' + (isHafalan ? ' hafalan' : '') + (isExpanded ? ' expanded' : '') + '" onclick="toggleKategori(' + k.id + ')">';
-            html += '<div class="kategori-info">';
-            html += '<div class="kategori-nama">';
-            html += '<span class="icon">' + getKategoriIcon(k.nama) + '</span>';
-            html += '<span>' + escapeHtml(k.nama) + '</span>';
-            html += '</div>';
-            html += '<div class="kategori-meta">Kode: ' + escapeHtml(k.kode || '-') + ' • Jenis Nilai: ' + jenisNilai + '</div>';
-            html += '</div>';
-            
-            // Badges & Actions
-            html += '<div class="kategori-badges">';
-            html += '<span class="badge badge-count">' + materiCount + ' materi</span>';
-            if (isHafalan) {
-                html += '<span class="badge badge-hafalan">📖 Hafalan</span>';
-            }
-            
-            // Toggle Hafalan Button
-            html += '<label class="toggle-hafalan' + (isHafalan ? ' active' : '') + '" onclick="event.stopPropagation();">';
-            html += '<input type="checkbox" ' + (isHafalan ? 'checked' : '') + ' onchange="toggleHafalan(' + k.id + ', this.checked)">';
-            html += '<span class="toggle-icon">' + (isHafalan ? '✓' : '○') + '</span>';
-            html += '<span class="toggle-text">Hafalan</span>';
-            html += '</label>';
-            
-            html += '<span class="expand-icon">▼</span>';
-            html += '</div>';
-            html += '</div>';
-            
-            // Body (Materi List)
-            html += '<div class="kategori-body' + (isExpanded ? ' show' : '') + '" id="kategoriBody' + k.id + '">';
-            html += renderMateriList(k.id);
-            html += '</div>';
-            
-            html += '</div>';
-            return html;
-        }
-        
-        function renderMateriList(kategoriId) {
-            var materiList = materiData.filter(function(m) { return m.kategori_id === kategoriId; });
-            
-            if (!materiList.length) {
-                return '<div class="empty-state" style="padding:1rem;"><div class="empty-icon" style="font-size:2rem;">📭</div><div>Belum ada materi dalam kategori ini</div></div>';
-            }
-            
-            var html = '<div class="materi-list">';
-            materiList.sort(function(a, b) { return (a.nomor || 0) - (b.nomor || 0); });
-            
-            materiList.forEach(function(m, idx) {
-                var detail = parseMateriDetail(m.detail);
-                
-                html += '<div class="materi-item">';
-                html += '<div class="materi-no">' + (m.nomor || idx + 1) + '</div>';
-                html += '<div class="materi-info">';
-                html += '<div class="materi-nama">' + escapeHtml(m.nama) + '</div>';
-                if (detail) {
-                    html += '<div class="materi-detail">' + escapeHtml(detail) + '</div>';
+            filtered.forEach(function(k, idx) {
+                var mList = allMateri.filter(function(m) { return m.kategori_id === k.id; });
+                html += '<div class="kategori-group">';
+                html += '<div class="kategori-header" onclick="toggleKat(' + idx + ')">';
+                html += '<h4>' + badgePilar(k.pilar_trisukses) + ' ' + escapeHtml(k.nama) + '</h4>';
+                html += '<div style="display:flex;align-items:center;gap:0.5rem;">' + badgeTeknik(k.teknik_penilaian);
+                html += '<span class="badge">' + mList.length + '</span>';
+                html += '<button class="btn-expand" onclick="event.stopPropagation();toggleKat(' + idx + ')">▼</button></div></div>';
+                html += '<div class="kategori-body collapsed" id="kat' + idx + '">';
+                html += '<div class="kategori-meta-row" style="margin-bottom:0.5rem;padding:0.5rem;background:#f9fafb;border-radius:0.25rem;">';
+                html += '<small><b>Kode:</b> ' + (k.kode || '-') + '</small>';
+                html += '<small><b>Bidang:</b> ' + (k.bidang ? k.bidang.nama : '-') + '</small>';
+                html += '<small><b>Status:</b> ' + (k.is_aktif ? '✓' : '✗') + '</small>';
+                if (canEditKurikulum) {
+                    html += '<button class="btn btn-sm btn-outline editable" onclick="editKategori(' + k.id + ')">✏️</button>';
+                    html += '<button class="btn btn-sm btn-danger editable" onclick="deleteKategori(' + k.id + ')">🗑️</button>';
                 }
                 html += '</div>';
-                html += '<div class="materi-badges">';
-                if (m.tipe) html += '<span class="materi-badge">' + m.tipe + '</span>';
-                if (m.untuk_putra && !m.untuk_putri) html += '<span class="materi-badge">Putra</span>';
-                if (m.untuk_putri && !m.untuk_putra) html += '<span class="materi-badge">Putri</span>';
-                html += '</div>';
-                html += '</div>';
+                if (mList.length) {
+                    mList.sort(function(a, b) { return (a.nomor || 0) - (b.nomor || 0); });
+                    html += '<div class="materi-expand-content">';
+                    mList.forEach(function(m, i) {
+                        html += '<div class="materi-item"><div class="materi-no">' + (m.nomor || i+1) + '</div>';
+                        html += '<div class="materi-nama">' + escapeHtml(m.nama) + '</div>';
+                        if (m.tipe) html += '<span class="materi-tipe">' + m.tipe + '</span>';
+                        if (canEditKurikulum) {
+                            html += '<button class="btn btn-sm btn-outline editable" onclick="editMateri(' + m.id + ')">✏️</button>';
+                            html += '<button class="btn btn-sm btn-danger editable" onclick="deleteMateri(' + m.id + ')">🗑️</button>';
+                        }
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                } else { html += '<div class="text-center py-2 text-muted">Belum ada materi</div>'; }
+                html += '</div></div>';
             });
-            
-            html += '</div>';
-            return html;
+            c.innerHTML = html;
         }
         
-        function parseMateriDetail(detail) {
-            if (!detail) return '';
+        function toggleKat(i) { var b = $('kat' + i); if (b) b.classList.toggle('collapsed'); }
+        
+        function renderMateriList() {
+            var c = $('materiList');
+            var fk = $('filterKategoriMateri').value;
+            var s = ($('searchMateri').value || '').toLowerCase();
+            var filtered = allMateri.filter(function(m) {
+                if (fk && m.kategori_id != fk) return false;
+                if (s && (m.nama || '').toLowerCase().indexOf(s) === -1) return false;
+                return true;
+            });
+            if (!filtered.length) { c.innerHTML = '<div class="text-center py-4 text-muted">Tidak ada data</div>'; return; }
+            var grouped = {};
+            filtered.forEach(function(m) {
+                var kn = m.kategori ? m.kategori.nama : 'Tanpa Kategori';
+                if (!grouped[kn]) grouped[kn] = { kategori: m.kategori, items: [] };
+                grouped[kn].items.push(m);
+            });
+            var html = '';
+            Object.keys(grouped).sort().forEach(function(kn, idx) {
+                var g = grouped[kn], k = g.kategori;
+                html += '<div class="kategori-group"><div class="kategori-header" onclick="toggleMat(' + idx + ')"><h4>';
+                if (k) html += badgePilar(k.pilar_trisukses) + ' ';
+                html += escapeHtml(kn) + '</h4><div style="display:flex;gap:0.5rem;">';
+                if (k) html += badgeTeknik(k.teknik_penilaian);
+                html += '<span class="badge">' + g.items.length + '</span></div></div>';
+                html += '<div class="kategori-body" id="mat' + idx + '">';
+                g.items.forEach(function(m) {
+                    html += '<div class="materi-card"><div class="materi-info"><div class="materi-nama">' + escapeHtml(m.nama) + '</div>';
+                    html += '<div class="materi-meta"><span>No: ' + (m.nomor || '-') + '</span>';
+                    if (m.tipe) html += '<span>Tipe: ' + m.tipe + '</span>';
+                    html += '</div></div>';
+                    if (canEditKurikulum) {
+                        html += '<div class="materi-actions editable">';
+                        html += '<button class="btn btn-sm btn-outline" onclick="editMateri(' + m.id + ')">✏️</button>';
+                        html += '<button class="btn btn-sm btn-danger" onclick="deleteMateri(' + m.id + ')">🗑️</button></div>';
+                    }
+                    html += '</div>';
+                });
+                html += '</div></div>';
+            });
+            c.innerHTML = html;
+        }
+        function toggleMat(i) { var b = $('mat' + i); if (b) b.classList.toggle('collapsed'); }
+        
+        function renderBidangTable() {
+            var html = '';
+            allBidang.forEach(function(b, i) {
+                html += '<tr><td>' + (i+1) + '</td><td><code>' + (b.kode || '-') + '</code></td>';
+                html += '<td><b>' + escapeHtml(b.nama) + '</b></td><td>' + (b.deskripsi || '-') + '</td>';
+                if (canEditKurikulum) {
+                    html += '<td class="editable"><button class="btn btn-sm btn-outline" onclick="editBidang(' + b.id + ')">✏️</button> ';
+                    html += '<button class="btn btn-sm btn-danger" onclick="deleteBidang(' + b.id + ')">🗑️</button></td>';
+                }
+                html += '</tr>';
+            });
+            document.querySelector('#bidangTable tbody').innerHTML = html || '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
+        }
+        
+        function renderJenjangTable() {
+            var html = '';
+            allJenjang.forEach(function(j, i) {
+                html += '<tr><td>' + (i+1) + '</td><td><code>' + (j.kode || '-') + '</code></td>';
+                html += '<td><b>' + escapeHtml(j.nama) + '</b></td><td>' + (j.usia_min || '-') + '-' + (j.usia_max || '-') + '</td>';
+                html += '<td>' + (j.deskripsi || '-') + '</td></tr>';
+            });
+            document.querySelector('#jenjangTable tbody').innerHTML = html || '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
+        }
+        
+        function showKategoriModal(id) {
+            if (!guardEdit('showKategoriModal')) return;
+            $('kategoriModalTitle').textContent = id ? 'Edit Kategori' : 'Tambah Kategori';
+            $('kategoriForm').reset(); $('kategoriId').value = id || '';
+            showModal('kategoriModal');
+        }
+        function editKategori(id) {
+            if (!guardEdit('editKategori')) return;
+            var k = allKategori.find(function(x) { return x.id === id; }); if (!k) return;
+            showKategoriModal(id);
+            $('kategoriBidang').value = k.bidang_id || '';
+            $('kategoriKode').value = k.kode || '';
+            $('kategoriUrutan').value = k.urutan || 1;
+            $('kategoriNama').value = k.nama || '';
+            $('kategoriPilar').value = k.pilar_trisukses || '';
+            $('kategoriTeknik').value = k.teknik_penilaian || '';
+            $('kategoriAktif').value = k.is_aktif ? 'true' : 'false';
+        }
+        async function saveKategori(e) {
+            e.preventDefault(); if (!guardEdit('saveKategori')) return;
+            var id = $('kategoriId').value;
+            var data = {
+                bidang_id: parseInt($('kategoriBidang').value) || null,
+                kode: $('kategoriKode').value || null,
+                urutan: parseInt($('kategoriUrutan').value) || 1,
+                nama: $('kategoriNama').value,
+                pilar_trisukses: $('kategoriPilar').value || null,
+                teknik_penilaian: $('kategoriTeknik').value || null,
+                is_aktif: $('kategoriAktif').value === 'true'
+            };
             try {
-                var d = typeof detail === 'string' ? JSON.parse(detail) : detail;
-                var parts = [];
-                if (d.jumlah_ayat) parts.push(d.jumlah_ayat + ' ayat');
-                if (d.arti) parts.push(d.arti);
-                if (d.tempat_turun) parts.push(d.tempat_turun);
-                if (d.penjelasan) parts.push(d.penjelasan);
-                if (d.huruf) parts.push(d.huruf);
-                return parts.join(' • ');
-            } catch (e) {
-                return '';
-            }
+                var r = id ? await db.from('kategori_materi').update(data).eq('id', parseInt(id)) : await db.from('kategori_materi').insert(data);
+                if (r.error) throw r.error;
+                showToast('Berhasil!', 'success'); hideModal('kategoriModal'); await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
         }
-        
-        function getKategoriIcon(nama) {
-            var n = (nama || '').toLowerCase();
-            if (n.includes('surat')) return '📖';
-            if (n.includes('doa')) return '🤲';
-            if (n.includes('dalil')) return '📜';
-            if (n.includes('tajwid')) return '📕';
-            if (n.includes('tatakrama') || n.includes('adab')) return '🤝';
-            if (n.includes('kemandirian')) return '💪';
-            if (n.includes('ibadah') || n.includes('sholat')) return '🕌';
-            if (n.includes('iqro') || n.includes('tilawat')) return '📗';
-            return '📁';
-        }
-        
-        function toggleKategori(id) {
-            expandedKategori[id] = !expandedKategori[id];
-            
-            var body = $('kategoriBody' + id);
-            var header = body.previousElementSibling;
-            
-            if (expandedKategori[id]) {
-                body.classList.add('show');
-                header.classList.add('expanded');
-            } else {
-                body.classList.remove('show');
-                header.classList.remove('expanded');
-            }
-        }
-        
-        async function toggleHafalan(id, isHafalan) {
+        async function deleteKategori(id) {
+            if (!guardEdit('deleteKategori')) return;
+            if (!confirm('Hapus kategori beserta materinya?')) return;
             try {
-                var result = await db
-                    .from('kategori_materi')
-                    .update({ is_hafalan: isHafalan })
-                    .eq('id', id);
-                
-                if (result.error) throw result.error;
-                
-                // Update local data
-                var kat = kategoriData.find(function(k) { return k.id === id; });
-                if (kat) kat.is_hafalan = isHafalan;
-                
-                // Update UI
-                updateStats();
-                renderKategoriList();
-                renderKategoriHafalanList();
-                
-                showToast(isHafalan ? 'Ditandai sebagai Materi Hafalan' : 'Dihapus dari Materi Hafalan', 'success');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Gagal mengupdate: ' + error.message, 'error');
-            }
+                var mIds = allMateri.filter(function(m) { return m.kategori_id === id; }).map(function(m) { return m.id; });
+                if (mIds.length) { await db.from('progress_jamaah').delete().in('materi_item_id', mIds); await db.from('materi_item').delete().eq('kategori_id', id); }
+                var r = await db.from('kategori_materi').delete().eq('id', id);
+                if (r.error) throw r.error;
+                showToast('Dihapus', 'success'); await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+        }
+        
+        function showMateriModal(id) {
+            if (!guardEdit('showMateriModal')) return;
+            $('materiModalTitle').textContent = id ? 'Edit Materi' : 'Tambah Materi';
+            $('materiForm').reset(); $('materiId').value = id || '';
+            showModal('materiModal');
+        }
+        function editMateri(id) {
+            if (!guardEdit('editMateri')) return;
+            var m = allMateri.find(function(x) { return x.id === id; }); if (!m) return;
+            showMateriModal(id);
+            $('materiKategori').value = m.kategori_id || '';
+            $('materiKode').value = m.kode || '';
+            $('materiNomor').value = m.nomor || '';
+            $('materiNama').value = m.nama || '';
+            $('materiTipe').value = m.tipe || '';
+        }
+        async function saveMateri(e) {
+            e.preventDefault(); if (!guardEdit('saveMateri')) return;
+            var id = $('materiId').value;
+            var data = { kategori_id: parseInt($('materiKategori').value) || null, kode: $('materiKode').value || null, nomor: parseInt($('materiNomor').value) || null, nama: $('materiNama').value, tipe: $('materiTipe').value || null };
+            try {
+                var r = id ? await db.from('materi_item').update(data).eq('id', parseInt(id)) : await db.from('materi_item').insert(data);
+                if (r.error) throw r.error;
+                showToast('Berhasil!', 'success'); hideModal('materiModal'); await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+        }
+        async function deleteMateri(id) {
+            if (!guardEdit('deleteMateri')) return;
+            if (!confirm('Hapus materi ini?')) return;
+            try { await db.from('progress_jamaah').delete().eq('materi_item_id', id); var r = await db.from('materi_item').delete().eq('id', id); if (r.error) throw r.error; showToast('Dihapus', 'success'); await loadAllData(); } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+        }
+        
+        function showBidangModal(id) {
+            if (!guardEdit('showBidangModal')) return;
+            $('bidangModalTitle').textContent = id ? 'Edit Bidang' : 'Tambah Bidang';
+            $('bidangForm').reset(); $('bidangId').value = id || '';
+            showModal('bidangModal');
+        }
+        function editBidang(id) {
+            if (!guardEdit('editBidang')) return;
+            var b = allBidang.find(function(x) { return x.id === id; }); if (!b) return;
+            showBidangModal(id);
+            $('bidangKode').value = b.kode || '';
+            $('bidangUrutan').value = b.urutan || 1;
+            $('bidangNama').value = b.nama || '';
+            $('bidangDeskripsi').value = b.deskripsi || '';
+        }
+        async function saveBidang(e) {
+            e.preventDefault(); if (!guardEdit('saveBidang')) return;
+            var id = $('bidangId').value;
+            var data = { kode: $('bidangKode').value || null, urutan: parseInt($('bidangUrutan').value) || 1, nama: $('bidangNama').value, deskripsi: $('bidangDeskripsi').value || null };
+            try {
+                var r = id ? await db.from('bidang').update(data).eq('id', parseInt(id)) : await db.from('bidang').insert(data);
+                if (r.error) throw r.error;
+                showToast('Berhasil!', 'success'); hideModal('bidangModal'); await loadAllData();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+        }
+        async function deleteBidang(id) {
+            if (!guardEdit('deleteBidang')) return;
+            if (!confirm('Hapus bidang ini?')) return;
+            try { var r = await db.from('bidang').delete().eq('id', id); if (r.error) throw r.error; showToast('Dihapus', 'success'); await loadAllData(); } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
         }
     </script>
 </body>
