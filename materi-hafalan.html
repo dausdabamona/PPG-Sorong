@@ -10,18 +10,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:1rem;overflow-x:auto;}
-        .tab{padding:0.5rem 1rem;cursor:pointer;font-size:0.85rem;font-weight:500;color:#6b7280;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
-        .tab.active{color:#059669;border-bottom-color:#059669;}
-        .materi-card{background:#fff;border-radius:0.5rem;padding:0.75rem;margin-bottom:0.5rem;display:flex;align-items:center;box-shadow:0 1px 2px rgba(0,0,0,0.05);}
-        .materi-no{width:36px;height:36px;background:#d1fae5;color:#059669;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.85rem;margin-right:0.75rem;flex-shrink:0;}
+        .tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:1rem;overflow-x:auto;gap:0;}
+        .tab{padding:0.6rem 1rem;cursor:pointer;font-size:0.85rem;font-weight:500;color:#6b7280;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all 0.2s;}
+        .tab:hover{color:#059669;}
+        .tab.active{color:#059669;border-bottom-color:#059669;background:#f0fdf4;}
+        .materi-card{background:#fff;border-radius:0.5rem;padding:0.75rem;margin-bottom:0.5rem;display:flex;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,0.08);transition:all 0.2s;}
+        .materi-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.12);}
+        .materi-no{width:36px;height:36px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#059669;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.85rem;margin-right:0.75rem;flex-shrink:0;}
         .materi-info{flex:1;min-width:0;}
-        .materi-name{font-weight:600;font-size:0.9rem;}
-        .materi-detail{font-size:0.75rem;color:#6b7280;}
-        .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0.5rem;margin-bottom:1rem;}
-        .stat-card{background:#fff;padding:0.75rem;border-radius:0.5rem;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.05);}
+        .materi-name{font-weight:600;font-size:0.9rem;color:#1f2937;}
+        .materi-detail{font-size:0.75rem;color:#6b7280;margin-top:0.15rem;}
+        .materi-badge{font-size:0.65rem;background:#e0f2fe;color:#0369a1;padding:0.15rem 0.5rem;border-radius:1rem;margin-left:0.5rem;}
+        .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:0.5rem;margin-bottom:1rem;}
+        .stat-card{background:#fff;padding:0.75rem;border-radius:0.5rem;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.08);cursor:pointer;transition:all 0.2s;border:2px solid transparent;}
+        .stat-card:hover{border-color:#059669;}
+        .stat-card.active{border-color:#059669;background:#f0fdf4;}
         .stat-value{font-size:1.5rem;font-weight:700;color:#059669;}
         .stat-label{font-size:0.7rem;color:#6b7280;}
+        .kategori-group{margin-bottom:1.5rem;}
+        .kategori-header{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);padding:0.6rem 1rem;border-radius:0.5rem;margin-bottom:0.5rem;font-weight:600;font-size:0.85rem;color:#065f46;display:flex;justify-content:space-between;align-items:center;}
+        .kategori-badge{background:#059669;color:white;padding:0.2rem 0.6rem;border-radius:1rem;font-size:0.7rem;}
+        .empty-state{text-align:center;padding:2rem;color:#6b7280;}
+        .empty-icon{font-size:3rem;margin-bottom:0.5rem;opacity:0.5;}
     </style>
 </head>
 <body>
@@ -36,7 +46,6 @@
                 <div class="nav-section">MENU UTAMA</div>
                 <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
                 <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
-                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
                 <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
                 <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
@@ -60,27 +69,17 @@
             <header class="header">
                 <div class="header-left">
                     <button class="btn-icon" onclick="toggleSidebar()">☰</button>
-                    <h1 class="header-title">Materi Hafalan</h1>
+                    <h1 class="header-title">📖 Materi Kurikulum</h1>
                 </div>
             </header>
             
             <div class="page-content">
-                <!-- Statistik -->
-                <div class="stat-grid">
+                <!-- Statistik per Bidang -->
+                <div class="stat-grid" id="statGrid">
                     <div class="stat-card">
-                        <div class="stat-value" id="totalSurat">0</div>
-                        <div class="stat-label">📖 Surat</div>
+                        <div class="stat-value">-</div>
+                        <div class="stat-label">Memuat...</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalDoa">0</div>
-                        <div class="stat-label">🤲 Doa & Asmaul</div>
-                    </div>
-                </div>
-                
-                <!-- Tabs -->
-                <div class="tabs" id="kategoriTabs">
-                    <div class="tab active" data-kategori="SURAT">📖 Hafalan Surat</div>
-                    <div class="tab" data-kategori="DOA">🤲 Doa & Asmaul Husna</div>
                 </div>
                 
                 <!-- Search -->
@@ -92,7 +91,7 @@
                 
                 <!-- List Materi -->
                 <div id="materiList">
-                    <div class="text-center text-muted py-4">Memuat...</div>
+                    <div class="text-center text-muted py-4">Memuat data...</div>
                 </div>
             </div>
         </main>
@@ -107,9 +106,9 @@
     <script src="js/api.js"></script>
     
     <script>
-        let materiSurat = [];
-        let materiDoa = [];
-        let currentKategori = 'SURAT';
+        var allMateri = [];
+        var bidangList = [];
+        var currentBidang = null; // null = semua bidang
         
         function toggleSidebar() {
             var sidebar = $('sidebar');
@@ -118,47 +117,85 @@
             if (overlay) overlay.classList.toggle('show');
         }
         
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', async function() {
             if (!await requireAuth()) return;
             await loadMateri();
-            
-            // Tab click
-            document.querySelectorAll('#kategoriTabs .tab').forEach(function(tab) {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('#kategoriTabs .tab').forEach(function(t) { t.classList.remove('active'); });
-                    tab.classList.add('active');
-                    currentKategori = tab.dataset.kategori;
-                    renderMateri();
-                });
-            });
         });
         
         async function loadMateri() {
             try {
-                // Gunakan api.js
-                var materiData = await masterApi.getMateri();
+                // Load dari view v_materi_kurikulum
+                allMateri = await masterApi.getMateriLengkap();
                 
-                if (materiData) {
-                    materiSurat = materiData.filter(function(m) { 
-                        return m.kategori_kode === 'SURAT' || (m.kategori && m.kategori.kode === 'SURAT'); 
-                    });
-                    materiDoa = materiData.filter(function(m) { 
-                        return m.kategori_kode === 'DOA' || (m.kategori && m.kategori.kode === 'DOA'); 
-                    });
-                }
+                console.log('Total materi:', allMateri.length);
                 
-                // Update stats
-                var totalSuratEl = $('totalSurat');
-                var totalDoaEl = $('totalDoa');
-                if (totalSuratEl) totalSuratEl.textContent = materiSurat.length;
-                if (totalDoaEl) totalDoaEl.textContent = materiDoa.length;
+                // Extract unique bidang
+                var bidangMap = {};
+                allMateri.forEach(function(m) {
+                    var bidangId = m.bidang_id || 0;
+                    var bidangNama = m.bidang_nama || 'Lainnya';
+                    if (!bidangMap[bidangId]) {
+                        bidangMap[bidangId] = {
+                            id: bidangId,
+                            nama: bidangNama,
+                            count: 0
+                        };
+                    }
+                    bidangMap[bidangId].count++;
+                });
                 
+                bidangList = Object.values(bidangMap).sort(function(a, b) {
+                    return a.nama.localeCompare(b.nama);
+                });
+                
+                // Render stat cards
+                renderStatCards();
+                
+                // Render materi
                 renderMateri();
+                
             } catch (e) {
                 console.error('Error load materi:', e);
-                var materiListEl = $('materiList');
-                if (materiListEl) materiListEl.innerHTML = '<div class="text-center text-muted py-4">Gagal memuat data</div>';
+                $('materiList').innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><div>Gagal memuat data: ' + e.message + '</div></div>';
             }
+        }
+        
+        function renderStatCards() {
+            var html = '';
+            
+            // Card "Semua"
+            var totalCount = allMateri.length;
+            html += '<div class="stat-card' + (currentBidang === null ? ' active' : '') + '" onclick="selectBidang(null)">';
+            html += '<div class="stat-value">' + totalCount + '</div>';
+            html += '<div class="stat-label">📚 Semua</div>';
+            html += '</div>';
+            
+            // Card per bidang
+            bidangList.forEach(function(b) {
+                var icon = getBidangIcon(b.nama);
+                html += '<div class="stat-card' + (currentBidang === b.id ? ' active' : '') + '" onclick="selectBidang(' + b.id + ')">';
+                html += '<div class="stat-value">' + b.count + '</div>';
+                html += '<div class="stat-label">' + icon + ' ' + escapeHtml(b.nama) + '</div>';
+                html += '</div>';
+            });
+            
+            $('statGrid').innerHTML = html;
+        }
+        
+        function getBidangIcon(nama) {
+            var n = (nama || '').toLowerCase();
+            if (n.includes('alim')) return '📖';
+            if (n.includes('salim')) return '🤲';
+            if (n.includes('akhlaq')) return '💚';
+            if (n.includes('tarikh')) return '📜';
+            if (n.includes('fiqih')) return '⚖️';
+            return '📝';
+        }
+        
+        function selectBidang(bidangId) {
+            currentBidang = bidangId;
+            renderStatCards();
+            renderMateri();
         }
         
         function filterMateri() {
@@ -166,41 +203,84 @@
         }
         
         function renderMateri() {
-            var data = currentKategori === 'SURAT' ? materiSurat : materiDoa;
             var searchEl = $('searchMateri');
-            var query = searchEl ? searchEl.value.toLowerCase() : '';
+            var query = searchEl ? searchEl.value.toLowerCase().trim() : '';
             
-            const filtered = data.filter(m => 
-                m.nama.toLowerCase().includes(query) || 
-                m.kode.toLowerCase().includes(query)
-            );
+            // Filter by bidang
+            var data = allMateri;
+            if (currentBidang !== null) {
+                data = data.filter(function(m) {
+                    return m.bidang_id === currentBidang;
+                });
+            }
             
-            if (!filtered.length) {
-                $('materiList').innerHTML = '<div class="text-center text-muted py-4">Tidak ada data</div>';
+            // Filter by search
+            if (query) {
+                data = data.filter(function(m) {
+                    var nama = (m.nama || '').toLowerCase();
+                    var kode = (m.kode || '').toLowerCase();
+                    var kategori = (m.kategori_nama || '').toLowerCase();
+                    return nama.includes(query) || kode.includes(query) || kategori.includes(query);
+                });
+            }
+            
+            if (!data.length) {
+                $('materiList').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div>Tidak ada materi ditemukan</div></div>';
                 return;
             }
             
-            let html = '';
-            filtered.forEach(m => {
-                let detail = '';
-                try {
-                    const d = typeof m.detail === 'string' ? JSON.parse(m.detail) : m.detail;
-                    if (d) {
-                        if (d.jumlah_ayat) detail = `${d.jumlah_ayat} ayat • ${d.arti || ''}`;
-                        else if (d.arti) detail = d.arti;
-                        else if (d.kategori) detail = d.kategori;
-                        if (d.tipe_hafalan === 'asmaul_husna') detail = `Asmaul Husna • ${d.arti || ''}`;
-                    }
-                } catch (e) {}
+            // Group by kategori
+            var groups = {};
+            data.forEach(function(m) {
+                var kategori = m.kategori_nama || 'Lainnya';
+                if (!groups[kategori]) {
+                    groups[kategori] = [];
+                }
+                groups[kategori].push(m);
+            });
+            
+            // Sort kategori
+            var sortedKategori = Object.keys(groups).sort();
+            
+            var html = '';
+            sortedKategori.forEach(function(kategoriNama) {
+                var items = groups[kategoriNama];
                 
-                html += `
-                    <div class="materi-card">
-                        <div class="materi-no">${m.nomor || '-'}</div>
-                        <div class="materi-info">
-                            <div class="materi-name">${m.nama}</div>
-                            ${detail ? `<div class="materi-detail">${detail}</div>` : ''}
-                        </div>
-                    </div>`;
+                html += '<div class="kategori-group">';
+                html += '<div class="kategori-header">';
+                html += '<span>📂 ' + escapeHtml(kategoriNama) + '</span>';
+                html += '<span class="kategori-badge">' + items.length + ' materi</span>';
+                html += '</div>';
+                
+                // Sort by nomor
+                items.sort(function(a, b) {
+                    return (a.nomor || 0) - (b.nomor || 0);
+                });
+                
+                items.forEach(function(m, idx) {
+                    var detail = '';
+                    try {
+                        var d = typeof m.detail === 'string' ? JSON.parse(m.detail) : m.detail;
+                        if (d) {
+                            if (d.jumlah_ayat) detail = d.jumlah_ayat + ' ayat';
+                            if (d.arti) detail += (detail ? ' • ' : '') + d.arti;
+                            if (d.huruf) detail = d.huruf;
+                            if (d.penjelasan) detail += (detail ? ' • ' : '') + d.penjelasan;
+                        }
+                    } catch (e) {}
+                    
+                    html += '<div class="materi-card">';
+                    html += '<div class="materi-no">' + (m.nomor || idx + 1) + '</div>';
+                    html += '<div class="materi-info">';
+                    html += '<div class="materi-name">' + escapeHtml(m.nama || '-');
+                    if (m.tipe) html += '<span class="materi-badge">' + m.tipe + '</span>';
+                    html += '</div>';
+                    if (detail) html += '<div class="materi-detail">' + escapeHtml(detail) + '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+                
+                html += '</div>';
             });
             
             $('materiList').innerHTML = html;
