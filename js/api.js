@@ -268,11 +268,55 @@ const jamaahApi = {
                 p_keterangan: keterangan,
                 p_updated_by: currentUserData?.id || null
             });
-            
+
             if (error) throw error;
             return true;
         } catch (error) {
             handleApiError(error, 'Gagal mengupdate status');
+            return false;
+        }
+    },
+
+    /**
+     * Menikahkan jamaah dengan pasangan
+     * @param {number} jamaahId - ID jamaah yang akan dinikahkan
+     * @param {number} pasanganId - ID pasangan
+     * @returns {Promise<boolean>}
+     */
+    menikahkan: async function(jamaahId, pasanganId) {
+        try {
+            // Update status kedua jamaah menjadi menikah dan set pasangan_id
+            const tanggalMenikah = new Date().toISOString().split('T')[0];
+
+            // Update jamaah pertama
+            const { error: error1 } = await db
+                .from('jamaah')
+                .update({
+                    status_aktif: 'menikah',
+                    pasangan_id: safeInt(pasanganId),
+                    tanggal_menikah: tanggalMenikah,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', safeInt(jamaahId));
+
+            if (error1) throw error1;
+
+            // Update jamaah kedua (pasangan)
+            const { error: error2 } = await db
+                .from('jamaah')
+                .update({
+                    status_aktif: 'menikah',
+                    pasangan_id: safeInt(jamaahId),
+                    tanggal_menikah: tanggalMenikah,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', safeInt(pasanganId));
+
+            if (error2) throw error2;
+
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menyimpan data pernikahan');
             return false;
         }
     },
