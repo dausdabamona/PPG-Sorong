@@ -363,7 +363,8 @@
                 if (!isAdmin()) {
                     userWilayahList = [];
                     userTingkat = null;
-                    var roles = await userRoleApi.getMyRoles();
+                    // userRoles sudah di-load di auth.js saat checkSession/loadUserData
+                    var roles = userRoles || [];
                     if (roles && roles.length > 0) {
                         for (var i = 0; i < roles.length; i++) {
                             var r = roles[i];
