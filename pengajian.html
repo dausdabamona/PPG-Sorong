@@ -59,6 +59,12 @@
         .badge-done { background: #dcfce7; color: #166534; }
         .badge-pending { background: #fef3c7; color: #92400e; }
         .badge-generated { background: #dbeafe; color: #1e40af; }
+        .week-section { margin-bottom: 1.5rem; }
+        .week-header { background: linear-gradient(135deg, #1e293b, #334155); color: white; padding: 0.75rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 0.5rem 0.5rem 0 0; }
+        .week-header h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+        .week-badge { background: rgba(255,255,255,0.2); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; }
+        .week-content { padding: 0.5rem; background: #f8fafc; border-radius: 0 0 0.5rem 0.5rem; border: 1px solid #e2e8f0; border-top: none; }
+        .week-content.collapsed { display: none; }
     </style>
 </head>
 <body>
@@ -86,7 +92,8 @@
                 <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
                 <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
                 <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
-                <a href="users.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+                <a href="pengaturan-akses.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🔐</span><span class="nav-text">Pengaturan Akses</span></a>
             </nav>
             <div class="sidebar-footer">
                 <div class="sidebar-user">
@@ -389,54 +396,119 @@
             } catch (error) { console.error('Error:', error); container.innerHTML = '<div class="text-center py-4 text-danger">Gagal memuat data</div>'; }
         }
         
+        // Fungsi untuk menghitung minggu ke-berapa dalam bulan
+        // Aturan: Minggu 1 dimulai dari hari Minggu pertama dalam bulan
+        // Tanggal sebelum hari Minggu pertama = Minggu 0
+        function getWeekOfMonth(dateStr) {
+            var date = new Date(dateStr);
+            var day = date.getDate();
+            var month = date.getMonth();
+            var year = date.getFullYear();
+
+            // Cari hari Minggu pertama dalam bulan
+            var firstDay = new Date(year, month, 1);
+            var firstDayOfWeek = firstDay.getDay(); // 0 = Minggu
+
+            var firstSunday;
+            if (firstDayOfWeek === 0) {
+                // Tanggal 1 adalah hari Minggu
+                firstSunday = 1;
+            } else {
+                // Hari Minggu pertama = 7 - firstDayOfWeek + 1
+                firstSunday = 7 - firstDayOfWeek + 1;
+            }
+
+            if (day < firstSunday) {
+                return 0; // Sebelum minggu pertama
+            }
+
+            // Hitung minggu ke berapa
+            return Math.ceil((day - firstSunday + 1) / 7);
+        }
+
+        function getWeekLabel(weekNum) {
+            if (weekNum === 0) return 'Sebelum Minggu 1';
+            return 'Minggu ' + weekNum;
+        }
+
         function renderPengajian(data) {
             var container = $('pengajianContainer');
             if (!data || !data.length) { container.innerHTML = '<div class="card"><div class="card-body text-center py-4 text-muted">Tidak ada jadwal</div></div>'; return; }
-            var groups = {};
+
+            // Group by week first
+            var weekGroups = {};
             data.forEach(function(p) {
-                var wilayah = p.wilayah_nama || 'Tanpa Wilayah';
-                var jenjang = p.jenjang_nama || 'Tanpa Jenjang';
-                var tingkat = p.wilayah_tingkat || 'kelompok';
-                var key = tingkat + '|' + wilayah;
-                if (!groups[key]) groups[key] = { wilayah: wilayah, tingkat: tingkat, jenjangGroups: {} };
-                if (!groups[key].jenjangGroups[jenjang]) groups[key].jenjangGroups[jenjang] = [];
-                groups[key].jenjangGroups[jenjang].push(p);
+                var weekNum = getWeekOfMonth(p.tanggal);
+                if (!weekGroups[weekNum]) weekGroups[weekNum] = [];
+                weekGroups[weekNum].push(p);
             });
+
             var html = '';
-            Object.keys(groups).sort().forEach(function(key, gIdx) {
-                var group = groups[key];
-                var totalP = 0; Object.values(group.jenjangGroups).forEach(function(arr) { totalP += arr.length; });
-                var icon = group.tingkat === 'daerah' ? '🌍' : (group.tingkat === 'desa' ? '🏘️' : '🏠');
-                var headerClass = group.tingkat === 'daerah' ? 'daerah' : (group.tingkat === 'desa' ? 'desa' : '');
-                html += '<div class="group-card"><div class="group-header ' + headerClass + '" onclick="toggleGroup(' + gIdx + ')"><h4>' + icon + ' ' + escapeHtml(group.wilayah) + '</h4><span class="group-badge">' + totalP + '</span></div>';
-                html += '<div class="group-content" id="groupContent' + gIdx + '">';
-                Object.keys(group.jenjangGroups).sort().forEach(function(jenjangName) {
-                    var items = group.jenjangGroups[jenjangName];
-                    html += '<div class="jenjang-header"><span>📚 ' + escapeHtml(jenjangName) + '</span><span class="jenjang-badge">' + items.length + '</span></div>';
-                    items.sort(function(a, b) { return a.tanggal.localeCompare(b.tanggal); });
-                    items.forEach(function(p) {
-                        var tgl = new Date(p.tanggal); var day = tgl.getDate(); var month = BULAN_NAMA[tgl.getMonth() + 1];
-                        var hasPresensi = p.total_hadir > 0;
-                        var statusBadge = hasPresensi ? '<span class="badge badge-done">' + p.total_hadir + '/' + p.total_peserta + '</span>' : '<span class="badge badge-pending">Belum</span>';
-                        html += '<div class="pengajian-item"><div class="pengajian-date"><div class="day">' + day + '</div><div class="month">' + month + '</div></div>';
-                        html += '<div class="pengajian-info"><div class="pengajian-title">' + escapeHtml(p.materi || 'Pengajian') + '</div>';
-                        html += '<div class="pengajian-meta">';
-                        if (p.waktu_mulai) html += '🕐 ' + p.waktu_mulai.substring(0,5);
-                        if (p.waktu_selesai) html += '-' + p.waktu_selesai.substring(0,5);
-                        html += ' ' + statusBadge;
-                        if (p.is_generated) html += ' <span class="badge badge-generated">Auto</span>';
-                        html += '</div></div>';
-                        html += '<div class="pengajian-actions"><a href="presensi.html?pengajian_id=' + p.id + '" class="btn btn-sm btn-success">✅</a>';
-                        html += '<button class="btn btn-sm btn-outline" onclick="editPengajian(' + p.id + ')">✏️</button>';
-                        html += '<button class="btn btn-sm btn-danger" onclick="deletePengajian(' + p.id + ')">🗑️</button></div></div>';
-                    });
+            var globalIdx = 0;
+
+            // Sort weeks and render
+            Object.keys(weekGroups).sort(function(a, b) { return parseInt(a) - parseInt(b); }).forEach(function(weekNum) {
+                var weekData = weekGroups[weekNum];
+                var weekLabel = getWeekLabel(parseInt(weekNum));
+
+                // Group within week by wilayah
+                var groups = {};
+                weekData.forEach(function(p) {
+                    var wilayah = p.wilayah_nama || 'Tanpa Wilayah';
+                    var jenjang = p.jenjang_nama || 'Tanpa Jenjang';
+                    var tingkat = p.wilayah_tingkat || 'kelompok';
+                    var key = tingkat + '|' + wilayah;
+                    if (!groups[key]) groups[key] = { wilayah: wilayah, tingkat: tingkat, jenjangGroups: {} };
+                    if (!groups[key].jenjangGroups[jenjang]) groups[key].jenjangGroups[jenjang] = [];
+                    groups[key].jenjangGroups[jenjang].push(p);
                 });
+
+                // Render week header
+                html += '<div class="week-section">';
+                html += '<div class="week-header" onclick="toggleWeek(' + weekNum + ')"><h3>📅 ' + weekLabel + '</h3><span class="week-badge">' + weekData.length + ' jadwal</span></div>';
+                html += '<div class="week-content" id="weekContent' + weekNum + '">';
+
+                Object.keys(groups).sort().forEach(function(key) {
+                    var group = groups[key];
+                    var totalP = 0; Object.values(group.jenjangGroups).forEach(function(arr) { totalP += arr.length; });
+                    var icon = group.tingkat === 'daerah' ? '🌍' : (group.tingkat === 'desa' ? '🏘️' : '🏠');
+                    var headerClass = group.tingkat === 'daerah' ? 'daerah' : (group.tingkat === 'desa' ? 'desa' : '');
+                    html += '<div class="group-card"><div class="group-header ' + headerClass + '" onclick="toggleGroup(' + globalIdx + ')"><h4>' + icon + ' ' + escapeHtml(group.wilayah) + '</h4><span class="group-badge">' + totalP + '</span></div>';
+                    html += '<div class="group-content" id="groupContent' + globalIdx + '">';
+                    Object.keys(group.jenjangGroups).sort().forEach(function(jenjangName) {
+                        var items = group.jenjangGroups[jenjangName];
+                        html += '<div class="jenjang-header"><span>📚 ' + escapeHtml(jenjangName) + '</span><span class="jenjang-badge">' + items.length + '</span></div>';
+                        items.sort(function(a, b) { return a.tanggal.localeCompare(b.tanggal); });
+                        items.forEach(function(p) {
+                            var tgl = new Date(p.tanggal); var day = tgl.getDate(); var month = BULAN_NAMA[tgl.getMonth() + 1];
+                            var dayName = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][tgl.getDay()];
+                            var hasPresensi = p.total_hadir > 0;
+                            var statusBadge = hasPresensi ? '<span class="badge badge-done">' + p.total_hadir + '/' + p.total_peserta + '</span>' : '<span class="badge badge-pending">Belum</span>';
+                            html += '<div class="pengajian-item"><div class="pengajian-date"><div class="day">' + day + '</div><div class="month">' + dayName + '</div></div>';
+                            html += '<div class="pengajian-info"><div class="pengajian-title">' + escapeHtml(p.materi || 'Pengajian') + '</div>';
+                            html += '<div class="pengajian-meta">';
+                            if (p.waktu_mulai) html += '🕐 ' + p.waktu_mulai.substring(0,5);
+                            if (p.waktu_selesai) html += '-' + p.waktu_selesai.substring(0,5);
+                            html += ' ' + statusBadge;
+                            if (p.is_generated) html += ' <span class="badge badge-generated">Auto</span>';
+                            html += '</div></div>';
+                            html += '<div class="pengajian-actions"><a href="presensi.html?pengajian_id=' + p.id + '" class="btn btn-sm btn-success">✅</a>';
+                            html += '<button class="btn btn-sm btn-outline" onclick="editPengajian(' + p.id + ')">✏️</button>';
+                            html += '<button class="btn btn-sm btn-danger" onclick="deletePengajian(' + p.id + ')">🗑️</button></div></div>';
+                        });
+                    });
+                    html += '</div></div>';
+                    globalIdx++;
+                });
+
                 html += '</div></div>';
             });
+
             container.innerHTML = html;
         }
         
         function toggleGroup(idx) { var c = $('groupContent' + idx); if (c) c.classList.toggle('collapsed'); }
+        function toggleWeek(weekNum) { var c = $('weekContent' + weekNum); if (c) c.classList.toggle('collapsed'); }
         
         function showAddPengajianModal() {
             $('pengajianModalTitle').textContent = 'Buat Pengajian';

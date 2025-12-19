@@ -112,6 +112,31 @@ const jamaahApi = {
     },
 
     /**
+     * Search jamaah by nama (untuk pencarian pasangan dll)
+     * @param {string} query - Kata kunci pencarian
+     * @param {number} limit - Maksimal hasil
+     * @returns {Promise<Array>}
+     */
+    search: async function(query, limit = 20) {
+        try {
+            if (!query || query.length < 2) return [];
+
+            const { data, error } = await db
+                .from('v_jamaah_lengkap')
+                .select('id, nama, nama_panggilan, jenis_kelamin, tanggal_lahir, wilayah_nama, jenjang_nama, status_aktif')
+                .or(`nama.ilike.%${query}%,nama_panggilan.ilike.%${query}%`)
+                .order('nama')
+                .limit(limit);
+
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal mencari jamaah');
+            return [];
+        }
+    },
+
+    /**
      * Get jamaah by ID
      * @param {number} id
      * @returns {Promise<Object|null>}
