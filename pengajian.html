@@ -675,8 +675,20 @@
         }
 
         async function editPengajian(id) {
-            var p = pengajianData.find(function(x) { return x.id === id; });
-            if (!p) { showToast('Data tidak ditemukan', 'error'); return; }
+            // Ambil data langsung dari tabel pengajian untuk mendapatkan jenjang_ids
+            var { data: p, error } = await db.from('pengajian')
+                .select('*, wilayah:wilayah_id(nama)')
+                .eq('id', id)
+                .single();
+
+            if (error || !p) {
+                console.error('Error fetching pengajian:', error);
+                showToast('Data tidak ditemukan', 'error');
+                return;
+            }
+
+            console.log('Edit pengajian data:', p);
+
             $('pengajianModalTitle').textContent = 'Edit Pengajian';
             $('pengajianId').value = p.id;
 
@@ -687,7 +699,7 @@
             $('formTingkatGroup').style.display = 'none';
             $('formWilayahGroup').style.display = 'none';
             $('formWilayahInfo').style.display = 'block';
-            $('formWilayahDisplay').textContent = p.wilayah_nama || '-';
+            $('formWilayahDisplay').textContent = p.wilayah?.nama || '-';
 
             $('formTanggal').value = p.tanggal || '';
             $('formWaktuMulai').value = p.waktu_mulai || '';
@@ -696,18 +708,34 @@
             $('formJenisKelamin').value = p.jenis_kelamin || '';
             $('formKeterangan').value = p.keterangan || '';
 
-            // Set jenjang checkboxes
+            // Set jenjang checkboxes - reset dulu semua
             document.querySelectorAll('input[name="formJenjang"]').forEach(function(cb) { cb.checked = false; });
+
+            // Parse jenjang_ids (bisa array langsung atau string JSON)
+            var jenjangIds = [];
             if (p.jenjang_ids) {
-                var jenjangIds = [];
                 try {
-                    jenjangIds = typeof p.jenjang_ids === 'string' ? JSON.parse(p.jenjang_ids) : p.jenjang_ids;
-                } catch(e) { jenjangIds = []; }
-                jenjangIds.forEach(function(jid) {
-                    var cb = document.querySelector('input[name="formJenjang"][value="' + jid + '"]');
-                    if (cb) cb.checked = true;
-                });
+                    if (Array.isArray(p.jenjang_ids)) {
+                        jenjangIds = p.jenjang_ids;
+                    } else if (typeof p.jenjang_ids === 'string') {
+                        jenjangIds = JSON.parse(p.jenjang_ids);
+                    }
+                } catch(e) {
+                    console.error('Error parsing jenjang_ids:', e);
+                    jenjangIds = [];
+                }
             }
+
+            console.log('Jenjang IDs to check:', jenjangIds);
+
+            // Centang checkbox yang sesuai
+            jenjangIds.forEach(function(jid) {
+                var cb = document.querySelector('input[name="formJenjang"][value="' + jid + '"]');
+                if (cb) {
+                    cb.checked = true;
+                    console.log('Checked jenjang:', jid);
+                }
+            });
 
             showModal('pengajianModal');
         }
