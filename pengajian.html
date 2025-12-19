@@ -1013,8 +1013,10 @@
             // Get selected jenjang
             var selectedJenjang = [];
             document.querySelectorAll('input[name="rutinJenjang"]:checked').forEach(function(cb) {
+                console.log('Checkbox checked:', cb.value, 'type:', typeof cb.value);
                 selectedJenjang.push(cb.value);
             });
+            console.log('Selected jenjang (raw):', selectedJenjang);
             if (selectedJenjang.length === 0) { showToast('Pilih minimal satu jenjang', 'error'); return; }
 
             // Base data tanpa jenjang_id
