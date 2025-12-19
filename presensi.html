@@ -255,29 +255,52 @@
                 if (!pengajian) return;
                 currentPengajian = pengajian;
 
-                // Parse jenjang_ids
+                // Parse jenjang_ids (JSONB dari Supabase bisa berupa array langsung atau string)
                 var jenjangIds = [];
                 if (pengajian.jenjang_ids) {
                     try {
-                        jenjangIds = typeof pengajian.jenjang_ids === 'string' ? JSON.parse(pengajian.jenjang_ids) : pengajian.jenjang_ids;
-                    } catch(e) { jenjangIds = []; }
+                        if (Array.isArray(pengajian.jenjang_ids)) {
+                            jenjangIds = pengajian.jenjang_ids;
+                        } else if (typeof pengajian.jenjang_ids === 'string') {
+                            jenjangIds = JSON.parse(pengajian.jenjang_ids);
+                        }
+                    } catch(e) {
+                        console.error('Error parsing jenjang_ids:', e);
+                        jenjangIds = [];
+                    }
                 }
+                console.log('Pengajian jenjang_ids:', pengajian.jenjang_ids, '-> parsed:', jenjangIds);
 
                 // Show info
                 $('pengajianInfo').style.display = 'block';
                 $('infoTanggal').textContent = formatTanggal(pengajian.tanggal);
 
-                // Tampilkan info peserta berdasarkan jenis kelamin
-                var pesertaInfo = 'Semua (L+P)';
+                // Tampilkan info jenjang yang dipilih
+                var jenjangInfo = 'Semua Jenjang';
+                if (jenjangIds && jenjangIds.length > 0) {
+                    // Fetch jenjang names
+                    var { data: jenjangData } = await db.from('jenjang').select('id, nama').in('id', jenjangIds);
+                    if (jenjangData && jenjangData.length > 0) {
+                        jenjangInfo = jenjangData.map(function(j) { return j.nama; }).join(', ');
+                    } else {
+                        jenjangInfo = 'ID: ' + jenjangIds.join(', ');
+                    }
+                }
+                $('infoJenis').textContent = jenjangInfo;
+
+                // Tampilkan info peserta berdasarkan jenis kelamin di keterangan
+                var pesertaInfo = '';
                 if (pengajian.jenis_kelamin === 'L') {
-                    pesertaInfo = '♂ Ikhwan (Laki-laki saja)';
+                    pesertaInfo = '♂ Ikhwan saja';
                 } else if (pengajian.jenis_kelamin === 'P') {
-                    pesertaInfo = '♀ Akhwat (Perempuan saja)';
+                    pesertaInfo = '♀ Akhwat saja';
                 }
                 if (pengajian.keterangan) {
-                    pesertaInfo += ' - ' + pengajian.keterangan;
+                    pesertaInfo += (pesertaInfo ? ' - ' : '') + pengajian.keterangan;
                 }
-                $('infoJenis').textContent = pesertaInfo;
+                if (pesertaInfo) {
+                    $('infoJenis').textContent += ' (' + pesertaInfo + ')';
+                }
                 $('infoKelompok').textContent = pengajian.wilayah?.nama || '-';
                 $('infoMubaligh').textContent = pengajian.creator?.nama || '-';
 
@@ -289,10 +312,17 @@
 
                 // Filter by jenjang_ids jika ada
                 if (jenjangIds && jenjangIds.length > 0) {
+                    console.log('Filtering by jenjang_ids:', jenjangIds);
                     query = query.in('jenjang_id', jenjangIds);
+                } else {
+                    console.log('No jenjang filter - showing all jenjang');
                 }
 
-                const { data: enrollments } = await query;
+                const { data: enrollments, error: enrollError } = await query;
+                if (enrollError) {
+                    console.error('Error fetching enrollments:', enrollError);
+                }
+                console.log('Enrollments fetched:', enrollments?.length, 'records');
 
                 jamaahList = enrollments?.map(e => ({
                     id: e.jamaah.id,

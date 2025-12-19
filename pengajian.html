@@ -809,7 +809,7 @@
                 waktu_selesai: waktuSelesai,
                 materi: $('formMateri').value || null,
                 jenis_kelamin: jenisKelamin,
-                jenjang_ids: JSON.stringify(selectedJenjang),
+                jenjang_ids: selectedJenjang,  // Kirim array langsung, Supabase akan handle JSONB
                 keterangan: $('formKeterangan').value || null
             };
 
