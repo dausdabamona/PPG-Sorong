@@ -317,7 +317,12 @@
                         </div>
                         <input type="hidden" id="pasanganJamaahId">
                         <div id="selectedPasangan"></div>
-                        
+
+                        <div class="form-group">
+                            <label class="form-label">Tanggal Menikah:</label>
+                            <input type="date" class="form-control" id="tanggalMenikah">
+                        </div>
+
                         <!-- Tombol Tambah Pasangan Baru -->
                         <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px dashed #cbd5e1;">
                             <button type="button" class="btn btn-outline btn-sm w-100" onclick="showTambahPasanganForm()">
@@ -960,7 +965,8 @@
                 if ($('formMenikah')) $('formMenikah').style.display = 'none';
                 if ($('formNonaktif')) $('formNonaktif').style.display = 'none';
                 if ($('formTambahPasangan')) $('formTambahPasangan').style.display = 'none';
-                
+                if ($('tanggalMenikah')) $('tanggalMenikah').value = '';
+
                 // Set jenis kelamin pasangan (kebalikan dari jamaah saat ini)
                 var oppositeGender = jamaah.jenis_kelamin === 'L' ? 'P' : 'L';
                 if ($('pasanganJK')) $('pasanganJK').value = oppositeGender;
@@ -1205,19 +1211,20 @@
             try {
                 if (status === 'menikah') {
                     var pasanganId = $('pasanganJamaahId')?.value;
+                    var tanggalMenikah = $('tanggalMenikah')?.value || null;
 
                     if (pasanganId) {
                         // Jika ada pasangan dipilih, gunakan fungsi menikahkan
-                        var success = await jamaahApi.menikahkan(jamaahId, pasanganId);
+                        var success = await jamaahApi.menikahkan(jamaahId, pasanganId, tanggalMenikah);
                         if (success) {
                             showToast('Status menikah berhasil disimpan!', 'success');
                             closeEditModal();
                             loadGenerus();
                         }
                     } else {
-                        // Jika tidak ada pasangan, simpan status menikah saja dulu
+                        // Jika tidak ada pasangan, simpan status menikah saja dulu dengan tanggal
                         // Pasangan bisa ditambahkan nanti di menu Data Jamaah
-                        var success = await jamaahApi.updateStatus(jamaahId, status, 'Menikah (pasangan belum diinput)');
+                        var success = await jamaahApi.updateStatusMenikah(jamaahId, tanggalMenikah);
                         if (success) {
                             showToast('Status menikah disimpan! Pasangan bisa ditambahkan nanti.', 'success');
                             closeEditModal();
