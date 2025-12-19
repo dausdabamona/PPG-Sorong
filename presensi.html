@@ -234,25 +234,28 @@
                 
                 // Get jamaah in this kelompok DAN jenjang yang sesuai
                 var query = db.from('enrollment')
-                    .select('jamaah:jamaah_id(id, nama), jenjang:jenjang_id(id, nama)')
+                    .select('jamaah:jamaah_id(id, nama, jenis_kelamin), jenjang:jenjang_id(id, nama)')
                     .eq('wilayah_id', pengajian.wilayah.id)
                     .eq('status', 'aktif');
-                
+
                 // Filter berdasarkan jenjang pengajian jika ada
                 if (pengajian.jenjang?.id) {
                     query = query.eq('jenjang_id', pengajian.jenjang.id);
                 }
-                
+
                 const { data: enrollments } = await query;
-                
+
                 jamaahList = enrollments?.map(e => ({
                     id: e.jamaah.id,
                     nama: e.jamaah.nama,
+                    jenis_kelamin: e.jamaah.jenis_kelamin,
                     jenjang: e.jenjang?.nama
                 })).sort((a, b) => a.nama.localeCompare(b.nama)) || [];
-                
-                // Update info jumlah santri
-                $('infoJumlah').textContent = jamaahList.length + ' orang';
+
+                // Update info jumlah santri dengan breakdown gender
+                var lakiCount = jamaahList.filter(j => j.jenis_kelamin === 'L').length;
+                var perempuanCount = jamaahList.filter(j => j.jenis_kelamin === 'P').length;
+                $('infoJumlah').textContent = jamaahList.length + ' orang (L: ' + lakiCount + ', P: ' + perempuanCount + ')';
                 
                 // Get existing presensi
                 const { data: presensi } = await db.from('keaktifan_pengajian')
@@ -275,41 +278,66 @@
         
         function renderPresensiTable() {
             const tbody = $$('#presensiTable tbody');
-            
+
             if (jamaahList.length === 0) {
                 var jenjangNama = currentPengajian?.jenjang?.nama || 'jenjang ini';
                 var wilayahNama = currentPengajian?.wilayah?.nama || 'kelompok ini';
                 tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Tidak ada santri ' + jenjangNama + ' di ' + wilayahNama + '</td></tr>';
                 return;
             }
-            
-            tbody.innerHTML = jamaahList.map((j, i) => {
-                const existing = existingPresensi[j.id];
-                const status = existing?.status || 'hadir';
-                const keterangan = existing?.keterangan || '';
-                
-                return `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td><strong>${j.nama}</strong></td>
-                    <td>${j.jenjang || '-'}</td>
-                    <td style="text-align:center;">
-                        <input type="radio" name="status_${j.id}" value="hadir" ${status === 'hadir' ? 'checked' : ''}>
-                    </td>
-                    <td style="text-align:center;">
-                        <input type="radio" name="status_${j.id}" value="izin" ${status === 'izin' ? 'checked' : ''}>
-                    </td>
-                    <td style="text-align:center;">
-                        <input type="radio" name="status_${j.id}" value="sakit" ${status === 'sakit' ? 'checked' : ''}>
-                    </td>
-                    <td style="text-align:center;">
-                        <input type="radio" name="status_${j.id}" value="alpa" ${status === 'alpa' ? 'checked' : ''}>
-                    </td>
-                    <td>
-                        <input type="text" class="form-control" name="keterangan_${j.id}" value="${keterangan}" placeholder="Opsional" style="width:150px;">
-                    </td>
-                </tr>`;
-            }).join('');
+
+            // Pisahkan berdasarkan jenis kelamin
+            var lakiLaki = jamaahList.filter(j => j.jenis_kelamin === 'L');
+            var perempuan = jamaahList.filter(j => j.jenis_kelamin === 'P');
+
+            var html = '';
+            var nomor = 1;
+
+            // Render Laki-laki
+            if (lakiLaki.length > 0) {
+                html += '<tr class="gender-header"><td colspan="8" style="background:#e0f2fe;font-weight:600;color:#0369a1;">👨 Laki-laki (' + lakiLaki.length + ' orang)</td></tr>';
+                lakiLaki.forEach(j => {
+                    html += renderPresensiRow(j, nomor++);
+                });
+            }
+
+            // Render Perempuan
+            if (perempuan.length > 0) {
+                html += '<tr class="gender-header"><td colspan="8" style="background:#fce7f3;font-weight:600;color:#be185d;">👩 Perempuan (' + perempuan.length + ' orang)</td></tr>';
+                perempuan.forEach(j => {
+                    html += renderPresensiRow(j, nomor++);
+                });
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        function renderPresensiRow(j, nomor) {
+            const existing = existingPresensi[j.id];
+            const status = existing?.status || 'hadir';
+            const keterangan = existing?.keterangan || '';
+
+            return `
+            <tr>
+                <td>${nomor}</td>
+                <td><strong>${j.nama}</strong></td>
+                <td>${j.jenjang || '-'}</td>
+                <td style="text-align:center;">
+                    <input type="radio" name="status_${j.id}" value="hadir" ${status === 'hadir' ? 'checked' : ''}>
+                </td>
+                <td style="text-align:center;">
+                    <input type="radio" name="status_${j.id}" value="izin" ${status === 'izin' ? 'checked' : ''}>
+                </td>
+                <td style="text-align:center;">
+                    <input type="radio" name="status_${j.id}" value="sakit" ${status === 'sakit' ? 'checked' : ''}>
+                </td>
+                <td style="text-align:center;">
+                    <input type="radio" name="status_${j.id}" value="alpa" ${status === 'alpa' ? 'checked' : ''}>
+                </td>
+                <td>
+                    <input type="text" class="form-control" name="keterangan_${j.id}" value="${keterangan}" placeholder="Opsional" style="width:150px;">
+                </td>
+            </tr>`;
         }
         
         function setAllStatus(status) {
