@@ -618,7 +618,7 @@
             $('formTanggal').value = new Date().toISOString().split('T')[0];
 
             // Load jenjang checkboxes
-            var jenjangHtml = jenjangData.map(function(j) {
+            var jenjangHtml = allJenjang.map(function(j) {
                 return '<label class="hari-check" style="min-width:90px;"><input type="checkbox" name="formJenjang" value="' + j.id + '"> ' + escapeHtml(j.nama) + '</label>';
             }).join('');
             $('formJenjangList').innerHTML = jenjangHtml;
@@ -665,7 +665,7 @@
             $('pengajianId').value = p.id;
 
             // Load jenjang checkboxes
-            var jenjangHtml = jenjangData.map(function(j) {
+            var jenjangHtml = allJenjang.map(function(j) {
                 var checked = p.jenjang_id === j.id ? 'checked' : '';
                 return '<label class="hari-check" style="min-width:90px;"><input type="checkbox" name="formJenjang" value="' + j.id + '" ' + checked + '> ' + escapeHtml(j.nama) + '</label>';
             }).join('');
