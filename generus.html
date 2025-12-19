@@ -506,32 +506,49 @@
         var kelompokList = [];
         var allJenjang = [];
         var allKelompok = [];
+        var allWilayah = [];
+        var accessibleWilayahIds = [];
         var currentEditData = null;
         var allGroupsExpanded = false;
         var searchTimeout = null;
         var currentViewMode = 'list'; // 'list' or 'grid'
         var userWilayahList = []; // Wilayah yang dimiliki user
-        
+
         document.addEventListener('DOMContentLoaded', async function() {
             if (!await requireAuth()) return;
-            
+
             // Debug: Log userRoles
             console.log('User Roles:', userRoles);
             console.log('Is Admin:', isAdmin());
-            
+
             // Setup mobile/desktop view
             setupResponsiveView();
             window.addEventListener('resize', setupResponsiveView);
-            
+
+            // Load all wilayah first for role-based filtering
+            await loadAllWilayah();
+
             // Load jenjang untuk form edit
             await loadJenjangOptions();
-            
+
             // Load filter data dulu (untuk set userWilayahList)
             await loadFilterData();
-            
+
             // Baru load generus
             await loadGenerus();
         });
+
+        async function loadAllWilayah() {
+            try {
+                var result = await db.from('wilayah').select('*').order('nama');
+                allWilayah = result.data || [];
+                // Calculate accessible wilayah IDs including children
+                accessibleWilayahIds = getAccessibleWilayahIds(allWilayah);
+                console.log('Accessible Wilayah IDs:', accessibleWilayahIds);
+            } catch (e) {
+                console.error('Error load wilayah:', e);
+            }
+        }
         
         function setViewMode(mode) {
             currentViewMode = mode;
@@ -607,28 +624,30 @@
                 }
                 
                 // Jika bukan admin dan punya wilayah assignment, sembunyikan filter daerah/kelompok
-                if (!isUserAdmin && userWilayahIds && userWilayahIds.length > 0) {
+                if (!isUserAdmin && accessibleWilayahIds.length > 0) {
                     // Sembunyikan dropdown filter, hanya tampilkan search
                     if (filterDaerah) filterDaerah.parentElement.style.display = 'none';
                     if (filterKelompok) filterKelompok.parentElement.style.display = 'none';
-                    
+
                     // Load dan simpan info wilayah user
                     userWilayahList = [];
                     var wilayahNames = [];
                     for (var i = 0; i < userWilayahIds.length; i++) {
-                        var wInfo = await wilayahApi.getById(userWilayahIds[i]);
+                        var wInfo = allWilayah.find(function(w) { return w.id === userWilayahIds[i]; });
                         if (wInfo) {
                             userWilayahList.push(wInfo);
                             wilayahNames.push(wInfo.nama);
                         }
                     }
-                    
-                    // Tambah info di atas search
+
+                    // Tambah info di atas search dengan tingkat
                     var searchInput = $('searchInput');
                     if (searchInput && wilayahNames.length > 0) {
+                        var tingkat = getUserWilayahTingkat(allWilayah);
+                        var tingkatLabel = tingkat === 'daerah' ? 'Daerah' : tingkat === 'desa' ? 'Desa' : 'Kelompok';
                         var infoDiv = document.createElement('div');
                         infoDiv.style.cssText = 'background:#d1fae5;padding:0.5rem;border-radius:0.5rem;margin-bottom:0.5rem;font-size:0.85rem;color:#065f46;';
-                        infoDiv.innerHTML = '📍 Wilayah: <strong>' + wilayahNames.join(', ') + '</strong>';
+                        infoDiv.innerHTML = '📍 ' + tingkatLabel + ': <strong>' + wilayahNames.join(', ') + '</strong>';
                         searchInput.parentElement.insertBefore(infoDiv, searchInput);
                     }
                 } else {
@@ -722,20 +741,17 @@
                 console.log('Data dari API:', generusData.length, 'records');
                 
                 // Filter berdasarkan role user (jika bukan admin)
-                if (!isAdmin()) {
-                    var userWilayahIds = getUserWilayahIds();
-                    console.log('User Wilayah IDs:', userWilayahIds);
-                    
-                    if (userWilayahIds && userWilayahIds.length > 0) {
-                        // Filter data hanya yang sesuai wilayah user
-                        generusData = generusData.filter(function(g) {
-                            // Cek apakah kelompok_id generus ada di wilayah user
-                            return userWilayahIds.includes(g.kelompok_id);
-                        });
-                        console.log('Setelah filter wilayah:', generusData.length, 'records');
-                    } else {
-                        console.log('User tidak punya wilayah assignment, tampilkan semua');
-                    }
+                if (!isAdmin() && accessibleWilayahIds.length > 0) {
+                    console.log('Accessible Wilayah IDs for filter:', accessibleWilayahIds);
+
+                    // Filter data hanya yang sesuai wilayah user (termasuk anak-anaknya)
+                    generusData = generusData.filter(function(g) {
+                        // Cek apakah kelompok_id generus ada di wilayah yang bisa diakses
+                        return accessibleWilayahIds.includes(g.kelompok_id);
+                    });
+                    console.log('Setelah filter wilayah:', generusData.length, 'records');
+                } else if (isAdmin()) {
+                    console.log('Admin: tampilkan semua data');
                 }
                 
                 // Update info
