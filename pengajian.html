@@ -311,7 +311,8 @@
     <script src="js/sidebar.js"></script>
     <script>
         var allWilayah = [], allJenjang = [], pengajianData = [], rutinData = [];
-        var userWilayahList = []; // Wilayah yang dimiliki user (untuk role kelompok)
+        var userWilayahList = []; // Wilayah yang dimiliki user
+        var userTingkat = null; // Tingkat wilayah user (kelompok/desa/daerah)
         var HARI_NAMA = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         var BULAN_NAMA = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
         
@@ -358,20 +359,28 @@
                 if ($('formJenjang')) $('formJenjang').innerHTML = jenjangHtml2;
                 if ($('rutinJenjangList')) $('rutinJenjangList').innerHTML = jenjangCheckboxHtml;
 
-                // Load user wilayah untuk role kelompok
+                // Load user wilayah dan tentukan tingkat role
                 if (!isAdmin()) {
                     userWilayahList = [];
+                    userTingkat = null;
                     var roles = await userRoleApi.getMyRoles();
                     if (roles && roles.length > 0) {
                         for (var i = 0; i < roles.length; i++) {
                             var r = roles[i];
                             if (r.wilayah_id) {
                                 var wInfo = allWilayah.find(function(w) { return w.id === r.wilayah_id; });
-                                if (wInfo) userWilayahList.push(wInfo);
+                                if (wInfo) {
+                                    userWilayahList.push(wInfo);
+                                    // Tentukan tingkat user (ambil tingkat pertama yang ditemukan)
+                                    if (!userTingkat) {
+                                        userTingkat = wInfo.tingkat;
+                                    }
+                                }
                             }
                         }
                     }
                     console.log('User Wilayah List:', userWilayahList);
+                    console.log('User Tingkat:', userTingkat);
                 }
             } catch (error) { console.error('Error load master:', error); }
         }
@@ -553,9 +562,9 @@
             $('formTanggal').value = new Date().toISOString().split('T')[0];
             $('formWilayah').innerHTML = '<option value="">-- Pilih Tingkat --</option>';
 
-            // Untuk role kelompok: auto-set tingkat dan wilayah
-            if (!isAdmin() && userWilayahList && userWilayahList.length > 0) {
-                $('formTingkat').value = 'kelompok';
+            // Untuk non-admin: auto-set tingkat sesuai role dan disable
+            if (!isAdmin() && userTingkat && userWilayahList && userWilayahList.length > 0) {
+                $('formTingkat').value = userTingkat;
                 $('formTingkat').disabled = true;
                 onFormTingkatChange();
                 if (userWilayahList.length === 1) {
@@ -672,13 +681,13 @@
             // Reset semua jenjang checkbox
             document.querySelectorAll('input[name="rutinJenjang"]').forEach(function(cb) { cb.checked = false; });
 
-            // Untuk role kelompok: auto-set tingkat dan wilayah
-            if (!isAdmin() && userWilayahList && userWilayahList.length > 0) {
-                // Set tingkat ke kelompok dan disable pilihan lain
-                $('rutinTingkat').value = 'kelompok';
+            // Untuk non-admin: auto-set tingkat sesuai role dan disable
+            if (!isAdmin() && userTingkat && userWilayahList && userWilayahList.length > 0) {
+                // Set tingkat sesuai role user (kelompok/desa/daerah)
+                $('rutinTingkat').value = userTingkat;
                 $('rutinTingkat').disabled = true; // Non-admin tidak bisa pilih tingkat lain
                 onRutinTingkatChange();
-                // Auto-select kelompok pertama jika hanya punya satu
+                // Auto-select wilayah pertama jika hanya punya satu
                 if (userWilayahList.length === 1) {
                     setTimeout(function() {
                         $('rutinWilayah').value = userWilayahList[0].id;
