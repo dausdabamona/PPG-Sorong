@@ -145,20 +145,9 @@
                             </div>
                             
                             <div class="rapor-section">
-                                <div class="rapor-section-title">📝 Progress Hafalan per Bidang</div>
-                                <div class="table-container">
-                                    <table class="table" id="progressTable">
-                                        <thead>
-                                            <tr>
-                                                <th>Bidang</th>
-                                                <th>Selesai</th>
-                                                <th>Target</th>
-                                                <th>Rata-rata</th>
-                                                <th>Progress</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
+                                <div class="rapor-section-title">📝 Capaian Target Kurikulum</div>
+                                <div id="progressContainer">
+                                    <!-- Progress per bidang dan kategori akan di-render di sini -->
                                 </div>
                             </div>
                             
@@ -340,34 +329,63 @@
                 if (persenKeaktifanEl) persenKeaktifanEl.textContent = (presensiRekap?.persentase_hadir || 0) + '%';
                 if (progressBarEl) progressBarEl.style.width = (presensiRekap?.persentase_hadir || 0) + '%';
                 
-                // Progress per bidang sesuai jenjang santri
-                // Ambil jenjang_id dari jamaah (view v_jamaah_lengkap)
+                // Progress per kategori sesuai jenjang santri
                 var jenjangId = jamaah.jenjang_id || null;
-                var progressBidang = await progressApi.getSummaryByBidang(jamaahId, jenjangId);
-                
+                var progressKategori = await progressApi.getSummaryByKategori(jamaahId, jenjangId);
+
+                var progressContainer = $('progressContainer');
                 var progressHtml = '';
-                if (progressBidang && progressBidang.length > 0) {
-                    progressBidang.forEach(function(s) {
-                        var persen = s.total_materi > 0 ? ((s.total_selesai || 0) / s.total_materi * 100).toFixed(0) : 0;
-                        var barClass = persen >= 80 ? 'success' : persen >= 50 ? 'warning' : '';
-                        
-                        progressHtml += '<tr>';
-                        progressHtml += '<td><strong>' + escapeHtml(s.bidang_nama || '-') + '</strong></td>';
-                        progressHtml += '<td>' + (s.total_selesai || 0) + '</td>';
-                        progressHtml += '<td>' + (s.total_materi || 0) + '</td>';
-                        progressHtml += '<td>' + (s.rata_nilai || '-') + '</td>';
-                        progressHtml += '<td><div style="display:flex;align-items:center;gap:0.5rem;">';
-                        progressHtml += '<div class="progress" style="flex:1;height:8px;">';
-                        progressHtml += '<div class="progress-bar ' + barClass + '" style="width:' + persen + '%;"></div>';
-                        progressHtml += '</div><span>' + persen + '%</span></div></td>';
-                        progressHtml += '</tr>';
+
+                if (progressKategori && progressKategori.length > 0) {
+                    // Group by bidang
+                    var bidangGroups = {};
+                    progressKategori.forEach(function(k) {
+                        var bidang = k.bidang_nama || 'Lainnya';
+                        if (!bidangGroups[bidang]) {
+                            bidangGroups[bidang] = { items: [], totalTarget: 0, totalSelesai: 0 };
+                        }
+                        bidangGroups[bidang].items.push(k);
+                        bidangGroups[bidang].totalTarget += k.target || 0;
+                        bidangGroups[bidang].totalSelesai += k.selesai || 0;
+                    });
+
+                    // Render each bidang
+                    Object.keys(bidangGroups).forEach(function(bidangNama) {
+                        var group = bidangGroups[bidangNama];
+                        var bidangPersen = group.totalTarget > 0 ? ((group.totalSelesai / group.totalTarget) * 100).toFixed(0) : 0;
+                        var bidangBarClass = bidangPersen >= 80 ? 'success' : bidangPersen >= 50 ? 'warning' : '';
+
+                        progressHtml += '<div style="margin-bottom:1.5rem;">';
+                        progressHtml += '<div style="background:var(--primary);color:white;padding:0.5rem 1rem;border-radius:0.5rem 0.5rem 0 0;display:flex;justify-content:space-between;align-items:center;">';
+                        progressHtml += '<strong>📚 ' + escapeHtml(bidangNama) + '</strong>';
+                        progressHtml += '<span style="background:rgba(255,255,255,0.2);padding:0.2rem 0.5rem;border-radius:0.25rem;font-size:0.8rem;">' + group.totalSelesai + '/' + group.totalTarget + ' (' + bidangPersen + '%)</span>';
+                        progressHtml += '</div>';
+                        progressHtml += '<table class="table" style="margin:0;border-radius:0 0 0.5rem 0.5rem;overflow:hidden;">';
+                        progressHtml += '<thead><tr><th>Kategori</th><th>Selesai</th><th>Target</th><th>Nilai</th><th>Progress</th></tr></thead><tbody>';
+
+                        group.items.forEach(function(k) {
+                            var persen = k.target > 0 ? ((k.selesai / k.target) * 100).toFixed(0) : 0;
+                            var barClass = persen >= 80 ? 'success' : persen >= 50 ? 'warning' : '';
+
+                            progressHtml += '<tr>';
+                            progressHtml += '<td>' + escapeHtml(k.kategori_nama || '-') + '</td>';
+                            progressHtml += '<td>' + (k.selesai || 0) + '</td>';
+                            progressHtml += '<td>' + (k.target || 0) + '</td>';
+                            progressHtml += '<td>' + (k.rata_nilai || '-') + '</td>';
+                            progressHtml += '<td><div style="display:flex;align-items:center;gap:0.5rem;">';
+                            progressHtml += '<div class="progress" style="flex:1;height:8px;">';
+                            progressHtml += '<div class="progress-bar ' + barClass + '" style="width:' + persen + '%;"></div>';
+                            progressHtml += '</div><span style="min-width:35px;text-align:right;">' + persen + '%</span></div></td>';
+                            progressHtml += '</tr>';
+                        });
+
+                        progressHtml += '</tbody></table></div>';
                     });
                 } else {
-                    progressHtml = '<tr><td colspan="5" class="text-center text-muted">Tidak ada data</td></tr>';
+                    progressHtml = '<div class="text-center text-muted py-4">Tidak ada target kurikulum untuk jenjang ini</div>';
                 }
-                
-                var progressTbody = $$('#progressTable tbody');
-                if (progressTbody) progressTbody.innerHTML = progressHtml;
+
+                if (progressContainer) progressContainer.innerHTML = progressHtml;
                 
                 var catatanRaporEl = $('catatanRapor');
                 if (catatanRaporEl) catatanRaporEl.textContent = 'Terus tingkatkan hafalan dan keaktifan mengaji.';

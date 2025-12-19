@@ -156,13 +156,20 @@
             if (overlay) overlay.classList.toggle('show');
         }
 
+        var allWilayah = [];
+        var accessibleWilayahIds = [];
+
         document.addEventListener('DOMContentLoaded', async () => {
             if (!await requireAuth()) return;
             updateSidebarUserInfo();
             initSidebar();
             updateUserUI();
+
+            // Load wilayah for role-based filtering
+            await loadWilayahData();
+
             await loadPengajianList();
-            
+
             // Check URL param
             const pengajianId = getUrlParam('pengajian_id');
             if (pengajianId) {
@@ -170,6 +177,16 @@
                 loadPresensi();
             }
         });
+
+        async function loadWilayahData() {
+            try {
+                var result = await db.from('wilayah').select('*').order('nama');
+                allWilayah = result.data || [];
+                accessibleWilayahIds = getAccessibleWilayahIds(allWilayah);
+            } catch (e) {
+                console.error('Error load wilayah:', e);
+            }
+        }
         
         function updateUserUI() {
             if (!currentUserData) return;
@@ -190,14 +207,21 @@
                 // Load pengajian from last 30 days
                 const thirtyDaysAgo = new Date();
                 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                
-                const { data, error } = await db.from('pengajian')
-                    .select('id, tanggal, wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)')
+
+                let query = db.from('pengajian')
+                    .select('id, tanggal, wilayah_id, wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)')
                     .gte('tanggal', thirtyDaysAgo.toISOString().split('T')[0])
                     .order('tanggal', { ascending: false });
-                
+
+                // Filter by accessible wilayah if not admin
+                if (!isAdmin() && accessibleWilayahIds.length > 0) {
+                    query = query.in('wilayah_id', accessibleWilayahIds);
+                }
+
+                const { data, error } = await query;
+
                 if (error) throw error;
-                
+
                 const select = $('selectPengajian');
                 data?.forEach(p => {
                     select.innerHTML += `<option value="${p.id}">${formatTanggalSingkat(p.tanggal)} - ${p.jenjang?.nama || '-'} - ${p.wilayah?.nama || '-'}</option>`;

@@ -68,6 +68,12 @@
         .member-item { display: flex; align-items: center; padding: 0.65rem 1rem; border-bottom: 1px solid rgba(0,0,0,0.05); gap: 0.75rem; transition: background 0.2s; }
         .member-item:last-child { border-bottom: none; }
         .member-no { width: 26px; height: 26px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: #6b7280; flex-shrink: 0; font-weight: 600; }
+
+        /* Generus tanpa orang tua - warna kuning/warning */
+        .member-item.no-parent { background: #fef9c3 !important; border-left-color: #eab308 !important; }
+        .member-item.no-parent:hover { background: #fef08a !important; }
+        .member-item.no-parent .member-no { background: #fde047; color: #854d0e; }
+        .no-parent-badge { background: #eab308; color: white; font-size: 0.6rem; padding: 0.1rem 0.35rem; border-radius: 0.25rem; margin-left: 0.25rem; white-space: nowrap; }
         .member-avatar { font-size: 1.4rem; }
         .member-info { flex: 1; min-width: 0; }
         .member-name { font-weight: 500; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1f2937; }
@@ -500,32 +506,49 @@
         var kelompokList = [];
         var allJenjang = [];
         var allKelompok = [];
+        var allWilayah = [];
+        var accessibleWilayahIds = [];
         var currentEditData = null;
         var allGroupsExpanded = false;
         var searchTimeout = null;
         var currentViewMode = 'list'; // 'list' or 'grid'
         var userWilayahList = []; // Wilayah yang dimiliki user
-        
+
         document.addEventListener('DOMContentLoaded', async function() {
             if (!await requireAuth()) return;
-            
+
             // Debug: Log userRoles
             console.log('User Roles:', userRoles);
             console.log('Is Admin:', isAdmin());
-            
+
             // Setup mobile/desktop view
             setupResponsiveView();
             window.addEventListener('resize', setupResponsiveView);
-            
+
+            // Load all wilayah first for role-based filtering
+            await loadAllWilayah();
+
             // Load jenjang untuk form edit
             await loadJenjangOptions();
-            
+
             // Load filter data dulu (untuk set userWilayahList)
             await loadFilterData();
-            
+
             // Baru load generus
             await loadGenerus();
         });
+
+        async function loadAllWilayah() {
+            try {
+                var result = await db.from('wilayah').select('*').order('nama');
+                allWilayah = result.data || [];
+                // Calculate accessible wilayah IDs including children
+                accessibleWilayahIds = getAccessibleWilayahIds(allWilayah);
+                console.log('Accessible Wilayah IDs:', accessibleWilayahIds);
+            } catch (e) {
+                console.error('Error load wilayah:', e);
+            }
+        }
         
         function setViewMode(mode) {
             currentViewMode = mode;
@@ -601,28 +624,30 @@
                 }
                 
                 // Jika bukan admin dan punya wilayah assignment, sembunyikan filter daerah/kelompok
-                if (!isUserAdmin && userWilayahIds && userWilayahIds.length > 0) {
+                if (!isUserAdmin && accessibleWilayahIds.length > 0) {
                     // Sembunyikan dropdown filter, hanya tampilkan search
                     if (filterDaerah) filterDaerah.parentElement.style.display = 'none';
                     if (filterKelompok) filterKelompok.parentElement.style.display = 'none';
-                    
+
                     // Load dan simpan info wilayah user
                     userWilayahList = [];
                     var wilayahNames = [];
                     for (var i = 0; i < userWilayahIds.length; i++) {
-                        var wInfo = await wilayahApi.getById(userWilayahIds[i]);
+                        var wInfo = allWilayah.find(function(w) { return w.id === userWilayahIds[i]; });
                         if (wInfo) {
                             userWilayahList.push(wInfo);
                             wilayahNames.push(wInfo.nama);
                         }
                     }
-                    
-                    // Tambah info di atas search
+
+                    // Tambah info di atas search dengan tingkat
                     var searchInput = $('searchInput');
                     if (searchInput && wilayahNames.length > 0) {
+                        var tingkat = getUserWilayahTingkat(allWilayah);
+                        var tingkatLabel = tingkat === 'daerah' ? 'Daerah' : tingkat === 'desa' ? 'Desa' : 'Kelompok';
                         var infoDiv = document.createElement('div');
                         infoDiv.style.cssText = 'background:#d1fae5;padding:0.5rem;border-radius:0.5rem;margin-bottom:0.5rem;font-size:0.85rem;color:#065f46;';
-                        infoDiv.innerHTML = '📍 Wilayah: <strong>' + wilayahNames.join(', ') + '</strong>';
+                        infoDiv.innerHTML = '📍 ' + tingkatLabel + ': <strong>' + wilayahNames.join(', ') + '</strong>';
                         searchInput.parentElement.insertBefore(infoDiv, searchInput);
                     }
                 } else {
@@ -716,20 +741,17 @@
                 console.log('Data dari API:', generusData.length, 'records');
                 
                 // Filter berdasarkan role user (jika bukan admin)
-                if (!isAdmin()) {
-                    var userWilayahIds = getUserWilayahIds();
-                    console.log('User Wilayah IDs:', userWilayahIds);
-                    
-                    if (userWilayahIds && userWilayahIds.length > 0) {
-                        // Filter data hanya yang sesuai wilayah user
-                        generusData = generusData.filter(function(g) {
-                            // Cek apakah kelompok_id generus ada di wilayah user
-                            return userWilayahIds.includes(g.kelompok_id);
-                        });
-                        console.log('Setelah filter wilayah:', generusData.length, 'records');
-                    } else {
-                        console.log('User tidak punya wilayah assignment, tampilkan semua');
-                    }
+                if (!isAdmin() && accessibleWilayahIds.length > 0) {
+                    console.log('Accessible Wilayah IDs for filter:', accessibleWilayahIds);
+
+                    // Filter data hanya yang sesuai wilayah user (termasuk anak-anaknya)
+                    generusData = generusData.filter(function(g) {
+                        // Cek apakah kelompok_id generus ada di wilayah yang bisa diakses
+                        return accessibleWilayahIds.includes(g.kelompok_id);
+                    });
+                    console.log('Setelah filter wilayah:', generusData.length, 'records');
+                } else if (isAdmin()) {
+                    console.log('Admin: tampilkan semua data');
                 }
                 
                 // Update info
@@ -867,7 +889,10 @@
                         group.putra.sort(function(a, b) { return (a.nama || '').localeCompare(b.nama || ''); });
                         group.putra.forEach(function(m, idx) {
                             var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
+                            var hasParent = m.ayah_id || m.ibu_id || m.ayah_nama || m.ibu_nama;
+                            var noParentClass = hasParent ? '' : ' no-parent';
                             var parentInfo = '';
+                            var noParentBadge = '';
                             if (m.ayah_nama || m.ibu_nama) {
                                 var parents = [];
                                 if (m.ayah_nama) parents.push('Ayah: ' + m.ayah_nama);
@@ -875,13 +900,16 @@
                                 parentInfo = ' • 👨‍👩‍👧 ' + parents.join(', ');
                             } else if (m.ayah_id || m.ibu_id) {
                                 parentInfo = ' • 👨‍👩‍👧';
+                            } else {
+                                noParentBadge = '<span class="no-parent-badge">Belum ada ortu</span>';
                             }
-                            html += '<div class="member-item putra-item">';
+                            html += '<div class="member-item putra-item' + noParentClass + '">';
                             html += '<div class="member-no">' + (idx + 1) + '</div>';
                             html += '<div class="member-avatar putra-avatar">🧔</div>';
                             html += '<div class="member-info">';
                             html += '<div class="member-name">' + escapeHtml(m.nama || '-');
                             if (m.nama_panggilan) html += ' <small>(' + escapeHtml(m.nama_panggilan) + ')</small>';
+                            html += noParentBadge;
                             html += '</div>';
                             html += '<div class="member-meta">' + umur + ' tahun' + parentInfo + '</div>';
                             html += '</div>';
@@ -921,7 +949,10 @@
                         group.putri.sort(function(a, b) { return (a.nama || '').localeCompare(b.nama || ''); });
                         group.putri.forEach(function(m, idx) {
                             var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
+                            var hasParent = m.ayah_id || m.ibu_id || m.ayah_nama || m.ibu_nama;
+                            var noParentClass = hasParent ? '' : ' no-parent';
                             var parentInfo = '';
+                            var noParentBadge = '';
                             if (m.ayah_nama || m.ibu_nama) {
                                 var parents = [];
                                 if (m.ayah_nama) parents.push('Ayah: ' + m.ayah_nama);
@@ -929,13 +960,16 @@
                                 parentInfo = ' • 👨‍👩‍👧 ' + parents.join(', ');
                             } else if (m.ayah_id || m.ibu_id) {
                                 parentInfo = ' • 👨‍👩‍👧';
+                            } else {
+                                noParentBadge = '<span class="no-parent-badge">Belum ada ortu</span>';
                             }
-                            html += '<div class="member-item putri-item">';
+                            html += '<div class="member-item putri-item' + noParentClass + '">';
                             html += '<div class="member-no">' + (idx + 1) + '</div>';
                             html += '<div class="member-avatar putri-avatar">🧕</div>';
                             html += '<div class="member-info">';
                             html += '<div class="member-name">' + escapeHtml(m.nama || '-');
                             if (m.nama_panggilan) html += ' <small>(' + escapeHtml(m.nama_panggilan) + ')</small>';
+                            html += noParentBadge;
                             html += '</div>';
                             html += '<div class="member-meta">' + umur + ' tahun' + parentInfo + '</div>';
                             html += '</div>';

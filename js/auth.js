@@ -697,6 +697,83 @@ window.getCurrentUserRoles = getCurrentUserRoles;
 window.hasWilayahAccess = hasWilayahAccess;
 window.filterByWilayahAccess = filterByWilayahAccess;
 
+/**
+ * Get all accessible wilayah IDs including children
+ * For example, if user is assigned to a desa, returns desa + all kelompok under it
+ * @param {Array} allWilayah - Array of all wilayah data
+ * @returns {Array} Array of wilayah IDs user can access
+ */
+function getAccessibleWilayahIds(allWilayah) {
+    if (isAdmin()) return []; // Admin sees all, return empty to indicate no filter
+
+    const userWilayahIds = getUserWilayahIds();
+    if (!userWilayahIds || userWilayahIds.length === 0) return [];
+
+    const accessibleIds = [];
+
+    userWilayahIds.forEach(function(wId) {
+        const wilayah = allWilayah.find(function(w) { return w.id === wId; });
+        if (!wilayah) return;
+
+        accessibleIds.push(wId);
+
+        // Add children based on tingkat
+        if (wilayah.tingkat === 'daerah') {
+            // Add all desa and kelompok under this daerah
+            allWilayah.forEach(function(child) {
+                if (child.parent_id === wId) {
+                    accessibleIds.push(child.id); // desa
+                    // Add kelompok under this desa
+                    allWilayah.forEach(function(grandchild) {
+                        if (grandchild.parent_id === child.id) {
+                            accessibleIds.push(grandchild.id); // kelompok
+                        }
+                    });
+                }
+            });
+        } else if (wilayah.tingkat === 'desa') {
+            // Add all kelompok under this desa
+            allWilayah.forEach(function(child) {
+                if (child.parent_id === wId) {
+                    accessibleIds.push(child.id); // kelompok
+                }
+            });
+        }
+        // kelompok tingkat doesn't have children
+    });
+
+    return accessibleIds;
+}
+
+/**
+ * Get user's assigned wilayah tingkat (highest level)
+ * @returns {string|null} 'daerah', 'desa', 'kelompok', or null
+ */
+function getUserWilayahTingkat(allWilayah) {
+    if (isAdmin()) return null;
+
+    const userWilayahIds = getUserWilayahIds();
+    if (!userWilayahIds || userWilayahIds.length === 0) return null;
+
+    // Find the highest level
+    const tingkatOrder = { 'daerah': 3, 'desa': 2, 'kelompok': 1 };
+    let highestTingkat = null;
+    let highestLevel = 0;
+
+    userWilayahIds.forEach(function(wId) {
+        const wilayah = allWilayah.find(function(w) { return w.id === wId; });
+        if (wilayah && tingkatOrder[wilayah.tingkat] > highestLevel) {
+            highestLevel = tingkatOrder[wilayah.tingkat];
+            highestTingkat = wilayah.tingkat;
+        }
+    });
+
+    return highestTingkat;
+}
+
+window.getAccessibleWilayahIds = getAccessibleWilayahIds;
+window.getUserWilayahTingkat = getUserWilayahTingkat;
+
 // Export existing functions (untuk memastikan tersedia di window)
 window.currentUser = currentUser;
 window.currentUserData = currentUserData;

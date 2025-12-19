@@ -910,12 +910,24 @@ const presensiApi = {
      */
     getRekapJamaah: async function(jamaahId, bulan = null, tahun = null) {
         try {
-            const { data, error } = await db.rpc('get_presensi_rekap', {
+            // Coba gunakan function v2 dulu (tanpa enum), fallback ke v1
+            var { data, error } = await db.rpc('get_presensi_rekap_v2', {
                 p_jamaah_id: safeInt(jamaahId),
                 p_bulan: safeInt(bulan),
                 p_tahun: safeInt(tahun)
             });
-            
+
+            // Jika v2 tidak ada, coba v1
+            if (error && error.code === '42883') {
+                var result = await db.rpc('get_presensi_rekap', {
+                    p_jamaah_id: safeInt(jamaahId),
+                    p_bulan: safeInt(bulan),
+                    p_tahun: safeInt(tahun)
+                });
+                data = result.data;
+                error = result.error;
+            }
+
             if (error) throw error;
             return data?.[0] || {
                 total_pengajian: 0,
@@ -927,7 +939,15 @@ const presensiApi = {
             };
         } catch (error) {
             handleApiError(error, 'Gagal memuat rekap presensi');
-            return null;
+            // Return default values instead of null to prevent rapor from breaking
+            return {
+                total_pengajian: 0,
+                total_hadir: 0,
+                total_izin: 0,
+                total_sakit: 0,
+                total_alpa: 0,
+                persentase_hadir: 0
+            };
         }
     }
 };
@@ -1102,6 +1122,92 @@ const progressApi = {
             return result;
         } catch (error) {
             handleApiError(error, 'Gagal memuat summary bidang');
+            return [];
+        }
+    },
+
+    /**
+     * Get summary progress per kategori (detail per bidang)
+     * @param {number} jamaahId
+     * @param {number} jenjangId
+     * @returns {Promise<Array>}
+     */
+    getSummaryByKategori: async function(jamaahId, jenjangId = null) {
+        try {
+            // Get target per kategori untuk jenjang ini
+            var targetPerKategori = {};
+
+            if (jenjangId) {
+                var { data: targetData } = await db
+                    .from('target_jenjang')
+                    .select('kategori_id, target_jumlah')
+                    .eq('jenjang_id', safeInt(jenjangId));
+
+                if (targetData) {
+                    targetData.forEach(function(t) {
+                        targetPerKategori[t.kategori_id] = t.target_jumlah;
+                    });
+                }
+            }
+
+            // Get kategori dengan bidang info
+            var { data: kategoriData } = await db
+                .from('kategori_materi')
+                .select('id, nama, bidang:bidang_id(id, nama)')
+                .order('bidang_id')
+                .order('nama');
+
+            // Get progress jamaah
+            var { data: progressData } = await db
+                .from('progress_jamaah')
+                .select('materi_item_id, status, nilai, materi_item:materi_item_id(kategori_id)')
+                .eq('jamaah_id', safeInt(jamaahId));
+
+            // Count progress per kategori
+            var progressPerKategori = {};
+            (progressData || []).forEach(function(p) {
+                var kategoriId = p.materi_item?.kategori_id;
+                if (!kategoriId) return;
+
+                if (!progressPerKategori[kategoriId]) {
+                    progressPerKategori[kategoriId] = { selesai: 0, nilaiTotal: 0, nilaiCount: 0 };
+                }
+                if (p.status === 'selesai' || p.status === 'lulus') {
+                    progressPerKategori[kategoriId].selesai++;
+                }
+                if (p.nilai) {
+                    progressPerKategori[kategoriId].nilaiTotal += p.nilai;
+                    progressPerKategori[kategoriId].nilaiCount++;
+                }
+            });
+
+            // Build result grouped by bidang
+            var result = [];
+            var currentBidang = null;
+
+            (kategoriData || []).forEach(function(k) {
+                var bidangNama = k.bidang?.nama || 'Lainnya';
+                var bidangId = k.bidang?.id || 0;
+                var target = targetPerKategori[k.id] || 0;
+                var prog = progressPerKategori[k.id] || { selesai: 0, nilaiTotal: 0, nilaiCount: 0 };
+
+                // Skip kategori tanpa target jika jenjang di-specify
+                if (jenjangId && target === 0) return;
+
+                result.push({
+                    bidang_id: bidangId,
+                    bidang_nama: bidangNama,
+                    kategori_id: k.id,
+                    kategori_nama: k.nama,
+                    target: target,
+                    selesai: prog.selesai,
+                    rata_nilai: prog.nilaiCount > 0 ? (prog.nilaiTotal / prog.nilaiCount).toFixed(1) : null
+                });
+            });
+
+            return result;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat summary kategori');
             return [];
         }
     },
