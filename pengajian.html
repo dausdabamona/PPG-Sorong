@@ -54,6 +54,9 @@
         .bulan-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
         .bulan-check { display: flex; align-items: center; justify-content: center; gap: 0.25rem; background: #f1f5f9; padding: 0.4rem; border-radius: 0.5rem; font-size: 0.75rem; cursor: pointer; }
         .bulan-check input { margin: 0; }
+        .jenjang-check { display: flex; align-items: center; gap: 0.25rem; background: #f0fdf4; padding: 0.4rem 0.6rem; border-radius: 0.5rem; font-size: 0.8rem; cursor: pointer; border: 1px solid #d1fae5; }
+        .jenjang-check:hover { background: #dcfce7; }
+        .jenjang-check input:checked + span { font-weight: 600; color: #059669; }
         .libur-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f1f5f9; }
         .libur-item:last-child { border-bottom: none; }
         .badge-done { background: #dcfce7; color: #166534; }
@@ -221,7 +224,10 @@
                         <div class="form-group"><label class="form-label">Tingkat *</label><select class="form-control" id="rutinTingkat" onchange="onRutinTingkatChange()" required><option value="">-- Pilih --</option><option value="kelompok">Kelompok</option><option value="desa">Desa</option><option value="daerah">Daerah</option></select></div>
                         <div class="form-group"><label class="form-label">Wilayah *</label><select class="form-control" id="rutinWilayah" required></select></div>
                     </div>
-                    <div class="form-group"><label class="form-label">Jenjang *</label><select class="form-control" id="rutinJenjang" required></select></div>
+                    <div class="form-group">
+                        <label class="form-label">Jenjang * <small class="text-muted">(bisa pilih lebih dari satu)</small></label>
+                        <div class="jenjang-selector" id="rutinJenjangList" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div>
+                    </div>
                     <hr style="margin:1rem 0;">
                     <div class="form-group"><label class="form-label">Tipe Jadwal *</label>
                         <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
@@ -341,13 +347,15 @@
                 allJenjang = await jenjangApi.getAll() || [];
                 var jenjangHtml = '<option value="">Semua</option>';
                 var jenjangHtml2 = '<option value="">-- Pilih --</option>';
+                var jenjangCheckboxHtml = '';
                 allJenjang.forEach(function(j) {
                     jenjangHtml += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>';
                     jenjangHtml2 += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>';
+                    jenjangCheckboxHtml += '<label class="jenjang-check"><input type="checkbox" name="rutinJenjang" value="' + j.id + '"><span>' + escapeHtml(j.nama) + '</span></label>';
                 });
                 if ($('filterJenjang')) $('filterJenjang').innerHTML = jenjangHtml;
                 if ($('formJenjang')) $('formJenjang').innerHTML = jenjangHtml2;
-                if ($('rutinJenjang')) $('rutinJenjang').innerHTML = jenjangHtml2;
+                if ($('rutinJenjangList')) $('rutinJenjangList').innerHTML = jenjangCheckboxHtml;
             } catch (error) { console.error('Error load master:', error); }
         }
         
@@ -618,6 +626,8 @@
             $('settingHarian').style.display = 'none';
             $('settingMingguan').style.display = 'none';
             $('settingBulanan').style.display = 'none';
+            // Reset semua jenjang checkbox
+            document.querySelectorAll('input[name="rutinJenjang"]').forEach(function(cb) { cb.checked = false; });
             showModal('rutinModal');
         }
         
@@ -629,9 +639,13 @@
             $('rutinNama').value = r.nama || '';
             $('rutinTingkat').value = r.tingkat || '';
             onRutinTingkatChange();
+            // Reset semua jenjang checkbox, lalu centang yang sesuai
+            document.querySelectorAll('input[name="rutinJenjang"]').forEach(function(cb) { cb.checked = false; });
             setTimeout(function() {
                 $('rutinWilayah').value = r.wilayah_id || '';
-                $('rutinJenjang').value = r.jenjang_id || '';
+                // Centang jenjang yang sesuai
+                var jenjangCb = document.querySelector('input[name="rutinJenjang"][value="' + r.jenjang_id + '"]');
+                if (jenjangCb) jenjangCb.checked = true;
                 var tipeRadio = document.querySelector('input[name="rutinTipe"][value="' + r.tipe + '"]');
                 if (tipeRadio) tipeRadio.checked = true;
                 onRutinTipeChange();
@@ -654,23 +668,53 @@
             var id = $('rutinId').value;
             var tipe = document.querySelector('input[name="rutinTipe"]:checked')?.value;
             if (!tipe) { showToast('Pilih tipe', 'error'); return; }
-            var data = { nama: $('rutinNama').value, tingkat: $('rutinTingkat').value, wilayah_id: $('rutinWilayah').value, jenjang_id: $('rutinJenjang').value, tipe: tipe, waktu_mulai: $('rutinWaktuMulai').value || null, waktu_selesai: $('rutinWaktuSelesai').value || null, materi_default: $('rutinMateri').value || null };
+
+            // Get selected jenjang
+            var selectedJenjang = [];
+            document.querySelectorAll('input[name="rutinJenjang"]:checked').forEach(function(cb) {
+                selectedJenjang.push(cb.value);
+            });
+            if (selectedJenjang.length === 0) { showToast('Pilih minimal satu jenjang', 'error'); return; }
+
+            // Base data tanpa jenjang_id
+            var baseData = { nama: $('rutinNama').value, tingkat: $('rutinTingkat').value, wilayah_id: $('rutinWilayah').value, tipe: tipe, waktu_mulai: $('rutinWaktuMulai').value || null, waktu_selesai: $('rutinWaktuSelesai').value || null, materi_default: $('rutinMateri').value || null };
             if (tipe === 'harian') {
-                data.hari_minggu = $('hariMinggu').checked; data.hari_senin = $('hariSenin').checked; data.hari_selasa = $('hariSelasa').checked;
-                data.hari_rabu = $('hariRabu').checked; data.hari_kamis = $('hariKamis').checked; data.hari_jumat = $('hariJumat').checked; data.hari_sabtu = $('hariSabtu').checked;
+                baseData.hari_minggu = $('hariMinggu').checked; baseData.hari_senin = $('hariSenin').checked; baseData.hari_selasa = $('hariSelasa').checked;
+                baseData.hari_rabu = $('hariRabu').checked; baseData.hari_kamis = $('hariKamis').checked; baseData.hari_jumat = $('hariJumat').checked; baseData.hari_sabtu = $('hariSabtu').checked;
             } else if (tipe === 'mingguan') {
-                data.minggu_ke = $('mingguKe').value; data.hari_dalam_minggu = $('hariMingguan').value;
+                baseData.minggu_ke = $('mingguKe').value; baseData.hari_dalam_minggu = $('hariMingguan').value;
             } else if (tipe === 'bulanan') {
-                data.bulan_jan = $('bulanJan').checked; data.bulan_feb = $('bulanFeb').checked; data.bulan_mar = $('bulanMar').checked;
-                data.bulan_apr = $('bulanApr').checked; data.bulan_mei = $('bulanMei').checked; data.bulan_jun = $('bulanJun').checked;
-                data.bulan_jul = $('bulanJul').checked; data.bulan_agt = $('bulanAgt').checked; data.bulan_sep = $('bulanSep').checked;
-                data.bulan_okt = $('bulanOkt').checked; data.bulan_nov = $('bulanNov').checked; data.bulan_des = $('bulanDes').checked;
-                data.minggu_ke_bulanan = $('mingguKeBulanan').value; data.hari_dalam_minggu_bulanan = $('hariBulanan').value;
+                baseData.bulan_jan = $('bulanJan').checked; baseData.bulan_feb = $('bulanFeb').checked; baseData.bulan_mar = $('bulanMar').checked;
+                baseData.bulan_apr = $('bulanApr').checked; baseData.bulan_mei = $('bulanMei').checked; baseData.bulan_jun = $('bulanJun').checked;
+                baseData.bulan_jul = $('bulanJul').checked; baseData.bulan_agt = $('bulanAgt').checked; baseData.bulan_sep = $('bulanSep').checked;
+                baseData.bulan_okt = $('bulanOkt').checked; baseData.bulan_nov = $('bulanNov').checked; baseData.bulan_des = $('bulanDes').checked;
+                baseData.minggu_ke_bulanan = $('mingguKeBulanan').value; baseData.hari_dalam_minggu_bulanan = $('hariBulanan').value;
             }
             try {
-                var success = id ? await jadwalRutinApi.update(id, data) : !!(await jadwalRutinApi.create(data));
-                if (success) { showToast('Berhasil!', 'success'); hideModal('rutinModal'); loadRutin(); }
-            } catch (e) { showToast('Gagal', 'error'); }
+                if (id) {
+                    // Edit mode: update single entry dengan jenjang pertama yang dipilih
+                    baseData.jenjang_id = selectedJenjang[0];
+                    var success = await jadwalRutinApi.update(id, baseData);
+                    if (success) { showToast('Berhasil!', 'success'); hideModal('rutinModal'); loadRutin(); }
+                } else {
+                    // Create mode: buat satu entry per jenjang
+                    var createdCount = 0;
+                    for (var i = 0; i < selectedJenjang.length; i++) {
+                        var data = Object.assign({}, baseData);
+                        data.jenjang_id = selectedJenjang[i];
+                        // Tambahkan suffix jenjang ke nama jika lebih dari satu
+                        if (selectedJenjang.length > 1) {
+                            var jenjangNama = allJenjang.find(function(j) { return j.id == selectedJenjang[i]; });
+                            data.nama = baseData.nama + ' - ' + (jenjangNama ? jenjangNama.nama : selectedJenjang[i]);
+                        }
+                        var result = await jadwalRutinApi.create(data);
+                        if (result) createdCount++;
+                    }
+                    showToast('Berhasil membuat ' + createdCount + ' jadwal rutin!', 'success');
+                    hideModal('rutinModal');
+                    loadRutin();
+                }
+            } catch (e) { console.error(e); showToast('Gagal', 'error'); }
         }
         
         async function toggleRutinAktif(id, isAktif) {
