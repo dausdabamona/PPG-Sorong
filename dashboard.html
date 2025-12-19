@@ -357,48 +357,55 @@
                 var jenjangStatsEl = $('jenjangStats');
                 if (!jenjangStatsEl) return;
 
-                var jenjangStats;
-
-                if (isAdmin() || userWilayahIds.length === 0) {
-                    // Admin: use existing API
-                    jenjangStats = await dashboardApi.getStatistikJenjang();
-                } else {
-                    // Non-admin: filter by accessible kelompok
-                    var kelompokIds = allWilayah.filter(function(w) {
-                        return w.tingkat === 'kelompok' && userWilayahIds.indexOf(w.id) !== -1;
-                    }).map(function(w) { return w.id; });
-
-                    // Get enrollments with jenjang
-                    var enrollResult = await db.from('enrollment')
-                        .select('jenjang:jenjang_id(id, nama)')
-                        .eq('status', 'aktif')
-                        .in('wilayah_id', kelompokIds);
-
-                    // Count per jenjang
-                    var jenjangCount = {};
-                    (enrollResult.data || []).forEach(function(e) {
-                        if (e.jenjang) {
-                            var key = e.jenjang.id;
-                            if (!jenjangCount[key]) {
-                                jenjangCount[key] = { nama: e.jenjang.nama, total: 0 };
-                            }
-                            jenjangCount[key].total++;
-                        }
-                    });
-
-                    jenjangStats = Object.values(jenjangCount);
-                }
-
-                if (!jenjangStats || jenjangStats.length === 0) {
+                // Get all jenjang first
+                var jenjangList = await masterApi.getJenjang();
+                if (!jenjangList || jenjangList.length === 0) {
                     jenjangStatsEl.innerHTML = '<p class="text-muted">Belum ada data jenjang</p>';
                     return;
                 }
 
+                // Get kelompok IDs for filtering
+                var kelompokIds = allWilayah.filter(function(w) {
+                    return w.tingkat === 'kelompok';
+                }).map(function(w) { return w.id; });
+
+                // For non-admin, filter to accessible kelompok only
+                if (!isAdmin() && userWilayahIds.length > 0) {
+                    kelompokIds = kelompokIds.filter(function(id) {
+                        return userWilayahIds.indexOf(id) !== -1;
+                    });
+                }
+
+                // Get enrollments with jenjang - count from enrollment table for consistency
+                var enrollQuery = db.from('enrollment')
+                    .select('jenjang_id')
+                    .eq('status', 'aktif');
+
+                // Apply kelompok filter if we have specific kelompok
+                if (kelompokIds.length > 0) {
+                    enrollQuery = enrollQuery.in('wilayah_id', kelompokIds);
+                }
+
+                var enrollResult = await enrollQuery;
+
+                // Count per jenjang
+                var jenjangCount = {};
+                (enrollResult.data || []).forEach(function(e) {
+                    if (e.jenjang_id) {
+                        if (!jenjangCount[e.jenjang_id]) {
+                            jenjangCount[e.jenjang_id] = 0;
+                        }
+                        jenjangCount[e.jenjang_id]++;
+                    }
+                });
+
+                // Build display with all jenjang
                 var html = '';
-                jenjangStats.forEach(function(j) {
+                jenjangList.forEach(function(j) {
+                    var count = jenjangCount[j.id] || 0;
                     html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">';
                     html += '<span>' + escapeHtml(j.nama || '-') + '</span>';
-                    html += '<span class="badge badge-primary">' + (j.total || 0) + ' santri</span>';
+                    html += '<span class="badge badge-primary">' + count + ' santri</span>';
                     html += '</div>';
                 });
 
