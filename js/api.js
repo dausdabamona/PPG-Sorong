@@ -216,7 +216,8 @@ const jamaahApi = {
                 'tanggal_lahir', 'golongan_darah', 'phone', 'email',
                 'alamat_lengkap', 'status_domisili', 'nomor_kk',
                 'pendidikan_terakhir', 'pekerjaan', 'penghasilan_range',
-                'foto_url', 'status_aktif', 'keterangan'
+                'foto_url', 'status_aktif', 'keterangan',
+                'ayah_id', 'ibu_id'
             ];
             
             var updateData = {};
