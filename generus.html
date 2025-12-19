@@ -1196,25 +1196,33 @@
         async function saveStatus() {
             var jamaahId = $('editId')?.value;
             var status = $('newStatus')?.value;
-            
+
             if (!jamaahId || !status) {
                 showToast('Pilih status baru', 'error');
                 return;
             }
-            
+
             try {
                 if (status === 'menikah') {
                     var pasanganId = $('pasanganJamaahId')?.value;
-                    if (!pasanganId) {
-                        showToast('Pilih pasangan!', 'error');
-                        return;
-                    }
-                    
-                    var success = await jamaahApi.menikahkan(jamaahId, pasanganId);
-                    if (success) {
-                        showToast('Status menikah berhasil disimpan!', 'success');
-                        closeEditModal();
-                        loadGenerus();
+
+                    if (pasanganId) {
+                        // Jika ada pasangan dipilih, gunakan fungsi menikahkan
+                        var success = await jamaahApi.menikahkan(jamaahId, pasanganId);
+                        if (success) {
+                            showToast('Status menikah berhasil disimpan!', 'success');
+                            closeEditModal();
+                            loadGenerus();
+                        }
+                    } else {
+                        // Jika tidak ada pasangan, simpan status menikah saja dulu
+                        // Pasangan bisa ditambahkan nanti di menu Data Jamaah
+                        var success = await jamaahApi.updateStatus(jamaahId, status, 'Menikah (pasangan belum diinput)');
+                        if (success) {
+                            showToast('Status menikah disimpan! Pasangan bisa ditambahkan nanti.', 'success');
+                            closeEditModal();
+                            loadGenerus();
+                        }
                     }
                 } else {
                     var keterangan = $('alasanNonaktif')?.value || status;
