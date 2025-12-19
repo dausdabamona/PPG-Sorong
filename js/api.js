@@ -278,15 +278,45 @@ const jamaahApi = {
     },
 
     /**
+     * Update status jamaah menjadi menikah tanpa pasangan (pasangan bisa diisi nanti)
+     * @param {number} jamaahId - ID jamaah
+     * @param {string} tanggalMenikah - Tanggal menikah (opsional, default hari ini)
+     * @returns {Promise<boolean>}
+     */
+    updateStatusMenikah: async function(jamaahId, tanggalMenikah = null) {
+        try {
+            const tglMenikah = tanggalMenikah || new Date().toISOString().split('T')[0];
+
+            const { error } = await db
+                .from('jamaah')
+                .update({
+                    status_aktif: 'menikah',
+                    tanggal_menikah: tglMenikah,
+                    keterangan: 'Menikah (pasangan belum diinput)',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', safeInt(jamaahId));
+
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menyimpan status menikah');
+            return false;
+        }
+    },
+
+    /**
      * Menikahkan jamaah dengan pasangan
      * @param {number} jamaahId - ID jamaah yang akan dinikahkan
      * @param {number} pasanganId - ID pasangan
+     * @param {string} tanggalMenikah - Tanggal menikah (opsional, default hari ini)
      * @returns {Promise<boolean>}
      */
-    menikahkan: async function(jamaahId, pasanganId) {
+    menikahkan: async function(jamaahId, pasanganId, tanggalMenikah = null) {
         try {
             // Update status kedua jamaah menjadi menikah dan set pasangan_id
-            const tanggalMenikah = new Date().toISOString().split('T')[0];
+            // Gunakan tanggal yang diberikan atau default ke hari ini
+            const tglMenikah = tanggalMenikah || new Date().toISOString().split('T')[0];
 
             // Update jamaah pertama
             const { error: error1 } = await db
@@ -294,7 +324,7 @@ const jamaahApi = {
                 .update({
                     status_aktif: 'menikah',
                     pasangan_id: safeInt(pasanganId),
-                    tanggal_menikah: tanggalMenikah,
+                    tanggal_menikah: tglMenikah,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', safeInt(jamaahId));
@@ -307,7 +337,7 @@ const jamaahApi = {
                 .update({
                     status_aktif: 'menikah',
                     pasangan_id: safeInt(jamaahId),
-                    tanggal_menikah: tanggalMenikah,
+                    tanggal_menikah: tglMenikah,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', safeInt(pasanganId));
