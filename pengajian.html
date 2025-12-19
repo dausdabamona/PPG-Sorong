@@ -841,9 +841,13 @@
                 keterangan: $('formKeterangan').value || null
             };
 
+            console.log('Saving pengajian with data:', data);
+            alert('DEBUG: Menyimpan dengan jenjang_ids = ' + JSON.stringify(selectedJenjang));
+
             try {
                 if (id) {
                     var success = await pengajianApi.update(id, data);
+                    console.log('Update result:', success);
                     if (success) { showToast('Berhasil diupdate!', 'success'); }
                 } else {
                     var result = await pengajianApi.create(data);
