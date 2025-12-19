@@ -255,21 +255,39 @@
                 if (!pengajian) return;
                 currentPengajian = pengajian;
 
-                // Parse jenjang_ids (JSONB dari Supabase bisa berupa array langsung atau string)
+                // Parse jenjang_ids (handle berbagai format: array, string JSON, atau double-encoded)
                 var jenjangIds = [];
-                if (pengajian.jenjang_ids) {
+                var rawJenjangIds = pengajian.jenjang_ids;
+                console.log('Raw jenjang_ids:', rawJenjangIds, 'type:', typeof rawJenjangIds);
+
+                if (rawJenjangIds) {
                     try {
-                        if (Array.isArray(pengajian.jenjang_ids)) {
-                            jenjangIds = pengajian.jenjang_ids;
-                        } else if (typeof pengajian.jenjang_ids === 'string') {
-                            jenjangIds = JSON.parse(pengajian.jenjang_ids);
+                        if (Array.isArray(rawJenjangIds)) {
+                            // Sudah array langsung
+                            jenjangIds = rawJenjangIds;
+                        } else if (typeof rawJenjangIds === 'string') {
+                            // Parse string JSON
+                            var parsed = JSON.parse(rawJenjangIds);
+                            // Cek jika masih string (double-encoded)
+                            if (typeof parsed === 'string') {
+                                parsed = JSON.parse(parsed);
+                            }
+                            jenjangIds = Array.isArray(parsed) ? parsed : [];
+                        } else if (typeof rawJenjangIds === 'object') {
+                            // Object tapi bukan array (mungkin dari JSONB)
+                            jenjangIds = Object.values(rawJenjangIds);
                         }
                     } catch(e) {
                         console.error('Error parsing jenjang_ids:', e);
                         jenjangIds = [];
                     }
                 }
-                console.log('Pengajian jenjang_ids:', pengajian.jenjang_ids, '-> parsed:', jenjangIds);
+
+                // Pastikan semua item adalah number
+                jenjangIds = jenjangIds.map(function(id) { return parseInt(id); }).filter(function(id) { return !isNaN(id); });
+
+                console.log('Parsed jenjang_ids:', jenjangIds);
+                alert('DEBUG: jenjang_ids = ' + JSON.stringify(jenjangIds) + ' (length: ' + jenjangIds.length + ')');
 
                 // Show info
                 $('pengajianInfo').style.display = 'block';
