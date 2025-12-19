@@ -270,11 +270,11 @@
                 var materiData = await masterApi.getMateri();
                 
                 if (materiData) {
-                    materiSurat = materiData.filter(function(m) { 
-                        return m.kategori_kode === 'SURAT' || (m.kategori && m.kategori.kode === 'SURAT'); 
+                    materiSurat = materiData.filter(function(m) {
+                        return m.kategori && m.kategori.kode === 'SURAT';
                     });
-                    materiDoa = materiData.filter(function(m) { 
-                        return m.kategori_kode === 'DOA' || (m.kategori && m.kategori.kode === 'DOA'); 
+                    materiDoa = materiData.filter(function(m) {
+                        return m.kategori && m.kategori.kode === 'DOA';
                     });
                 }
             } catch (e) {
