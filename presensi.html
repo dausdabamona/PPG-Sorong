@@ -13,6 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
 </head>
 <body>
     <div class="app-container">
@@ -32,7 +33,7 @@
                 <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
                 <a href="presensi.html" class="nav-item active"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
-                <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <div class="nav-section">LAPORAN</div>
                 <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
                 <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
@@ -209,7 +210,7 @@
                 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
                 let query = db.from('pengajian')
-                    .select('id, tanggal, wilayah_id, wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)')
+                    .select('id, tanggal, materi, jenis_kelamin, wilayah_id, wilayah:wilayah_id(nama)')
                     .gte('tanggal', thirtyDaysAgo.toISOString().split('T')[0])
                     .order('tanggal', { ascending: false });
 
@@ -224,7 +225,12 @@
 
                 const select = $('selectPengajian');
                 data?.forEach(p => {
-                    select.innerHTML += `<option value="${p.id}">${formatTanggalSingkat(p.tanggal)} - ${p.jenjang?.nama || '-'} - ${p.wilayah?.nama || '-'}</option>`;
+                    // Tambahkan info jenis kelamin
+                    var genderInfo = '';
+                    if (p.jenis_kelamin === 'L') genderInfo = ' [♂]';
+                    else if (p.jenis_kelamin === 'P') genderInfo = ' [♀]';
+
+                    select.innerHTML += `<option value="${p.id}">${formatTanggalSingkat(p.tanggal)} - ${p.materi || 'Pengajian'}${genderInfo} - ${p.wilayah?.nama || '-'}</option>`;
                 });
             } catch (error) {
                 console.error('Error:', error);
@@ -240,9 +246,9 @@
             }
             
             try {
-                // Get pengajian detail
+                // Get pengajian detail (termasuk jenis_kelamin untuk filter)
                 const { data: pengajian } = await db.from('pengajian')
-                    .select('*, wilayah:wilayah_id(id, nama), jenjang:jenjang_id(id, nama), creator:created_by(nama)')
+                    .select('*, jenis_kelamin, wilayah:wilayah_id(id, nama), creator:created_by(nama)')
                     .eq('id', pengajianId)
                     .single();
                 
@@ -252,20 +258,26 @@
                 // Show info
                 $('pengajianInfo').style.display = 'block';
                 $('infoTanggal').textContent = formatTanggal(pengajian.tanggal);
-                $('infoJenis').textContent = pengajian.jenjang?.nama || '-';
+
+                // Tampilkan info peserta berdasarkan jenis kelamin
+                var pesertaInfo = 'Semua (L+P)';
+                if (pengajian.jenis_kelamin === 'L') {
+                    pesertaInfo = '♂ Ikhwan (Laki-laki saja)';
+                } else if (pengajian.jenis_kelamin === 'P') {
+                    pesertaInfo = '♀ Akhwat (Perempuan saja)';
+                }
+                if (pengajian.keterangan) {
+                    pesertaInfo += ' - ' + pengajian.keterangan;
+                }
+                $('infoJenis').textContent = pesertaInfo;
                 $('infoKelompok').textContent = pengajian.wilayah?.nama || '-';
                 $('infoMubaligh').textContent = pengajian.creator?.nama || '-';
-                
-                // Get jamaah in this kelompok DAN jenjang yang sesuai
+
+                // Get ALL jamaah in this wilayah (tidak filter per jenjang)
                 var query = db.from('enrollment')
                     .select('jamaah:jamaah_id(id, nama, jenis_kelamin), jenjang:jenjang_id(id, nama)')
                     .eq('wilayah_id', pengajian.wilayah.id)
                     .eq('status', 'aktif');
-
-                // Filter berdasarkan jenjang pengajian jika ada
-                if (pengajian.jenjang?.id) {
-                    query = query.eq('jenjang_id', pengajian.jenjang.id);
-                }
 
                 const { data: enrollments } = await query;
 
@@ -276,10 +288,21 @@
                     jenjang: e.jenjang?.nama
                 })).sort((a, b) => a.nama.localeCompare(b.nama)) || [];
 
+                // Filter berdasarkan jenis_kelamin pengajian jika diset
+                if (pengajian.jenis_kelamin === 'L') {
+                    jamaahList = jamaahList.filter(j => j.jenis_kelamin === 'L');
+                } else if (pengajian.jenis_kelamin === 'P') {
+                    jamaahList = jamaahList.filter(j => j.jenis_kelamin === 'P');
+                }
+
                 // Update info jumlah santri dengan breakdown gender
                 var lakiCount = jamaahList.filter(j => j.jenis_kelamin === 'L').length;
                 var perempuanCount = jamaahList.filter(j => j.jenis_kelamin === 'P').length;
-                $('infoJumlah').textContent = jamaahList.length + ' orang (L: ' + lakiCount + ', P: ' + perempuanCount + ')';
+                var jumlahText = jamaahList.length + ' orang';
+                if (!pengajian.jenis_kelamin) {
+                    jumlahText += ' (L: ' + lakiCount + ', P: ' + perempuanCount + ')';
+                }
+                $('infoJumlah').textContent = jumlahText;
                 
                 // Get existing presensi
                 const { data: presensi } = await db.from('keaktifan_pengajian')
@@ -304,9 +327,8 @@
             const tbody = $$('#presensiTable tbody');
 
             if (jamaahList.length === 0) {
-                var jenjangNama = currentPengajian?.jenjang?.nama || 'jenjang ini';
                 var wilayahNama = currentPengajian?.wilayah?.nama || 'kelompok ini';
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Tidak ada santri ' + jenjangNama + ' di ' + wilayahNama + '</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Tidak ada santri di ' + wilayahNama + '</td></tr>';
                 return;
             }
 

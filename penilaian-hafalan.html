@@ -9,6 +9,7 @@
     <title>Penilaian Hafalan - PPG Sorong</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
     <style>
         .generus-card{display:flex;align-items:center;padding:0.75rem;background:#f0fdf4;border-radius:0.5rem;margin-bottom:0.5rem;cursor:pointer;}
         .generus-card:hover{background:#dcfce7;}
@@ -50,7 +51,7 @@
                 <a href="penilaian-hafalan.html" class="nav-item active"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
                 <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
-                <a href="progress.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Progress Hafalan</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Penilaian Hafalan</span></a>
                 <div class="nav-section">LAPORAN</div>
                 <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
                 <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
@@ -151,8 +152,18 @@
                                 <label class="form-label">Catatan</label>
                                 <textarea class="form-control" id="inputCatatan" rows="2" placeholder="Catatan (opsional)..."></textarea>
                             </div>
-                            
+
                             <button class="btn btn-primary w-100" onclick="saveProgress()">💾 Simpan</button>
+                        </div>
+                    </div>
+
+                    <!-- Detail Isi Hafalan -->
+                    <div class="card mt-sm" id="detailHafalanCard" style="display:none;">
+                        <div class="card-header"><span class="card-title">📖 Isi Hafalan</span></div>
+                        <div class="card-body">
+                            <div id="detailHafalanContent" style="white-space:pre-wrap;font-size:0.9rem;line-height:1.6;background:#f8fafc;padding:1rem;border-radius:0.5rem;max-height:300px;overflow-y:auto;">
+                                -
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -396,22 +407,31 @@
             const data = currentKategori === 'SURAT' ? materiSurat : materiDoa;
             selectedMateri = data.find(m => m.id === id);
             if (!selectedMateri) return;
-            
+
             const p = progressData[selectedMateri.id];
-            
+
             $('materiTitle').textContent = selectedMateri.nama;
             $('materiSub').textContent = selectedJamaah.nama;
-            
+
             // Set current values
             selectedStatus = p ? p.status : 'belum';
             $('inputNilai').value = p?.nilai || '';
             $('inputCatatan').value = p?.catatan || '';
-            
+
             // Update status buttons
             document.querySelectorAll('#statusButtons .status-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.status === selectedStatus);
             });
-            
+
+            // Tampilkan detail isi hafalan
+            var isiHafalan = selectedMateri.konten || selectedMateri.isi || selectedMateri.deskripsi || selectedMateri.teks || selectedMateri.ayat || '';
+            if (isiHafalan) {
+                $('detailHafalanContent').textContent = isiHafalan;
+                $('detailHafalanCard').style.display = 'block';
+            } else {
+                $('detailHafalanCard').style.display = 'none';
+            }
+
             $('step2').style.display = 'none';
             $('step3').style.display = 'block';
         }
