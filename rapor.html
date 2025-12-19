@@ -222,12 +222,44 @@
         
         async function loadFilters() {
             try {
-                // Load jamaah menggunakan api.js
-                var jamaahData = await jamaahApi.getAll({ status_aktif: 'aktif' });
+                // Dapatkan wilayah IDs dari role user
+                var wilayahIds = [];
+                if (!isAdmin() && userRoles && userRoles.length > 0) {
+                    userRoles.forEach(function(r) {
+                        if (r.wilayah_id) wilayahIds.push(r.wilayah_id);
+                    });
+                }
+
+                // Load jamaah berdasarkan wilayah user (atau semua jika admin)
+                var jamaahData = [];
+                if (isAdmin() || wilayahIds.length === 0) {
+                    // Admin: tampilkan semua jamaah aktif
+                    jamaahData = await jamaahApi.getAll({ status_aktif: 'aktif' });
+                } else {
+                    // Non-admin: filter berdasarkan enrollment di wilayah user
+                    var { data: enrollments } = await db.from('enrollment')
+                        .select('jamaah:jamaah_id(id, nama)')
+                        .in('wilayah_id', wilayahIds)
+                        .eq('status', 'aktif');
+
+                    if (enrollments) {
+                        // Deduplicate jamaah (satu jamaah bisa di beberapa wilayah)
+                        var jamaahMap = {};
+                        enrollments.forEach(function(e) {
+                            if (e.jamaah && !jamaahMap[e.jamaah.id]) {
+                                jamaahMap[e.jamaah.id] = e.jamaah;
+                            }
+                        });
+                        jamaahData = Object.values(jamaahMap).sort(function(a, b) {
+                            return a.nama.localeCompare(b.nama);
+                        });
+                    }
+                }
+
                 var selectSantri = $('selectSantri');
                 if (selectSantri && jamaahData) {
-                    jamaahData.forEach(function(j) { 
-                        selectSantri.innerHTML += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>'; 
+                    jamaahData.forEach(function(j) {
+                        selectSantri.innerHTML += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>';
                     });
                 }
                 
