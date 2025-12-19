@@ -1591,17 +1591,17 @@ const masterApi = {
      */
     getMateri: async function(filters = {}) {
         try {
-            let query = db.from('materi_item').select('*');
-            
+            let query = db.from('materi_item').select('*, kategori:kategori_id(id, kode, nama)');
+
             if (filters.kategori_id) {
                 query = query.eq('kategori_id', safeInt(filters.kategori_id));
             }
             if (filters.tipe) {
                 query = query.eq('tipe', filters.tipe);
             }
-            
+
             query = query.order('nomor');
-            
+
             const { data, error } = await query;
             if (error) throw error;
             return data || [];
