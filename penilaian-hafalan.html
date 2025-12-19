@@ -227,8 +227,8 @@
         
         async function loadGenerus() {
             try {
-                // Gunakan api.js
-                var data = await generusApi.getAll({ status: 'aktif' });
+                // Gunakan getFromView yang mengakses v_generus_aktif view
+                var data = await generusApi.getFromView({});
                 allGenerus = data || [];
                 renderGenerus(allGenerus);
             } catch (e) {
