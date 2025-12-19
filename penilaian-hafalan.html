@@ -172,6 +172,12 @@
     <script src="js/api.js"></script>
     
     <script>
+        // Kategori ID untuk hafalan (dari kategori_materi)
+        var KATEGORI_HAFALAN = {
+            SURAT: { id: 60, nama: 'Hafalan Surat' },
+            DOA: { id: 61, nama: 'Hafalan Doa' }
+        };
+
         let allGenerus = [];
         let selectedJamaah = null;
         let materiSurat = [];
@@ -266,17 +272,29 @@
         
         async function loadMateri() {
             try {
-                // Gunakan api.js
-                var materiData = await masterApi.getMateri();
-                
-                if (materiData) {
-                    materiSurat = materiData.filter(function(m) {
-                        return m.kategori && m.kategori.kode === 'SURAT';
-                    });
-                    materiDoa = materiData.filter(function(m) {
-                        return m.kategori && m.kategori.kode === 'DOA';
-                    });
-                }
+                // Load materi hafalan dengan filter kategori_id
+                var kategoriIds = [KATEGORI_HAFALAN.SURAT.id, KATEGORI_HAFALAN.DOA.id];
+
+                var result = await db
+                    .from('materi_item')
+                    .select('*')
+                    .in('kategori_id', kategoriIds)
+                    .order('kategori_id')
+                    .order('nomor');
+
+                if (result.error) throw result.error;
+
+                var materiData = result.data || [];
+
+                // Filter per kategori
+                materiSurat = materiData.filter(function(m) {
+                    return m.kategori_id === KATEGORI_HAFALAN.SURAT.id;
+                });
+                materiDoa = materiData.filter(function(m) {
+                    return m.kategori_id === KATEGORI_HAFALAN.DOA.id;
+                });
+
+                console.log('Materi loaded - Surat:', materiSurat.length, 'Doa:', materiDoa.length);
             } catch (e) {
                 console.error('Error load materi:', e);
             }
