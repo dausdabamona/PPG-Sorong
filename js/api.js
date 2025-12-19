@@ -2074,6 +2074,11 @@ const jadwalRutinApi = {
                 is_aktif: data.is_aktif !== false,
                 created_by: currentUserData?.id || null
             };
+
+            // Support multi-jenjang
+            if (data.jenjang_ids && Array.isArray(data.jenjang_ids) && data.jenjang_ids.length > 0) {
+                insertData.jenjang_ids = data.jenjang_ids;
+            }
             
             // Setting HARIAN
             if (data.tipe === 'harian') {
@@ -2144,6 +2149,13 @@ const jadwalRutinApi = {
                 is_aktif: data.is_aktif !== false,
                 updated_at: new Date().toISOString()
             };
+
+            // Support multi-jenjang
+            if (data.jenjang_ids && Array.isArray(data.jenjang_ids) && data.jenjang_ids.length > 0) {
+                updateData.jenjang_ids = data.jenjang_ids;
+            } else {
+                updateData.jenjang_ids = null;
+            }
             
             // Reset semua setting
             updateData.hari_minggu = false;

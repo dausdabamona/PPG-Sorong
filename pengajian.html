@@ -953,20 +953,40 @@
         }
         
         async function editRutin(id) {
-            var r = rutinData.find(function(x) { return x.id === id; });
-            if (!r) { showToast('Tidak ditemukan', 'error'); return; }
+            // Fetch langsung dari tabel untuk dapat jenjang_ids
+            var { data: r, error } = await db.from('jadwal_rutin')
+                .select('*')
+                .eq('id', id)
+                .single();
+            if (error || !r) { showToast('Tidak ditemukan', 'error'); return; }
+
             $('rutinModalTitle').textContent = 'Edit Jadwal Rutin';
             $('rutinId').value = r.id;
             $('rutinNama').value = r.nama || '';
             $('rutinTingkat').value = r.tingkat || '';
             onRutinTingkatChange();
-            // Reset semua jenjang checkbox, lalu centang yang sesuai
+            // Reset semua jenjang checkbox
             document.querySelectorAll('input[name="rutinJenjang"]').forEach(function(cb) { cb.checked = false; });
             setTimeout(function() {
                 $('rutinWilayah').value = r.wilayah_id || '';
-                // Centang jenjang yang sesuai
-                var jenjangCb = document.querySelector('input[name="rutinJenjang"][value="' + r.jenjang_id + '"]');
-                if (jenjangCb) jenjangCb.checked = true;
+                // Parse jenjang_ids untuk multi-select
+                var jenjangIds = [];
+                if (r.jenjang_ids) {
+                    if (Array.isArray(r.jenjang_ids)) {
+                        jenjangIds = r.jenjang_ids;
+                    } else if (typeof r.jenjang_ids === 'string') {
+                        try { jenjangIds = JSON.parse(r.jenjang_ids); } catch(e) {}
+                    }
+                }
+                // Fallback ke jenjang_id jika jenjang_ids kosong
+                if (jenjangIds.length === 0 && r.jenjang_id) {
+                    jenjangIds = [r.jenjang_id];
+                }
+                // Centang semua jenjang yang dipilih
+                jenjangIds.forEach(function(jid) {
+                    var cb = document.querySelector('input[name="rutinJenjang"][value="' + jid + '"]');
+                    if (cb) cb.checked = true;
+                });
                 var tipeRadio = document.querySelector('input[name="rutinTipe"][value="' + r.tipe + '"]');
                 if (tipeRadio) tipeRadio.checked = true;
                 onRutinTipeChange();
@@ -1011,29 +1031,22 @@
                 baseData.bulan_okt = $('bulanOkt').checked; baseData.bulan_nov = $('bulanNov').checked; baseData.bulan_des = $('bulanDes').checked;
                 baseData.minggu_ke_bulanan = $('mingguKeBulanan').value; baseData.hari_dalam_minggu_bulanan = $('hariBulanan').value;
             }
+            // Kirim jenjang_ids sebagai array (multi-jenjang dalam satu record)
+            baseData.jenjang_ids = selectedJenjang.map(function(j) { return parseInt(j); });
+            // Untuk backward compatibility, set jenjang_id ke yang pertama
+            baseData.jenjang_id = selectedJenjang[0];
+
             try {
                 if (id) {
-                    // Edit mode: update single entry dengan jenjang pertama yang dipilih
-                    baseData.jenjang_id = selectedJenjang[0];
                     var success = await jadwalRutinApi.update(id, baseData);
                     if (success) { showToast('Berhasil!', 'success'); hideModal('rutinModal'); loadRutin(); }
                 } else {
-                    // Create mode: buat satu entry per jenjang
-                    var createdCount = 0;
-                    for (var i = 0; i < selectedJenjang.length; i++) {
-                        var data = Object.assign({}, baseData);
-                        data.jenjang_id = selectedJenjang[i];
-                        // Tambahkan suffix jenjang ke nama jika lebih dari satu
-                        if (selectedJenjang.length > 1) {
-                            var jenjangNama = allJenjang.find(function(j) { return j.id == selectedJenjang[i]; });
-                            data.nama = baseData.nama + ' - ' + (jenjangNama ? jenjangNama.nama : selectedJenjang[i]);
-                        }
-                        var result = await jadwalRutinApi.create(data);
-                        if (result) createdCount++;
+                    var result = await jadwalRutinApi.create(baseData);
+                    if (result) {
+                        showToast('Jadwal rutin berhasil dibuat!', 'success');
+                        hideModal('rutinModal');
+                        loadRutin();
                     }
-                    showToast('Berhasil membuat ' + createdCount + ' jadwal rutin!', 'success');
-                    hideModal('rutinModal');
-                    loadRutin();
                 }
             } catch (e) { console.error(e); showToast('Gagal', 'error'); }
         }
