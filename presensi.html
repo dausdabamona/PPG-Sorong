@@ -210,7 +210,7 @@
                 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
                 let query = db.from('pengajian')
-                    .select('id, tanggal, materi, wilayah_id, wilayah:wilayah_id(nama)')
+                    .select('id, tanggal, materi, jenis_kelamin, wilayah_id, wilayah:wilayah_id(nama)')
                     .gte('tanggal', thirtyDaysAgo.toISOString().split('T')[0])
                     .order('tanggal', { ascending: false });
 
@@ -225,7 +225,12 @@
 
                 const select = $('selectPengajian');
                 data?.forEach(p => {
-                    select.innerHTML += `<option value="${p.id}">${formatTanggalSingkat(p.tanggal)} - ${p.materi || 'Pengajian'} - ${p.wilayah?.nama || '-'}</option>`;
+                    // Tambahkan info jenis kelamin
+                    var genderInfo = '';
+                    if (p.jenis_kelamin === 'L') genderInfo = ' [♂]';
+                    else if (p.jenis_kelamin === 'P') genderInfo = ' [♀]';
+
+                    select.innerHTML += `<option value="${p.id}">${formatTanggalSingkat(p.tanggal)} - ${p.materi || 'Pengajian'}${genderInfo} - ${p.wilayah?.nama || '-'}</option>`;
                 });
             } catch (error) {
                 console.error('Error:', error);
@@ -241,9 +246,9 @@
             }
             
             try {
-                // Get pengajian detail
+                // Get pengajian detail (termasuk jenis_kelamin untuk filter)
                 const { data: pengajian } = await db.from('pengajian')
-                    .select('*, wilayah:wilayah_id(id, nama), creator:created_by(nama)')
+                    .select('*, jenis_kelamin, wilayah:wilayah_id(id, nama), creator:created_by(nama)')
                     .eq('id', pengajianId)
                     .single();
                 
@@ -253,7 +258,18 @@
                 // Show info
                 $('pengajianInfo').style.display = 'block';
                 $('infoTanggal').textContent = formatTanggal(pengajian.tanggal);
-                $('infoJenis').textContent = pengajian.keterangan || 'Semua Jenjang';
+
+                // Tampilkan info peserta berdasarkan jenis kelamin
+                var pesertaInfo = 'Semua (L+P)';
+                if (pengajian.jenis_kelamin === 'L') {
+                    pesertaInfo = '♂ Ikhwan (Laki-laki saja)';
+                } else if (pengajian.jenis_kelamin === 'P') {
+                    pesertaInfo = '♀ Akhwat (Perempuan saja)';
+                }
+                if (pengajian.keterangan) {
+                    pesertaInfo += ' - ' + pengajian.keterangan;
+                }
+                $('infoJenis').textContent = pesertaInfo;
                 $('infoKelompok').textContent = pengajian.wilayah?.nama || '-';
                 $('infoMubaligh').textContent = pengajian.creator?.nama || '-';
 
@@ -272,10 +288,21 @@
                     jenjang: e.jenjang?.nama
                 })).sort((a, b) => a.nama.localeCompare(b.nama)) || [];
 
+                // Filter berdasarkan jenis_kelamin pengajian jika diset
+                if (pengajian.jenis_kelamin === 'L') {
+                    jamaahList = jamaahList.filter(j => j.jenis_kelamin === 'L');
+                } else if (pengajian.jenis_kelamin === 'P') {
+                    jamaahList = jamaahList.filter(j => j.jenis_kelamin === 'P');
+                }
+
                 // Update info jumlah santri dengan breakdown gender
                 var lakiCount = jamaahList.filter(j => j.jenis_kelamin === 'L').length;
                 var perempuanCount = jamaahList.filter(j => j.jenis_kelamin === 'P').length;
-                $('infoJumlah').textContent = jamaahList.length + ' orang (L: ' + lakiCount + ', P: ' + perempuanCount + ')';
+                var jumlahText = jamaahList.length + ' orang';
+                if (!pengajian.jenis_kelamin) {
+                    jumlahText += ' (L: ' + lakiCount + ', P: ' + perempuanCount + ')';
+                }
+                $('infoJumlah').textContent = jumlahText;
                 
                 // Get existing presensi
                 const { data: presensi } = await db.from('keaktifan_pengajian')

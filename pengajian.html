@@ -222,6 +222,14 @@
                         <div class="form-group"><label class="form-label">Waktu Selesai</label><input type="time" class="form-control" id="formWaktuSelesai"></div>
                     </div>
                     <div class="form-group"><label class="form-label">Materi</label><input type="text" class="form-control" id="formMateri" placeholder="Topik pengajian"></div>
+                    <div class="form-group">
+                        <label class="form-label">Peserta</label>
+                        <select class="form-control" id="formJenisKelamin">
+                            <option value="">Semua (Laki-laki & Perempuan)</option>
+                            <option value="L">Laki-laki saja (Ikhwan)</option>
+                            <option value="P">Perempuan saja (Akhwat)</option>
+                        </select>
+                    </div>
                     <div class="form-group"><label class="form-label">Keterangan</label><input type="text" class="form-control" id="formKeterangan" placeholder="Contoh: Gabungan PAUD-Praremaja, Kuliah Umum, dll"></div>
                     <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
                 </form>
@@ -586,9 +594,19 @@
             var dayName = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][tgl.getDay()];
             var hasPresensi = p.total_hadir > 0;
             var statusBadge = hasPresensi ? '<span class="badge badge-done">' + p.total_hadir + '/' + p.total_peserta + '</span>' : '<span class="badge badge-pending">Belum</span>';
+
+            // Badge untuk jenis kelamin peserta
+            var pesertaBadge = '';
+            if (p.jenis_kelamin === 'L') {
+                pesertaBadge = ' <span class="badge" style="background:#dbeafe;color:#1e40af;font-size:0.6rem;">♂ Ikhwan</span>';
+            } else if (p.jenis_kelamin === 'P') {
+                pesertaBadge = ' <span class="badge" style="background:#fce7f3;color:#be185d;font-size:0.6rem;">♀ Akhwat</span>';
+            }
+
             var html = '<div class="pengajian-item"><div class="pengajian-date"><div class="day">' + day + '</div><div class="month">' + dayName + '</div></div>';
             html += '<div class="pengajian-info"><div class="pengajian-title">' + escapeHtml(p.materi || 'Pengajian');
             if (p.keterangan) html += ' <span class="badge badge-primary" style="font-size:0.65rem;">' + escapeHtml(p.keterangan) + '</span>';
+            html += pesertaBadge;
             html += '</div>';
             html += '<div class="pengajian-meta">';
             if (p.waktu_mulai) html += '🕐 ' + p.waktu_mulai.substring(0,5);
@@ -665,22 +683,97 @@
             $('formWaktuMulai').value = p.waktu_mulai || '';
             $('formWaktuSelesai').value = p.waktu_selesai || '';
             $('formMateri').value = p.materi || '';
+            $('formJenisKelamin').value = p.jenis_kelamin || '';
             $('formKeterangan').value = p.keterangan || '';
 
             showModal('pengajianModal');
+        }
+
+        // Fungsi untuk cek apakah dua waktu overlap
+        function isTimeOverlap(start1, end1, start2, end2) {
+            // Jika tidak ada waktu, anggap tidak overlap (default 1 hari penuh)
+            if (!start1 || !start2) return true; // Dianggap overlap jika waktu tidak diisi
+
+            // Convert time string to minutes for comparison
+            function timeToMinutes(t) {
+                if (!t) return 0;
+                var parts = t.split(':');
+                return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            }
+
+            var s1 = timeToMinutes(start1);
+            var e1 = end1 ? timeToMinutes(end1) : s1 + 120; // Default 2 jam jika tidak ada waktu selesai
+            var s2 = timeToMinutes(start2);
+            var e2 = end2 ? timeToMinutes(end2) : s2 + 120;
+
+            // Check overlap: !(end1 <= start2 || end2 <= start1)
+            return !(e1 <= s2 || e2 <= s1);
+        }
+
+        // Fungsi untuk cek duplikasi jadwal
+        async function checkDuplicateSchedule(wilayahId, tanggal, waktuMulai, waktuSelesai, excludeId) {
+            try {
+                // Ambil semua pengajian di wilayah dan tanggal yang sama
+                var result = await db.from('pengajian')
+                    .select('id, waktu_mulai, waktu_selesai, materi')
+                    .eq('wilayah_id', wilayahId)
+                    .eq('tanggal', tanggal);
+
+                if (result.error) throw result.error;
+
+                var existingSchedules = result.data || [];
+
+                // Filter out the current record if editing
+                if (excludeId) {
+                    existingSchedules = existingSchedules.filter(function(p) {
+                        return p.id != excludeId;
+                    });
+                }
+
+                // Check for overlap with any existing schedule
+                for (var i = 0; i < existingSchedules.length; i++) {
+                    var existing = existingSchedules[i];
+                    if (isTimeOverlap(waktuMulai, waktuSelesai, existing.waktu_mulai, existing.waktu_selesai)) {
+                        return {
+                            isDuplicate: true,
+                            existingSchedule: existing
+                        };
+                    }
+                }
+
+                return { isDuplicate: false };
+            } catch (error) {
+                console.error('Error checking duplicate:', error);
+                return { isDuplicate: false }; // Allow save if check fails
+            }
         }
 
         async function savePengajian(e) {
             e.preventDefault();
             var id = $('pengajianId').value;
             var wilayahId = $('formWilayah').value;
+            var tanggal = $('formTanggal').value;
+            var waktuMulai = $('formWaktuMulai').value || null;
+            var waktuSelesai = $('formWaktuSelesai').value || null;
+            var jenisKelamin = $('formJenisKelamin').value || null;
+
+            // Validasi duplikasi jadwal (overlap waktu)
+            var duplicateCheck = await checkDuplicateSchedule(wilayahId, tanggal, waktuMulai, waktuSelesai, id);
+            if (duplicateCheck.isDuplicate) {
+                var existingInfo = duplicateCheck.existingSchedule;
+                var waktuInfo = existingInfo.waktu_mulai ?
+                    ' (jam ' + existingInfo.waktu_mulai.substring(0,5) + ')' : '';
+                showToast('Jadwal pengajian untuk tanggal ini sudah ada' + waktuInfo + '. Silakan pilih waktu lain.', 'error');
+                return;
+            }
 
             var data = {
                 wilayah_id: wilayahId,
-                tanggal: $('formTanggal').value,
-                waktu_mulai: $('formWaktuMulai').value || null,
-                waktu_selesai: $('formWaktuSelesai').value || null,
+                tanggal: tanggal,
+                waktu_mulai: waktuMulai,
+                waktu_selesai: waktuSelesai,
                 materi: $('formMateri').value || null,
+                jenis_kelamin: jenisKelamin,
                 keterangan: $('formKeterangan').value || null
             };
 
