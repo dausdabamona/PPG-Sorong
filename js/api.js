@@ -1591,7 +1591,7 @@ const masterApi = {
      */
     getMateri: async function(filters = {}) {
         try {
-            let query = db.from('materi_item').select('*, kategori:kategori_id(id, kode, nama)');
+            let query = db.from('materi_item').select('*, kategori:kategori_materi(id, kode, nama)');
 
             if (filters.kategori_id) {
                 query = query.eq('kategori_id', safeInt(filters.kategori_id));
