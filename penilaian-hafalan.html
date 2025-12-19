@@ -181,6 +181,10 @@
         let selectedMateri = null;
         let selectedStatus = 'belum';
 
+        // Role-based filtering variables
+        var allWilayah = [];
+        var accessibleWilayahIds = [];
+
         // $ sudah didefinisikan di utils.js
 
         function toggleSidebar() {
@@ -189,7 +193,7 @@
             if (sidebar) sidebar.classList.toggle('show');
             if (overlay) overlay.classList.toggle('show');
         }
-        
+
         function showToast(msg, duration) {
             duration = duration || 2000;
             var toast = $('toast');
@@ -199,9 +203,20 @@
                 setTimeout(function() { toast.style.display = 'none'; }, duration);
             }
         }
-        
+
+        async function loadWilayahData() {
+            try {
+                var result = await db.from('wilayah').select('*').order('nama');
+                allWilayah = result.data || [];
+                accessibleWilayahIds = getAccessibleWilayahIds(allWilayah);
+            } catch (e) {
+                console.error('Error load wilayah:', e);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             if (!await requireAuth()) return;
+            await loadWilayahData();
             await loadGenerus();
             await loadMateri();
             
@@ -230,6 +245,19 @@
                 // Gunakan getFromView yang mengakses v_generus_aktif view
                 var data = await generusApi.getFromView({});
                 allGenerus = data || [];
+
+                // Filter berdasarkan role wilayah
+                if (!isAdmin() && accessibleWilayahIds.length > 0) {
+                    // Get kelompok IDs only
+                    var kelompokIds = allWilayah.filter(function(w) {
+                        return w.tingkat === 'kelompok' && accessibleWilayahIds.indexOf(w.id) !== -1;
+                    }).map(function(w) { return w.id; });
+
+                    allGenerus = allGenerus.filter(function(g) {
+                        return kelompokIds.indexOf(g.kelompok_id) !== -1;
+                    });
+                }
+
                 renderGenerus(allGenerus);
             } catch (e) {
                 console.error('Error load generus:', e);
