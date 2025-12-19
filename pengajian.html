@@ -742,8 +742,8 @@
 
         // Fungsi untuk cek apakah dua waktu overlap
         function isTimeOverlap(start1, end1, start2, end2) {
-            // Jika tidak ada waktu, anggap tidak overlap (default 1 hari penuh)
-            if (!start1 || !start2) return true; // Dianggap overlap jika waktu tidak diisi
+            // Jika salah satu waktu tidak diisi, anggap TIDAK overlap (bisa buat pengajian berbeda)
+            if (!start1 || !start2) return false;
 
             // Convert time string to minutes for comparison
             function timeToMinutes(t) {
@@ -842,12 +842,10 @@
             };
 
             console.log('Saving pengajian with data:', data);
-            alert('DEBUG: Menyimpan dengan jenjang_ids = ' + JSON.stringify(selectedJenjang));
 
             try {
                 if (id) {
                     var success = await pengajianApi.update(id, data);
-                    console.log('Update result:', success);
                     if (success) { showToast('Berhasil diupdate!', 'success'); }
                 } else {
                     var result = await pengajianApi.create(data);
