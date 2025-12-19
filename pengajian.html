@@ -223,6 +223,10 @@
                     </div>
                     <div class="form-group"><label class="form-label">Materi</label><input type="text" class="form-control" id="formMateri" placeholder="Topik pengajian"></div>
                     <div class="form-group">
+                        <label class="form-label">Jenjang * <small class="text-muted">(pilih satu atau lebih)</small></label>
+                        <div id="formJenjangList" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Peserta</label>
                         <select class="form-control" id="formJenisKelamin">
                             <option value="">Semua (Laki-laki & Perempuan)</option>
@@ -230,7 +234,7 @@
                             <option value="P">Perempuan saja (Akhwat)</option>
                         </select>
                     </div>
-                    <div class="form-group"><label class="form-label">Keterangan</label><input type="text" class="form-control" id="formKeterangan" placeholder="Contoh: Gabungan PAUD-Praremaja, Kuliah Umum, dll"></div>
+                    <div class="form-group"><label class="form-label">Keterangan</label><input type="text" class="form-control" id="formKeterangan" placeholder="Contoh: Kuliah Umum, Pengajian Gabungan, dll"></div>
                     <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
                 </form>
             </div>
@@ -375,14 +379,17 @@
                 var jenjangHtml = '<option value="">Semua</option>';
                 var jenjangHtml2 = '<option value="">-- Pilih --</option>';
                 var jenjangCheckboxHtml = '';
+                var formJenjangCheckboxHtml = '';
                 allJenjang.forEach(function(j) {
                     jenjangHtml += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>';
                     jenjangHtml2 += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>';
                     jenjangCheckboxHtml += '<label class="jenjang-check"><input type="checkbox" name="rutinJenjang" value="' + j.id + '"><span>' + escapeHtml(j.nama) + '</span></label>';
+                    formJenjangCheckboxHtml += '<label class="jenjang-check"><input type="checkbox" name="formJenjang" value="' + j.id + '"><span>' + escapeHtml(j.nama) + '</span></label>';
                 });
                 if ($('filterJenjang')) $('filterJenjang').innerHTML = jenjangHtml;
                 if ($('formJenjang')) $('formJenjang').innerHTML = jenjangHtml2;
                 if ($('rutinJenjangList')) $('rutinJenjangList').innerHTML = jenjangCheckboxHtml;
+                if ($('formJenjangList')) $('formJenjangList').innerHTML = formJenjangCheckboxHtml;
 
                 // Load user wilayah dan tentukan tingkat role
                 if (!isAdmin()) {
@@ -629,6 +636,9 @@
             $('pengajianForm').reset();
             $('formTanggal').value = new Date().toISOString().split('T')[0];
 
+            // Reset semua jenjang checkbox
+            document.querySelectorAll('input[name="formJenjang"]').forEach(function(cb) { cb.checked = false; });
+
             // Untuk non-admin: hide tingkat/wilayah, auto-set dari role
             if (!isAdmin() && userTingkat && userWilayahList && userWilayahList.length > 0) {
                 $('formTingkatGroup').style.display = 'none';
@@ -685,6 +695,19 @@
             $('formMateri').value = p.materi || '';
             $('formJenisKelamin').value = p.jenis_kelamin || '';
             $('formKeterangan').value = p.keterangan || '';
+
+            // Set jenjang checkboxes
+            document.querySelectorAll('input[name="formJenjang"]').forEach(function(cb) { cb.checked = false; });
+            if (p.jenjang_ids) {
+                var jenjangIds = [];
+                try {
+                    jenjangIds = typeof p.jenjang_ids === 'string' ? JSON.parse(p.jenjang_ids) : p.jenjang_ids;
+                } catch(e) { jenjangIds = []; }
+                jenjangIds.forEach(function(jid) {
+                    var cb = document.querySelector('input[name="formJenjang"][value="' + jid + '"]');
+                    if (cb) cb.checked = true;
+                });
+            }
 
             showModal('pengajianModal');
         }
@@ -757,6 +780,18 @@
             var waktuSelesai = $('formWaktuSelesai').value || null;
             var jenisKelamin = $('formJenisKelamin').value || null;
 
+            // Get selected jenjang IDs
+            var selectedJenjang = [];
+            document.querySelectorAll('input[name="formJenjang"]:checked').forEach(function(cb) {
+                selectedJenjang.push(parseInt(cb.value));
+            });
+
+            // Validasi minimal satu jenjang dipilih
+            if (selectedJenjang.length === 0) {
+                showToast('Pilih minimal satu jenjang!', 'error');
+                return;
+            }
+
             // Validasi duplikasi jadwal (overlap waktu)
             var duplicateCheck = await checkDuplicateSchedule(wilayahId, tanggal, waktuMulai, waktuSelesai, id);
             if (duplicateCheck.isDuplicate) {
@@ -774,6 +809,7 @@
                 waktu_selesai: waktuSelesai,
                 materi: $('formMateri').value || null,
                 jenis_kelamin: jenisKelamin,
+                jenjang_ids: JSON.stringify(selectedJenjang),
                 keterangan: $('formKeterangan').value || null
             };
 
