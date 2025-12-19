@@ -233,6 +233,13 @@
                     </div>
                     <div class="form-group"><label class="form-label">Nama *</label><input type="text" class="form-control" id="materiNama" required></div>
                     <div class="form-group"><label class="form-label">Tipe</label><input type="text" class="form-control" id="materiTipe"></div>
+                    <div class="form-group">
+                        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+                            <input type="checkbox" id="materiIsHafalan">
+                            <span>Materi Hafalan</span>
+                        </label>
+                        <small class="text-muted">Centang jika materi ini untuk penilaian hafalan (surat, doa, dalil)</small>
+                    </div>
                     <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
                 </form>
             </div>
@@ -368,7 +375,7 @@
                 if (r1.error) throw r1.error;
                 allKategori = r1.data || [];
                 
-                var r2 = await db.from('materi_item').select('id, kode, nama, nomor, tipe, kategori_id, kategori:kategori_materi(id, nama, teknik_penilaian, pilar_trisukses)').order('nomor');
+                var r2 = await db.from('materi_item').select('id, kode, nama, nomor, tipe, is_hafalan, kategori_id, kategori:kategori_materi(id, nama, teknik_penilaian, pilar_trisukses)').order('nomor');
                 if (r2.error) throw r2.error;
                 allMateri = r2.data || [];
                 
@@ -614,11 +621,12 @@
             $('materiNomor').value = m.nomor || '';
             $('materiNama').value = m.nama || '';
             $('materiTipe').value = m.tipe || '';
+            $('materiIsHafalan').checked = m.is_hafalan || false;
         }
         async function saveMateri(e) {
             e.preventDefault(); if (!guardEdit('saveMateri')) return;
             var id = $('materiId').value;
-            var data = { kategori_id: parseInt($('materiKategori').value) || null, kode: $('materiKode').value || null, nomor: parseInt($('materiNomor').value) || null, nama: $('materiNama').value, tipe: $('materiTipe').value || null };
+            var data = { kategori_id: parseInt($('materiKategori').value) || null, kode: $('materiKode').value || null, nomor: parseInt($('materiNomor').value) || null, nama: $('materiNama').value, tipe: $('materiTipe').value || null, is_hafalan: $('materiIsHafalan').checked };
             try {
                 var r = id ? await db.from('materi_item').update(data).eq('id', parseInt(id)) : await db.from('materi_item').insert(data);
                 if (r.error) throw r.error;

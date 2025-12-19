@@ -172,12 +172,6 @@
     <script src="js/api.js"></script>
     
     <script>
-        // Kategori ID untuk hafalan (dari kategori_materi)
-        var KATEGORI_HAFALAN = {
-            SURAT: { id: 60, nama: 'Hafalan Surat' },
-            DOA: { id: 61, nama: 'Hafalan Doa' }
-        };
-
         let allGenerus = [];
         let selectedJamaah = null;
         let materiSurat = [];
@@ -272,26 +266,26 @@
         
         async function loadMateri() {
             try {
-                // Load materi hafalan dengan filter kategori_id
-                var kategoriIds = [KATEGORI_HAFALAN.SURAT.id, KATEGORI_HAFALAN.DOA.id];
-
+                // Load dari view v_materi_hafalan
                 var result = await db
-                    .from('materi_item')
+                    .from('v_materi_hafalan')
                     .select('*')
-                    .in('kategori_id', kategoriIds)
-                    .order('kategori_id')
+                    .order('kategori_nama')
                     .order('nomor');
 
                 if (result.error) throw result.error;
 
                 var materiData = result.data || [];
+                console.log('Materi hafalan dari view:', materiData);
 
-                // Filter per kategori
+                // Filter per kategori berdasarkan nama
                 materiSurat = materiData.filter(function(m) {
-                    return m.kategori_id === KATEGORI_HAFALAN.SURAT.id;
+                    var kat = (m.kategori_nama || '').toLowerCase();
+                    return kat.includes('surat');
                 });
                 materiDoa = materiData.filter(function(m) {
-                    return m.kategori_id === KATEGORI_HAFALAN.DOA.id;
+                    var kat = (m.kategori_nama || '').toLowerCase();
+                    return kat.includes('doa') || kat.includes('asmaul');
                 });
 
                 console.log('Materi loaded - Surat:', materiSurat.length, 'Doa:', materiDoa.length);
