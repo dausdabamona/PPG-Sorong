@@ -256,7 +256,40 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Modal Import Materi -->
+    <div class="modal" id="importMateriModal">
+        <div class="modal-content" style="max-width:600px;">
+            <div class="modal-header">
+                <h3 id="importMateriTitle">Import Materi ke Kategori</h3>
+                <button class="modal-close" onclick="hideModal('importMateriModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="importTargetKategoriId">
+                <div class="form-group">
+                    <label class="form-label">Pilih Kategori Sumber:</label>
+                    <select class="form-control" id="importSourceKategori" onchange="loadMateriForImport()">
+                        <option value="">-- Pilih Kategori --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cari Materi:</label>
+                    <input type="text" class="form-control" id="searchImportMateri" placeholder="Ketik nama materi..." oninput="filterImportMateri()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pilih Materi untuk Import:</label>
+                    <div id="importMateriList" style="max-height:300px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:0.5rem;padding:0.5rem;">
+                        <div class="text-center text-muted py-3">Pilih kategori sumber terlebih dahulu</div>
+                    </div>
+                </div>
+                <div id="selectedImportCount" style="margin-top:0.5rem;font-size:0.85rem;color:#6b7280;">
+                    Terpilih: <strong>0</strong> materi
+                </div>
+                <button class="btn btn-primary w-100 mt-lg" onclick="importSelectedMateri()">📥 Import Materi Terpilih</button>
+            </div>
+        </div>
+    </div>
+
     <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -426,6 +459,7 @@
                 if (canEditKurikulum) {
                     html += '<button class="btn btn-sm btn-outline editable" onclick="editKategori(' + k.id + ')">✏️</button>';
                     html += '<button class="btn btn-sm btn-danger editable" onclick="deleteKategori(' + k.id + ')">🗑️</button>';
+                    html += '<button class="btn btn-sm btn-primary editable" onclick="showImportMateriModal(' + k.id + ', \'' + escapeHtml(k.nama) + '\')">📥 Import</button>';
                 }
                 html += '</div>';
                 if (mList.length) {
@@ -626,6 +660,149 @@
             if (!guardEdit('deleteBidang')) return;
             if (!confirm('Hapus bidang ini?')) return;
             try { var r = await db.from('bidang').delete().eq('id', id); if (r.error) throw r.error; showToast('Dihapus', 'success'); await loadAllData(); } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+        }
+
+        // Import Materi Functions
+        var importMateriData = [];
+
+        function showImportMateriModal(kategoriId, kategoriNama) {
+            if (!guardEdit('showImportMateriModal')) return;
+
+            // Set target kategori
+            $('importTargetKategoriId').value = kategoriId;
+            $('importMateriTitle').textContent = 'Import Materi ke: ' + kategoriNama;
+
+            // Populate source kategori dropdown (exclude target kategori)
+            var opts = '<option value="">-- Pilih Kategori Sumber --</option>';
+            allKategori.forEach(function(k) {
+                if (k.id !== kategoriId) {
+                    var count = allMateri.filter(function(m) { return m.kategori_id === k.id; }).length;
+                    opts += '<option value="' + k.id + '">' + escapeHtml(k.nama) + ' (' + count + ' materi)</option>';
+                }
+            });
+            $('importSourceKategori').innerHTML = opts;
+
+            // Reset state
+            $('searchImportMateri').value = '';
+            importMateriData = [];
+            $('importMateriList').innerHTML = '<div class="text-center text-muted py-3">Pilih kategori sumber terlebih dahulu</div>';
+            updateSelectedImportCount();
+
+            showModal('importMateriModal');
+        }
+
+        function loadMateriForImport() {
+            var sourceId = parseInt($('importSourceKategori').value);
+            if (!sourceId) {
+                $('importMateriList').innerHTML = '<div class="text-center text-muted py-3">Pilih kategori sumber terlebih dahulu</div>';
+                importMateriData = [];
+                return;
+            }
+
+            // Get materi from source kategori
+            importMateriData = allMateri.filter(function(m) { return m.kategori_id === sourceId; });
+            importMateriData.sort(function(a, b) { return (a.nomor || 0) - (b.nomor || 0); });
+
+            renderImportMateriList();
+        }
+
+        function renderImportMateriList() {
+            var search = ($('searchImportMateri').value || '').toLowerCase();
+            var filtered = importMateriData.filter(function(m) {
+                if (search && (m.nama || '').toLowerCase().indexOf(search) === -1) return false;
+                return true;
+            });
+
+            if (!filtered.length) {
+                $('importMateriList').innerHTML = '<div class="text-center text-muted py-3">Tidak ada materi ditemukan</div>';
+                return;
+            }
+
+            var html = '';
+            filtered.forEach(function(m) {
+                html += '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem;border-bottom:1px solid #f3f4f6;cursor:pointer;">';
+                html += '<input type="checkbox" class="import-materi-cb" value="' + m.id + '" data-nama="' + escapeHtml(m.nama) + '" data-tipe="' + (m.tipe || '') + '" onchange="updateSelectedImportCount()">';
+                html += '<span style="flex:1;font-size:0.9rem;">' + escapeHtml(m.nama) + '</span>';
+                if (m.tipe) html += '<span style="font-size:0.75rem;background:#e5e7eb;padding:0.1rem 0.4rem;border-radius:0.25rem;">' + m.tipe + '</span>';
+                html += '</label>';
+            });
+
+            // Add select all checkbox
+            var selectAllHtml = '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem;background:#f0fdf4;border-bottom:2px solid #059669;cursor:pointer;font-weight:600;">';
+            selectAllHtml += '<input type="checkbox" id="selectAllImport" onchange="toggleSelectAllImport()">';
+            selectAllHtml += '<span>Pilih Semua (' + filtered.length + ' materi)</span></label>';
+
+            $('importMateriList').innerHTML = selectAllHtml + html;
+        }
+
+        function filterImportMateri() {
+            renderImportMateriList();
+        }
+
+        function toggleSelectAllImport() {
+            var selectAll = $('selectAllImport').checked;
+            document.querySelectorAll('.import-materi-cb').forEach(function(cb) {
+                cb.checked = selectAll;
+            });
+            updateSelectedImportCount();
+        }
+
+        function updateSelectedImportCount() {
+            var count = document.querySelectorAll('.import-materi-cb:checked').length;
+            $('selectedImportCount').innerHTML = 'Terpilih: <strong>' + count + '</strong> materi';
+        }
+
+        async function importSelectedMateri() {
+            if (!guardEdit('importSelectedMateri')) return;
+
+            var targetKategoriId = parseInt($('importTargetKategoriId').value);
+            if (!targetKategoriId) {
+                showToast('Kategori tujuan tidak valid', 'error');
+                return;
+            }
+
+            var selected = [];
+            document.querySelectorAll('.import-materi-cb:checked').forEach(function(cb) {
+                selected.push({
+                    id: parseInt(cb.value),
+                    nama: cb.getAttribute('data-nama'),
+                    tipe: cb.getAttribute('data-tipe')
+                });
+            });
+
+            if (!selected.length) {
+                showToast('Pilih minimal satu materi untuk di-import', 'warning');
+                return;
+            }
+
+            // Get next nomor for target kategori
+            var existingInTarget = allMateri.filter(function(m) { return m.kategori_id === targetKategoriId; });
+            var maxNomor = 0;
+            existingInTarget.forEach(function(m) {
+                if ((m.nomor || 0) > maxNomor) maxNomor = m.nomor;
+            });
+
+            // Prepare new materi items (copy, not move)
+            var newItems = selected.map(function(s, idx) {
+                return {
+                    kategori_id: targetKategoriId,
+                    nama: s.nama,
+                    tipe: s.tipe || null,
+                    nomor: maxNomor + idx + 1
+                };
+            });
+
+            try {
+                var r = await db.from('materi_item').insert(newItems);
+                if (r.error) throw r.error;
+
+                showToast('Berhasil import ' + selected.length + ' materi!', 'success');
+                hideModal('importMateriModal');
+                await loadAllData();
+            } catch (e) {
+                console.error(e);
+                showToast('Gagal import: ' + e.message, 'error');
+            }
         }
     </script>
 </body>
