@@ -68,6 +68,12 @@
         .member-item { display: flex; align-items: center; padding: 0.65rem 1rem; border-bottom: 1px solid rgba(0,0,0,0.05); gap: 0.75rem; transition: background 0.2s; }
         .member-item:last-child { border-bottom: none; }
         .member-no { width: 26px; height: 26px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: #6b7280; flex-shrink: 0; font-weight: 600; }
+
+        /* Generus tanpa orang tua - warna kuning/warning */
+        .member-item.no-parent { background: #fef9c3 !important; border-left-color: #eab308 !important; }
+        .member-item.no-parent:hover { background: #fef08a !important; }
+        .member-item.no-parent .member-no { background: #fde047; color: #854d0e; }
+        .no-parent-badge { background: #eab308; color: white; font-size: 0.6rem; padding: 0.1rem 0.35rem; border-radius: 0.25rem; margin-left: 0.25rem; white-space: nowrap; }
         .member-avatar { font-size: 1.4rem; }
         .member-info { flex: 1; min-width: 0; }
         .member-name { font-weight: 500; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1f2937; }
@@ -867,7 +873,10 @@
                         group.putra.sort(function(a, b) { return (a.nama || '').localeCompare(b.nama || ''); });
                         group.putra.forEach(function(m, idx) {
                             var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
+                            var hasParent = m.ayah_id || m.ibu_id || m.ayah_nama || m.ibu_nama;
+                            var noParentClass = hasParent ? '' : ' no-parent';
                             var parentInfo = '';
+                            var noParentBadge = '';
                             if (m.ayah_nama || m.ibu_nama) {
                                 var parents = [];
                                 if (m.ayah_nama) parents.push('Ayah: ' + m.ayah_nama);
@@ -875,13 +884,16 @@
                                 parentInfo = ' • 👨‍👩‍👧 ' + parents.join(', ');
                             } else if (m.ayah_id || m.ibu_id) {
                                 parentInfo = ' • 👨‍👩‍👧';
+                            } else {
+                                noParentBadge = '<span class="no-parent-badge">Belum ada ortu</span>';
                             }
-                            html += '<div class="member-item putra-item">';
+                            html += '<div class="member-item putra-item' + noParentClass + '">';
                             html += '<div class="member-no">' + (idx + 1) + '</div>';
                             html += '<div class="member-avatar putra-avatar">🧔</div>';
                             html += '<div class="member-info">';
                             html += '<div class="member-name">' + escapeHtml(m.nama || '-');
                             if (m.nama_panggilan) html += ' <small>(' + escapeHtml(m.nama_panggilan) + ')</small>';
+                            html += noParentBadge;
                             html += '</div>';
                             html += '<div class="member-meta">' + umur + ' tahun' + parentInfo + '</div>';
                             html += '</div>';
@@ -921,7 +933,10 @@
                         group.putri.sort(function(a, b) { return (a.nama || '').localeCompare(b.nama || ''); });
                         group.putri.forEach(function(m, idx) {
                             var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
+                            var hasParent = m.ayah_id || m.ibu_id || m.ayah_nama || m.ibu_nama;
+                            var noParentClass = hasParent ? '' : ' no-parent';
                             var parentInfo = '';
+                            var noParentBadge = '';
                             if (m.ayah_nama || m.ibu_nama) {
                                 var parents = [];
                                 if (m.ayah_nama) parents.push('Ayah: ' + m.ayah_nama);
@@ -929,13 +944,16 @@
                                 parentInfo = ' • 👨‍👩‍👧 ' + parents.join(', ');
                             } else if (m.ayah_id || m.ibu_id) {
                                 parentInfo = ' • 👨‍👩‍👧';
+                            } else {
+                                noParentBadge = '<span class="no-parent-badge">Belum ada ortu</span>';
                             }
-                            html += '<div class="member-item putri-item">';
+                            html += '<div class="member-item putri-item' + noParentClass + '">';
                             html += '<div class="member-no">' + (idx + 1) + '</div>';
                             html += '<div class="member-avatar putri-avatar">🧕</div>';
                             html += '<div class="member-info">';
                             html += '<div class="member-name">' + escapeHtml(m.nama || '-');
                             if (m.nama_panggilan) html += ' <small>(' + escapeHtml(m.nama_panggilan) + ')</small>';
+                            html += noParentBadge;
                             html += '</div>';
                             html += '<div class="member-meta">' + umur + ' tahun' + parentInfo + '</div>';
                             html += '</div>';
