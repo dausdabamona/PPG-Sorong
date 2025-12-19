@@ -2182,5 +2182,293 @@ window.jadwalRutinApi = jadwalRutinApi;
 window.tanggalSkipApi = tanggalSkipApi;
 window.jenjangApi = jenjangApi;
 
+// ============================================================================
+// ROLE PERMISSION API
+// ============================================================================
+
+const rolePermissionApi = {
+    /**
+     * Get semua resource
+     * @returns {Promise<Array>}
+     */
+    getResources: async function() {
+        try {
+            const { data, error } = await db
+                .from('resource')
+                .select('*')
+                .eq('is_aktif', true)
+                .order('urutan');
+
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat resource');
+            return [];
+        }
+    },
+
+    /**
+     * Get semua permission dengan role dan resource info
+     * @returns {Promise<Array>}
+     */
+    getAllPermissions: async function() {
+        try {
+            const { data, error } = await db
+                .from('v_role_permission')
+                .select('*');
+
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat permission');
+            return [];
+        }
+    },
+
+    /**
+     * Get permission by role
+     * @param {number} roleId
+     * @returns {Promise<Array>}
+     */
+    getByRole: async function(roleId) {
+        try {
+            const { data, error } = await db
+                .from('v_role_permission')
+                .select('*')
+                .eq('role_id', safeInt(roleId));
+
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat permission role');
+            return [];
+        }
+    },
+
+    /**
+     * Get permission matrix (role x resource)
+     * @returns {Promise<Object>} { roles: [], resources: [], matrix: {} }
+     */
+    getMatrix: async function() {
+        try {
+            // Get all roles
+            const { data: roles } = await db
+                .from('role')
+                .select('*')
+                .order('level');
+
+            // Get all resources
+            const { data: resources } = await db
+                .from('resource')
+                .select('*')
+                .eq('is_aktif', true)
+                .order('urutan');
+
+            // Get all permissions
+            const { data: permissions } = await db
+                .from('role_permission')
+                .select('*');
+
+            // Build matrix
+            const matrix = {};
+            (permissions || []).forEach(p => {
+                const key = `${p.role_id}_${p.resource_id}`;
+                matrix[key] = {
+                    can_view: p.can_view,
+                    can_create: p.can_create,
+                    can_edit: p.can_edit,
+                    can_delete: p.can_delete
+                };
+            });
+
+            return {
+                roles: roles || [],
+                resources: resources || [],
+                matrix: matrix
+            };
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat matrix permission');
+            return { roles: [], resources: [], matrix: {} };
+        }
+    },
+
+    /**
+     * Update atau create permission
+     * @param {number} roleId
+     * @param {number} resourceId
+     * @param {Object} permissions - { can_view, can_create, can_edit, can_delete }
+     * @returns {Promise<boolean>}
+     */
+    upsert: async function(roleId, resourceId, permissions) {
+        try {
+            const payload = {
+                role_id: safeInt(roleId),
+                resource_id: safeInt(resourceId),
+                can_view: permissions.can_view || false,
+                can_create: permissions.can_create || false,
+                can_edit: permissions.can_edit || false,
+                can_delete: permissions.can_delete || false,
+                updated_at: new Date().toISOString()
+            };
+
+            const { error } = await db
+                .from('role_permission')
+                .upsert(payload, { onConflict: 'role_id,resource_id' });
+
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menyimpan permission');
+            return false;
+        }
+    },
+
+    /**
+     * Bulk update permissions untuk satu role
+     * @param {number} roleId
+     * @param {Array} permissions - [{ resource_id, can_view, can_create, can_edit, can_delete }]
+     * @returns {Promise<boolean>}
+     */
+    bulkUpdate: async function(roleId, permissions) {
+        try {
+            const payloads = permissions.map(p => ({
+                role_id: safeInt(roleId),
+                resource_id: safeInt(p.resource_id),
+                can_view: p.can_view || false,
+                can_create: p.can_create || false,
+                can_edit: p.can_edit || false,
+                can_delete: p.can_delete || false,
+                updated_at: new Date().toISOString()
+            }));
+
+            const { error } = await db
+                .from('role_permission')
+                .upsert(payloads, { onConflict: 'role_id,resource_id' });
+
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menyimpan permissions');
+            return false;
+        }
+    },
+
+    /**
+     * Delete permission
+     * @param {number} roleId
+     * @param {number} resourceId
+     * @returns {Promise<boolean>}
+     */
+    delete: async function(roleId, resourceId) {
+        try {
+            const { error } = await db
+                .from('role_permission')
+                .delete()
+                .eq('role_id', safeInt(roleId))
+                .eq('resource_id', safeInt(resourceId));
+
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal menghapus permission');
+            return false;
+        }
+    },
+
+    /**
+     * Get user permissions berdasarkan semua role-nya
+     * @param {number} userId
+     * @returns {Promise<Object>} { resource_kode: { can_view, can_create, can_edit, can_delete } }
+     */
+    getUserPermissions: async function(userId) {
+        try {
+            const { data, error } = await db.rpc('get_user_permissions', {
+                p_user_id: safeInt(userId)
+            });
+
+            if (error) throw error;
+
+            // Convert to object map
+            const permMap = {};
+            (data || []).forEach(p => {
+                permMap[p.resource_kode] = {
+                    can_view: p.can_view,
+                    can_create: p.can_create,
+                    can_edit: p.can_edit,
+                    can_delete: p.can_delete
+                };
+            });
+
+            return permMap;
+        } catch (error) {
+            handleApiError(error, 'Gagal memuat user permissions');
+            return {};
+        }
+    },
+
+    /**
+     * Reset permission role ke default
+     * @param {number} roleId
+     * @returns {Promise<boolean>}
+     */
+    resetToDefault: async function(roleId) {
+        try {
+            // Hapus semua permission untuk role ini
+            await db.from('role_permission').delete().eq('role_id', safeInt(roleId));
+
+            showToast('Permission role telah direset', 'info');
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal reset permission');
+            return false;
+        }
+    },
+
+    /**
+     * Copy permission dari role lain
+     * @param {number} sourceRoleId
+     * @param {number} targetRoleId
+     * @returns {Promise<boolean>}
+     */
+    copyFromRole: async function(sourceRoleId, targetRoleId) {
+        try {
+            // Get source permissions
+            const { data: sourcePerms } = await db
+                .from('role_permission')
+                .select('*')
+                .eq('role_id', safeInt(sourceRoleId));
+
+            if (!sourcePerms || sourcePerms.length === 0) {
+                showToast('Role sumber tidak memiliki permission', 'warning');
+                return false;
+            }
+
+            // Prepare target payloads
+            const payloads = sourcePerms.map(p => ({
+                role_id: safeInt(targetRoleId),
+                resource_id: p.resource_id,
+                can_view: p.can_view,
+                can_create: p.can_create,
+                can_edit: p.can_edit,
+                can_delete: p.can_delete,
+                updated_at: new Date().toISOString()
+            }));
+
+            // Upsert to target role
+            const { error } = await db
+                .from('role_permission')
+                .upsert(payloads, { onConflict: 'role_id,resource_id' });
+
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            handleApiError(error, 'Gagal copy permission');
+            return false;
+        }
+    }
+};
+
+window.rolePermissionApi = rolePermissionApi;
+
 // Export helper juga
 window.safeInt = safeInt;

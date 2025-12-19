@@ -57,9 +57,13 @@ function getSidebarHTML(activePage = '') {
                     <span class="nav-icon">👥</span>
                     <span class="nav-text">Data Jamaah</span>
                 </a>
-                <a href="users.html" class="nav-item ${activePage === 'users' ? 'active' : ''}">
+                <a href="users.html" class="nav-item admin-only ${activePage === 'users' ? 'active' : ''}" style="display:none;">
                     <span class="nav-icon">👤</span>
                     <span class="nav-text">Manajemen User</span>
+                </a>
+                <a href="pengaturan-akses.html" class="nav-item admin-only ${activePage === 'pengaturan-akses' ? 'active' : ''}" style="display:none;">
+                    <span class="nav-icon">🔐</span>
+                    <span class="nav-text">Pengaturan Akses</span>
                 </a>
                 <a href="backup.html" class="nav-item admin-only ${activePage === 'backup' ? 'active' : ''}" style="display:none;">
                     <span class="nav-icon">💾</span>

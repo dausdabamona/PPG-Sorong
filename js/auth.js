@@ -6,6 +6,7 @@
 let currentUser = null;
 let currentUserData = null;
 let userRoles = [];
+let userPermissions = {}; // Permission dari database
 let isTestMode = false;
 let testActiveRole = null;
 
@@ -174,10 +175,117 @@ async function loadUserData() {
         
         if (rolesError) throw rolesError;
         userRoles = rolesData || [];
-        
+
+        // Load user permissions dari database
+        await loadUserPermissions();
+
     } catch (error) {
         console.error('Load user data error:', error);
     }
+}
+
+// Load user permissions dari database
+async function loadUserPermissions() {
+    if (!currentUserData) return;
+
+    try {
+        // Cek apakah tabel role_permission sudah ada
+        const { data, error } = await db
+            .from('role_permission')
+            .select(`
+                resource:resource_id(kode),
+                can_view, can_create, can_edit, can_delete
+            `)
+            .in('role_id', userRoles.map(ur => ur.role_id));
+
+        if (error) {
+            console.log('Permission table not ready, using fallback');
+            return;
+        }
+
+        // Merge permissions (OR logic untuk multiple roles)
+        userPermissions = {};
+        (data || []).forEach(p => {
+            const kode = p.resource?.kode;
+            if (!kode) return;
+
+            if (!userPermissions[kode]) {
+                userPermissions[kode] = {
+                    can_view: false,
+                    can_create: false,
+                    can_edit: false,
+                    can_delete: false
+                };
+            }
+
+            // OR logic - jika salah satu role punya permission, maka user punya permission
+            userPermissions[kode].can_view = userPermissions[kode].can_view || p.can_view;
+            userPermissions[kode].can_create = userPermissions[kode].can_create || p.can_create;
+            userPermissions[kode].can_edit = userPermissions[kode].can_edit || p.can_edit;
+            userPermissions[kode].can_delete = userPermissions[kode].can_delete || p.can_delete;
+        });
+
+        console.log('User permissions loaded:', userPermissions);
+    } catch (error) {
+        console.log('Load permissions error (fallback to hardcoded):', error.message);
+    }
+}
+
+// Cek permission dari database
+function hasPermission(resourceKode, action = 'view') {
+    // Admin selalu punya akses penuh
+    if (isAdmin()) return true;
+
+    const perm = userPermissions[resourceKode];
+    if (!perm) {
+        // Fallback ke permission hardcoded jika tidak ada di database
+        return checkHardcodedPermission(resourceKode, action);
+    }
+
+    switch (action) {
+        case 'view': return perm.can_view;
+        case 'create': return perm.can_create;
+        case 'edit': return perm.can_edit;
+        case 'delete': return perm.can_delete;
+        default: return false;
+    }
+}
+
+// Fallback ke permission hardcoded (untuk backward compatibility)
+function checkHardcodedPermission(resourceKode, action) {
+    // Mapping resource ke logic lama
+    const resourceMapping = {
+        'dashboard': 'dashboard',
+        'generus': 'jamaah',
+        'pengajian': 'pengajian',
+        'presensi': 'presensi',
+        'progress': 'progress',
+        'penilaian': 'progress',
+        'rapor': 'progress',
+        'laporan_bulanan': 'progress',
+        'wilayah': 'wilayah',
+        'kurikulum': 'kurikulum',
+        'materi_hafalan': 'kurikulum',
+        'jamaah': 'jamaah',
+        'users': 'user',
+        'pengaturan_akses': 'user',
+        'backup': 'user'
+    };
+
+    const mappedResource = resourceMapping[resourceKode] || resourceKode;
+
+    switch (action) {
+        case 'view': return canView(mappedResource);
+        case 'create': return canCreate(mappedResource);
+        case 'edit': return canEdit(mappedResource);
+        case 'delete': return canDelete(mappedResource);
+        default: return false;
+    }
+}
+
+// Get semua permission user (untuk cek di client side)
+function getUserPermissions() {
+    return userPermissions;
 }
 
 // Cek apakah user punya role tertentu
@@ -593,12 +701,16 @@ window.filterByWilayahAccess = filterByWilayahAccess;
 window.currentUser = currentUser;
 window.currentUserData = currentUserData;
 window.userRoles = userRoles;
+window.userPermissions = userPermissions;
 window.login = login;
 window.logout = logout;
 window.register = register;
 window.checkSession = checkSession;
 window.loadUserData = loadUserData;
+window.loadUserPermissions = loadUserPermissions;
 window.hasRole = hasRole;
+window.hasPermission = hasPermission;
+window.getUserPermissions = getUserPermissions;
 window.isAdmin = isAdmin;
 window.isMubaligh = isMubaligh;
 window.isOrangTua = isOrangTua;
