@@ -209,7 +209,7 @@
                 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
                 let query = db.from('pengajian')
-                    .select('id, tanggal, wilayah_id, wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)')
+                    .select('id, tanggal, materi, wilayah_id, wilayah:wilayah_id(nama)')
                     .gte('tanggal', thirtyDaysAgo.toISOString().split('T')[0])
                     .order('tanggal', { ascending: false });
 
@@ -224,7 +224,7 @@
 
                 const select = $('selectPengajian');
                 data?.forEach(p => {
-                    select.innerHTML += `<option value="${p.id}">${formatTanggalSingkat(p.tanggal)} - ${p.jenjang?.nama || '-'} - ${p.wilayah?.nama || '-'}</option>`;
+                    select.innerHTML += `<option value="${p.id}">${formatTanggalSingkat(p.tanggal)} - ${p.materi || 'Pengajian'} - ${p.wilayah?.nama || '-'}</option>`;
                 });
             } catch (error) {
                 console.error('Error:', error);
@@ -242,7 +242,7 @@
             try {
                 // Get pengajian detail
                 const { data: pengajian } = await db.from('pengajian')
-                    .select('*, wilayah:wilayah_id(id, nama), jenjang:jenjang_id(id, nama), creator:created_by(nama)')
+                    .select('*, wilayah:wilayah_id(id, nama), creator:created_by(nama)')
                     .eq('id', pengajianId)
                     .single();
                 
@@ -252,20 +252,15 @@
                 // Show info
                 $('pengajianInfo').style.display = 'block';
                 $('infoTanggal').textContent = formatTanggal(pengajian.tanggal);
-                $('infoJenis').textContent = pengajian.jenjang?.nama || '-';
+                $('infoJenis').textContent = pengajian.keterangan || 'Semua Jenjang';
                 $('infoKelompok').textContent = pengajian.wilayah?.nama || '-';
                 $('infoMubaligh').textContent = pengajian.creator?.nama || '-';
-                
-                // Get jamaah in this kelompok DAN jenjang yang sesuai
+
+                // Get ALL jamaah in this wilayah (tidak filter per jenjang)
                 var query = db.from('enrollment')
                     .select('jamaah:jamaah_id(id, nama, jenis_kelamin), jenjang:jenjang_id(id, nama)')
                     .eq('wilayah_id', pengajian.wilayah.id)
                     .eq('status', 'aktif');
-
-                // Filter berdasarkan jenjang pengajian jika ada
-                if (pengajian.jenjang?.id) {
-                    query = query.eq('jenjang_id', pengajian.jenjang.id);
-                }
 
                 const { data: enrollments } = await query;
 
@@ -304,9 +299,8 @@
             const tbody = $$('#presensiTable tbody');
 
             if (jamaahList.length === 0) {
-                var jenjangNama = currentPengajian?.jenjang?.nama || 'jenjang ini';
                 var wilayahNama = currentPengajian?.wilayah?.nama || 'kelompok ini';
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Tidak ada santri ' + jenjangNama + ' di ' + wilayahNama + '</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Tidak ada santri di ' + wilayahNama + '</td></tr>';
                 return;
             }
 
