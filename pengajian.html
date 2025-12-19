@@ -311,6 +311,7 @@
     <script src="js/sidebar.js"></script>
     <script>
         var allWilayah = [], allJenjang = [], pengajianData = [], rutinData = [];
+        var userWilayahList = []; // Wilayah yang dimiliki user (untuk role kelompok)
         var HARI_NAMA = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         var BULAN_NAMA = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
         
@@ -356,6 +357,22 @@
                 if ($('filterJenjang')) $('filterJenjang').innerHTML = jenjangHtml;
                 if ($('formJenjang')) $('formJenjang').innerHTML = jenjangHtml2;
                 if ($('rutinJenjangList')) $('rutinJenjangList').innerHTML = jenjangCheckboxHtml;
+
+                // Load user wilayah untuk role kelompok
+                if (!isAdmin()) {
+                    userWilayahList = [];
+                    var roles = await userRoleApi.getMyRoles();
+                    if (roles && roles.length > 0) {
+                        for (var i = 0; i < roles.length; i++) {
+                            var r = roles[i];
+                            if (r.wilayah_id) {
+                                var wInfo = allWilayah.find(function(w) { return w.id === r.wilayah_id; });
+                                if (wInfo) userWilayahList.push(wInfo);
+                            }
+                        }
+                    }
+                    console.log('User Wilayah List:', userWilayahList);
+                }
             } catch (error) { console.error('Error load master:', error); }
         }
         
@@ -368,6 +385,17 @@
             var select = $(selectId);
             if (!select) return;
             var filtered = tingkat ? allWilayah.filter(function(w) { return w.tingkat === tingkat; }) : allWilayah;
+
+            // Untuk role kelompok (bukan admin), batasi hanya wilayah yang dimiliki
+            var isFormSelect = selectId === 'rutinWilayah' || selectId === 'formWilayah';
+            if (isFormSelect && !isAdmin() && userWilayahList && userWilayahList.length > 0) {
+                // Filter hanya wilayah milik user
+                var userWilayahIds = userWilayahList.map(function(w) { return w.id; });
+                filtered = filtered.filter(function(w) {
+                    return userWilayahIds.indexOf(w.id) !== -1;
+                });
+            }
+
             var html = addAll ? '<option value="">Semua</option>' : '<option value="">-- Pilih --</option>';
             filtered.forEach(function(w) { html += '<option value="' + w.id + '">' + escapeHtml(w.nama + ' (' + w.tingkat + ')') + '</option>'; });
             select.innerHTML = html;
@@ -524,6 +552,21 @@
             $('pengajianForm').reset();
             $('formTanggal').value = new Date().toISOString().split('T')[0];
             $('formWilayah').innerHTML = '<option value="">-- Pilih Tingkat --</option>';
+
+            // Untuk role kelompok: auto-set tingkat dan wilayah
+            if (!isAdmin() && userWilayahList && userWilayahList.length > 0) {
+                $('formTingkat').value = 'kelompok';
+                $('formTingkat').disabled = true;
+                onFormTingkatChange();
+                if (userWilayahList.length === 1) {
+                    setTimeout(function() {
+                        $('formWilayah').value = userWilayahList[0].id;
+                    }, 50);
+                }
+            } else {
+                $('formTingkat').disabled = false;
+            }
+
             showModal('pengajianModal');
         }
         
@@ -628,6 +671,23 @@
             $('settingBulanan').style.display = 'none';
             // Reset semua jenjang checkbox
             document.querySelectorAll('input[name="rutinJenjang"]').forEach(function(cb) { cb.checked = false; });
+
+            // Untuk role kelompok: auto-set tingkat dan wilayah
+            if (!isAdmin() && userWilayahList && userWilayahList.length > 0) {
+                // Set tingkat ke kelompok dan disable pilihan lain
+                $('rutinTingkat').value = 'kelompok';
+                $('rutinTingkat').disabled = true; // Non-admin tidak bisa pilih tingkat lain
+                onRutinTingkatChange();
+                // Auto-select kelompok pertama jika hanya punya satu
+                if (userWilayahList.length === 1) {
+                    setTimeout(function() {
+                        $('rutinWilayah').value = userWilayahList[0].id;
+                    }, 50);
+                }
+            } else {
+                $('rutinTingkat').disabled = false;
+            }
+
             showModal('rutinModal');
         }
         
