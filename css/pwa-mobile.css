@@ -68,6 +68,13 @@
     display: none;
 }
 
+/* Desktop only - hide on mobile */
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+}
+
 /* ============================================================================
    PWA HEADER - Stats Banner
    ============================================================================ */
