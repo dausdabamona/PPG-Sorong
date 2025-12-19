@@ -147,7 +147,6 @@
                             </div>
                             <div class="filter-grid" style="margin-top:0.5rem;">
                                 <div><label class="form-label" style="font-size:0.7rem;">Wilayah</label><select class="form-control" id="filterWilayah" onchange="loadPengajian()"><option value="">Semua</option></select></div>
-                                <div><label class="form-label" style="font-size:0.7rem;">Jenjang</label><select class="form-control" id="filterJenjang" onchange="loadPengajian()"><option value="">Semua</option></select></div>
                             </div>
                         </div>
                     </div>
@@ -217,17 +216,13 @@
                         <label class="form-label">Wilayah</label>
                         <div style="padding:0.75rem;background:var(--primary-light);border-radius:var(--radius-md);font-weight:500;" id="formWilayahDisplay">-</div>
                     </div>
-                    <!-- Jenjang - multi-select checkboxes -->
-                    <div class="form-group">
-                        <label class="form-label">Jenjang * <small class="text-muted">(pilih satu atau lebih)</small></label>
-                        <div id="formJenjangList" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div>
-                    </div>
                     <div class="form-group"><label class="form-label">Tanggal *</label><input type="date" class="form-control" id="formTanggal" required></div>
                     <div class="form-row">
                         <div class="form-group"><label class="form-label">Waktu Mulai</label><input type="time" class="form-control" id="formWaktuMulai"></div>
                         <div class="form-group"><label class="form-label">Waktu Selesai</label><input type="time" class="form-control" id="formWaktuSelesai"></div>
                     </div>
                     <div class="form-group"><label class="form-label">Materi</label><input type="text" class="form-control" id="formMateri" placeholder="Topik pengajian"></div>
+                    <div class="form-group"><label class="form-label">Keterangan</label><input type="text" class="form-control" id="formKeterangan" placeholder="Contoh: Gabungan PAUD-Praremaja, Kuliah Umum, dll"></div>
                     <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
                 </form>
             </div>
@@ -451,7 +446,6 @@
                 var filters = {};
                 if (bulan) { var parts = bulan.split('-'); filters.tahun = parseInt(parts[0]); filters.bulan = parseInt(parts[1]); }
                 if ($('filterWilayah').value) filters.wilayah_id = $('filterWilayah').value;
-                if ($('filterJenjang').value) filters.jenjang_id = $('filterJenjang').value;
                 pengajianData = await pengajianApi.getAll(filters);
                 var tingkat = $('filterTingkat').value;
                 if (tingkat) pengajianData = pengajianData.filter(function(p) { return p.wilayah_tingkat === tingkat; });
@@ -545,7 +539,7 @@
                         // Sort by date and render items directly (no jenjang grouping)
                         items.sort(function(a, b) { return a.tanggal.localeCompare(b.tanggal); });
                         items.forEach(function(p) {
-                            html += renderPengajianItem(p, true); // true = show jenjang badge
+                            html += renderPengajianItem(p);
                         });
 
                         html += '</div></div>';
@@ -573,7 +567,7 @@
                         // Sort by date and render items directly (no jenjang grouping)
                         group.items.sort(function(a, b) { return a.tanggal.localeCompare(b.tanggal); });
                         group.items.forEach(function(p) {
-                            html += renderPengajianItem(p, true); // true = show jenjang badge
+                            html += renderPengajianItem(p);
                         });
 
                         html += '</div></div>';
@@ -587,14 +581,14 @@
             container.innerHTML = html;
         }
 
-        function renderPengajianItem(p, showJenjang) {
+        function renderPengajianItem(p) {
             var tgl = new Date(p.tanggal); var day = tgl.getDate();
             var dayName = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][tgl.getDay()];
             var hasPresensi = p.total_hadir > 0;
             var statusBadge = hasPresensi ? '<span class="badge badge-done">' + p.total_hadir + '/' + p.total_peserta + '</span>' : '<span class="badge badge-pending">Belum</span>';
             var html = '<div class="pengajian-item"><div class="pengajian-date"><div class="day">' + day + '</div><div class="month">' + dayName + '</div></div>';
             html += '<div class="pengajian-info"><div class="pengajian-title">' + escapeHtml(p.materi || 'Pengajian');
-            if (showJenjang && p.jenjang_nama) html += ' <span class="badge badge-primary" style="font-size:0.65rem;">' + escapeHtml(p.jenjang_nama) + '</span>';
+            if (p.keterangan) html += ' <span class="badge badge-primary" style="font-size:0.65rem;">' + escapeHtml(p.keterangan) + '</span>';
             html += '</div>';
             html += '<div class="pengajian-meta">';
             if (p.waktu_mulai) html += '🕐 ' + p.waktu_mulai.substring(0,5);
@@ -616,12 +610,6 @@
             $('pengajianId').value = '';
             $('pengajianForm').reset();
             $('formTanggal').value = new Date().toISOString().split('T')[0];
-
-            // Load jenjang checkboxes
-            var jenjangHtml = allJenjang.map(function(j) {
-                return '<label class="hari-check" style="min-width:90px;"><input type="checkbox" name="formJenjang" value="' + j.id + '"> ' + escapeHtml(j.nama) + '</label>';
-            }).join('');
-            $('formJenjangList').innerHTML = jenjangHtml;
 
             // Untuk non-admin: hide tingkat/wilayah, auto-set dari role
             if (!isAdmin() && userTingkat && userWilayahList && userWilayahList.length > 0) {
@@ -664,13 +652,6 @@
             $('pengajianModalTitle').textContent = 'Edit Pengajian';
             $('pengajianId').value = p.id;
 
-            // Load jenjang checkboxes
-            var jenjangHtml = allJenjang.map(function(j) {
-                var checked = p.jenjang_id === j.id ? 'checked' : '';
-                return '<label class="hari-check" style="min-width:90px;"><input type="checkbox" name="formJenjang" value="' + j.id + '" ' + checked + '> ' + escapeHtml(j.nama) + '</label>';
-            }).join('');
-            $('formJenjangList').innerHTML = jenjangHtml;
-
             // Set wilayah
             $('formWilayah').value = p.wilayah_id || '';
 
@@ -684,6 +665,7 @@
             $('formWaktuMulai').value = p.waktu_mulai || '';
             $('formWaktuSelesai').value = p.waktu_selesai || '';
             $('formMateri').value = p.materi || '';
+            $('formKeterangan').value = p.keterangan || '';
 
             showModal('pengajianModal');
         }
@@ -693,40 +675,22 @@
             var id = $('pengajianId').value;
             var wilayahId = $('formWilayah').value;
 
-            // Get selected jenjang (multiple)
-            var selectedJenjang = [];
-            document.querySelectorAll('input[name="formJenjang"]:checked').forEach(function(cb) {
-                selectedJenjang.push(cb.value);
-            });
-
-            if (selectedJenjang.length === 0) {
-                showToast('Pilih minimal 1 jenjang', 'error');
-                return;
-            }
-
-            var baseData = {
+            var data = {
                 wilayah_id: wilayahId,
                 tanggal: $('formTanggal').value,
                 waktu_mulai: $('formWaktuMulai').value || null,
                 waktu_selesai: $('formWaktuSelesai').value || null,
-                materi: $('formMateri').value || null
+                materi: $('formMateri').value || null,
+                keterangan: $('formKeterangan').value || null
             };
 
             try {
                 if (id) {
-                    // Edit: update with first selected jenjang only
-                    baseData.jenjang_id = selectedJenjang[0];
-                    var success = await pengajianApi.update(id, baseData);
+                    var success = await pengajianApi.update(id, data);
                     if (success) { showToast('Berhasil diupdate!', 'success'); }
                 } else {
-                    // Create: one pengajian per jenjang
-                    var created = 0;
-                    for (var i = 0; i < selectedJenjang.length; i++) {
-                        var data = Object.assign({}, baseData, { jenjang_id: selectedJenjang[i] });
-                        var result = await pengajianApi.create(data);
-                        if (result) created++;
-                    }
-                    showToast('Dibuat ' + created + ' pengajian!', 'success');
+                    var result = await pengajianApi.create(data);
+                    if (result) { showToast('Pengajian dibuat!', 'success'); }
                 }
                 hideModal('pengajianModal');
                 loadPengajian();
