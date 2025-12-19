@@ -172,11 +172,10 @@
     <script src="js/api.js"></script>
     
     <script>
-        // Kategori ID untuk hafalan (dari kategori_materi)
-        var KATEGORI_HAFALAN = {
-            SURAT: { id: 60, nama: 'Hafalan Surat' },
-            DOA: { id: 61, nama: 'Hafalan Doa' }
-        };
+        // Kategori hafalan akan di-load dari database
+        var kategoriSurat = null;
+        var kategoriDoa = null;
+        var kategoriDalil = null;
 
         let allGenerus = [];
         let selectedJamaah = null;
@@ -272,9 +271,37 @@
         
         async function loadMateri() {
             try {
-                // Load materi hafalan dengan filter kategori_id
-                var kategoriIds = [KATEGORI_HAFALAN.SURAT.id, KATEGORI_HAFALAN.DOA.id];
+                // 1. Load kategori hafalan dari database
+                var katResult = await db
+                    .from('kategori_materi')
+                    .select('id, nama, kode')
+                    .or('nama.ilike.%surat%,nama.ilike.%doa%,nama.ilike.%dalil%,kode.ilike.%HFL%');
 
+                console.log('Kategori hafalan:', katResult.data);
+
+                if (katResult.data && katResult.data.length > 0) {
+                    katResult.data.forEach(function(k) {
+                        var namaLower = (k.nama || '').toLowerCase();
+                        if (namaLower.includes('surat')) kategoriSurat = k;
+                        else if (namaLower.includes('doa')) kategoriDoa = k;
+                        else if (namaLower.includes('dalil')) kategoriDalil = k;
+                    });
+                }
+
+                // 2. Collect kategori IDs yang ditemukan
+                var kategoriIds = [];
+                if (kategoriSurat) kategoriIds.push(kategoriSurat.id);
+                if (kategoriDoa) kategoriIds.push(kategoriDoa.id);
+                if (kategoriDalil) kategoriIds.push(kategoriDalil.id);
+
+                console.log('Kategori IDs:', kategoriIds);
+
+                if (kategoriIds.length === 0) {
+                    console.warn('Tidak ada kategori hafalan ditemukan di database');
+                    return;
+                }
+
+                // 3. Load materi berdasarkan kategori IDs
                 var result = await db
                     .from('materi_item')
                     .select('*')
@@ -285,14 +312,15 @@
                 if (result.error) throw result.error;
 
                 var materiData = result.data || [];
+                console.log('Total materi:', materiData.length);
 
                 // Filter per kategori
-                materiSurat = materiData.filter(function(m) {
-                    return m.kategori_id === KATEGORI_HAFALAN.SURAT.id;
-                });
-                materiDoa = materiData.filter(function(m) {
-                    return m.kategori_id === KATEGORI_HAFALAN.DOA.id;
-                });
+                materiSurat = kategoriSurat ? materiData.filter(function(m) {
+                    return m.kategori_id === kategoriSurat.id;
+                }) : [];
+                materiDoa = kategoriDoa ? materiData.filter(function(m) {
+                    return m.kategori_id === kategoriDoa.id;
+                }) : [];
 
                 console.log('Materi loaded - Surat:', materiSurat.length, 'Doa:', materiDoa.length);
             } catch (e) {
