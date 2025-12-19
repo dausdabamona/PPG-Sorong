@@ -708,21 +708,41 @@ const pengajianApi = {
      */
     create: async function(pengajianData) {
         try {
+            const insertData = {
+                wilayah_id: safeInt(pengajianData.wilayah_id),
+                tanggal: pengajianData.tanggal,
+                waktu_mulai: pengajianData.waktu_mulai || null,
+                waktu_selesai: pengajianData.waktu_selesai || null,
+                materi: pengajianData.materi || null,
+                jenis_pengajian: pengajianData.jenis_pengajian || 'forum',
+                created_by: currentUserData?.id || null
+            };
+
+            // Tambahkan jenjang_ids (array untuk multi-select)
+            if (pengajianData.jenjang_ids) {
+                insertData.jenjang_ids = pengajianData.jenjang_ids;
+            }
+            // Backward compatibility: jika jenjang_id tunggal dikirim
+            if (pengajianData.jenjang_id) {
+                insertData.jenjang_id = safeInt(pengajianData.jenjang_id);
+            }
+            // Tambahkan jenis_kelamin filter
+            if (pengajianData.jenis_kelamin) {
+                insertData.jenis_kelamin = pengajianData.jenis_kelamin;
+            }
+            // Tambahkan keterangan
+            if (pengajianData.keterangan) {
+                insertData.keterangan = pengajianData.keterangan;
+            }
+
+            console.log('Creating pengajian with data:', insertData);
+
             const { data, error } = await db
                 .from('pengajian')
-                .insert({
-                    jenjang_id: safeInt(pengajianData.jenjang_id),
-                    wilayah_id: safeInt(pengajianData.wilayah_id),
-                    tanggal: pengajianData.tanggal,
-                    waktu_mulai: pengajianData.waktu_mulai || null,
-                    waktu_selesai: pengajianData.waktu_selesai || null,
-                    materi: pengajianData.materi || null,
-                    jenis_pengajian: pengajianData.jenis_pengajian || 'forum',
-                    created_by: currentUserData?.id || null
-                })
+                .insert(insertData)
                 .select()
                 .single();
-            
+
             if (error) throw error;
             return data;
         } catch (error) {
@@ -740,19 +760,37 @@ const pengajianApi = {
     update: async function(id, pengajianData) {
         try {
             const updateData = {
-                jenjang_id: safeInt(pengajianData.jenjang_id),
                 wilayah_id: safeInt(pengajianData.wilayah_id),
                 tanggal: pengajianData.tanggal,
                 waktu_mulai: pengajianData.waktu_mulai || null,
                 waktu_selesai: pengajianData.waktu_selesai || null,
                 materi: pengajianData.materi || null
             };
-            
+
+            // Tambahkan jenjang_ids (array untuk multi-select)
+            if (pengajianData.jenjang_ids !== undefined) {
+                updateData.jenjang_ids = pengajianData.jenjang_ids;
+            }
+            // Backward compatibility: jika jenjang_id tunggal dikirim
+            if (pengajianData.jenjang_id !== undefined) {
+                updateData.jenjang_id = safeInt(pengajianData.jenjang_id);
+            }
+            // Tambahkan jenis_kelamin filter
+            if (pengajianData.jenis_kelamin !== undefined) {
+                updateData.jenis_kelamin = pengajianData.jenis_kelamin;
+            }
+            // Tambahkan keterangan
+            if (pengajianData.keterangan !== undefined) {
+                updateData.keterangan = pengajianData.keterangan;
+            }
+
+            console.log('Updating pengajian ID:', id, 'with data:', updateData);
+
             const { error } = await db
                 .from('pengajian')
                 .update(updateData)
                 .eq('id', safeInt(id));
-            
+
             if (error) throw error;
             return true;
         } catch (error) {
