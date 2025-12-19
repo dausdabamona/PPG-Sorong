@@ -197,9 +197,31 @@
             <div class="modal-body">
                 <form id="pengajianForm" onsubmit="savePengajian(event)">
                     <input type="hidden" id="pengajianId">
-                    <div class="form-group"><label class="form-label">Tingkat *</label><select class="form-control" id="formTingkat" onchange="onFormTingkatChange()" required><option value="">-- Pilih --</option><option value="kelompok">Kelompok</option><option value="desa">Desa</option><option value="daerah">Daerah</option></select></div>
-                    <div class="form-group"><label class="form-label">Wilayah *</label><select class="form-control" id="formWilayah" required></select></div>
-                    <div class="form-group"><label class="form-label">Jenjang *</label><select class="form-control" id="formJenjang" required></select></div>
+                    <input type="hidden" id="formWilayah">
+                    <!-- Tingkat & Wilayah - only for admin -->
+                    <div class="form-group" id="formTingkatGroup" style="display:none;">
+                        <label class="form-label">Tingkat *</label>
+                        <select class="form-control" id="formTingkat" onchange="onFormTingkatChange()">
+                            <option value="">-- Pilih --</option>
+                            <option value="kelompok">Kelompok</option>
+                            <option value="desa">Desa</option>
+                            <option value="daerah">Daerah</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="formWilayahGroup" style="display:none;">
+                        <label class="form-label">Wilayah *</label>
+                        <select class="form-control" id="formWilayahSelect" onchange="$('formWilayah').value=this.value"></select>
+                    </div>
+                    <!-- Wilayah info for non-admin -->
+                    <div class="form-group" id="formWilayahInfo" style="display:none;">
+                        <label class="form-label">Wilayah</label>
+                        <div style="padding:0.75rem;background:var(--primary-light);border-radius:var(--radius-md);font-weight:500;" id="formWilayahDisplay">-</div>
+                    </div>
+                    <!-- Jenjang - multi-select checkboxes -->
+                    <div class="form-group">
+                        <label class="form-label">Jenjang * <small class="text-muted">(pilih satu atau lebih)</small></label>
+                        <div id="formJenjangList" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div>
+                    </div>
                     <div class="form-group"><label class="form-label">Tanggal *</label><input type="date" class="form-control" id="formTanggal" required></div>
                     <div class="form-row">
                         <div class="form-group"><label class="form-label">Waktu Mulai</label><input type="time" class="form-control" id="formWaktuMulai"></div>
@@ -594,51 +616,124 @@
             $('pengajianId').value = '';
             $('pengajianForm').reset();
             $('formTanggal').value = new Date().toISOString().split('T')[0];
-            $('formWilayah').innerHTML = '<option value="">-- Pilih Tingkat --</option>';
 
-            // Untuk non-admin: auto-set tingkat sesuai role dan disable
+            // Load jenjang checkboxes
+            var jenjangHtml = jenjangData.map(function(j) {
+                return '<label class="hari-check" style="min-width:90px;"><input type="checkbox" name="formJenjang" value="' + j.id + '"> ' + escapeHtml(j.nama) + '</label>';
+            }).join('');
+            $('formJenjangList').innerHTML = jenjangHtml;
+
+            // Untuk non-admin: hide tingkat/wilayah, auto-set dari role
             if (!isAdmin() && userTingkat && userWilayahList && userWilayahList.length > 0) {
-                $('formTingkat').value = userTingkat;
-                $('formTingkat').disabled = true;
-                onFormTingkatChange();
-                if (userWilayahList.length === 1) {
-                    setTimeout(function() {
-                        $('formWilayah').value = userWilayahList[0].id;
-                    }, 50);
-                }
+                $('formTingkatGroup').style.display = 'none';
+                $('formWilayahGroup').style.display = 'none';
+                $('formWilayahInfo').style.display = 'block';
+
+                // Auto-set wilayah (use first one if multiple)
+                var wilayah = userWilayahList[0];
+                $('formWilayah').value = wilayah.id;
+                $('formWilayahDisplay').textContent = wilayah.nama + ' (' + wilayah.tingkat + ')';
             } else {
-                $('formTingkat').disabled = false;
+                // Admin: show tingkat/wilayah selection
+                $('formTingkatGroup').style.display = 'block';
+                $('formWilayahGroup').style.display = 'block';
+                $('formWilayahInfo').style.display = 'none';
+                $('formWilayahSelect').innerHTML = '<option value="">-- Pilih Tingkat --</option>';
             }
 
             showModal('pengajianModal');
         }
-        
+
+        function onFormTingkatChange() {
+            var tingkat = $('formTingkat').value;
+            var wilayahSelect = $('formWilayahSelect');
+            if (!wilayahSelect) return;
+
+            wilayahSelect.innerHTML = '<option value="">-- Pilih --</option>';
+            if (!tingkat) return;
+
+            var filtered = allWilayah.filter(function(w) { return w.tingkat === tingkat; });
+            filtered.forEach(function(w) {
+                wilayahSelect.innerHTML += '<option value="' + w.id + '">' + escapeHtml(w.nama) + '</option>';
+            });
+        }
+
         async function editPengajian(id) {
             var p = pengajianData.find(function(x) { return x.id === id; });
             if (!p) { showToast('Data tidak ditemukan', 'error'); return; }
             $('pengajianModalTitle').textContent = 'Edit Pengajian';
             $('pengajianId').value = p.id;
-            $('formTingkat').value = p.wilayah_tingkat || 'kelompok';
-            onFormTingkatChange();
-            setTimeout(function() {
-                $('formWilayah').value = p.wilayah_id || '';
-                $('formJenjang').value = p.jenjang_id || '';
-                $('formTanggal').value = p.tanggal || '';
-                $('formWaktuMulai').value = p.waktu_mulai || '';
-                $('formWaktuSelesai').value = p.waktu_selesai || '';
-                $('formMateri').value = p.materi || '';
-            }, 100);
+
+            // Load jenjang checkboxes
+            var jenjangHtml = jenjangData.map(function(j) {
+                var checked = p.jenjang_id === j.id ? 'checked' : '';
+                return '<label class="hari-check" style="min-width:90px;"><input type="checkbox" name="formJenjang" value="' + j.id + '" ' + checked + '> ' + escapeHtml(j.nama) + '</label>';
+            }).join('');
+            $('formJenjangList').innerHTML = jenjangHtml;
+
+            // Set wilayah
+            $('formWilayah').value = p.wilayah_id || '';
+
+            // For edit, always show wilayah info (not editable)
+            $('formTingkatGroup').style.display = 'none';
+            $('formWilayahGroup').style.display = 'none';
+            $('formWilayahInfo').style.display = 'block';
+            $('formWilayahDisplay').textContent = p.wilayah_nama || '-';
+
+            $('formTanggal').value = p.tanggal || '';
+            $('formWaktuMulai').value = p.waktu_mulai || '';
+            $('formWaktuSelesai').value = p.waktu_selesai || '';
+            $('formMateri').value = p.materi || '';
+
             showModal('pengajianModal');
         }
-        
+
         async function savePengajian(e) {
             e.preventDefault();
             var id = $('pengajianId').value;
-            var data = { wilayah_id: $('formWilayah').value, jenjang_id: $('formJenjang').value, tanggal: $('formTanggal').value, waktu_mulai: $('formWaktuMulai').value || null, waktu_selesai: $('formWaktuSelesai').value || null, materi: $('formMateri').value || null };
+            var wilayahId = $('formWilayah').value;
+
+            // Get selected jenjang (multiple)
+            var selectedJenjang = [];
+            document.querySelectorAll('input[name="formJenjang"]:checked').forEach(function(cb) {
+                selectedJenjang.push(cb.value);
+            });
+
+            if (selectedJenjang.length === 0) {
+                showToast('Pilih minimal 1 jenjang', 'error');
+                return;
+            }
+
+            var baseData = {
+                wilayah_id: wilayahId,
+                tanggal: $('formTanggal').value,
+                waktu_mulai: $('formWaktuMulai').value || null,
+                waktu_selesai: $('formWaktuSelesai').value || null,
+                materi: $('formMateri').value || null
+            };
+
             try {
-                var success = id ? await pengajianApi.update(id, data) : !!(await pengajianApi.create(data));
-                if (success) { showToast('Berhasil!', 'success'); hideModal('pengajianModal'); loadPengajian(); }
-            } catch (error) { console.error('Error:', error); showToast('Gagal menyimpan', 'error'); }
+                if (id) {
+                    // Edit: update with first selected jenjang only
+                    baseData.jenjang_id = selectedJenjang[0];
+                    var success = await pengajianApi.update(id, baseData);
+                    if (success) { showToast('Berhasil diupdate!', 'success'); }
+                } else {
+                    // Create: one pengajian per jenjang
+                    var created = 0;
+                    for (var i = 0; i < selectedJenjang.length; i++) {
+                        var data = Object.assign({}, baseData, { jenjang_id: selectedJenjang[i] });
+                        var result = await pengajianApi.create(data);
+                        if (result) created++;
+                    }
+                    showToast('Dibuat ' + created + ' pengajian!', 'success');
+                }
+                hideModal('pengajianModal');
+                loadPengajian();
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal menyimpan', 'error');
+            }
         }
         
         async function deletePengajian(id) {
