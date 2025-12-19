@@ -269,6 +269,30 @@
                         <label class="form-label">Alamat</label>
                         <textarea class="form-control" id="editAlamat" rows="2"></textarea>
                     </div>
+
+                    <!-- Data Orang Tua -->
+                    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #e5e7eb;">
+                        <h4 style="font-size:0.9rem;margin-bottom:0.75rem;color:#065f46;">👨‍👩‍👧 Data Orang Tua</h4>
+
+                        <!-- Ayah -->
+                        <div class="form-group search-select">
+                            <label class="form-label">Ayah</label>
+                            <input type="text" class="form-control" id="searchAyah" placeholder="Ketik nama ayah..." oninput="searchOrangTua('ayah')">
+                            <div class="search-results" id="ayahResults"></div>
+                            <input type="hidden" id="editAyahId">
+                            <div id="selectedAyah"></div>
+                        </div>
+
+                        <!-- Ibu -->
+                        <div class="form-group search-select">
+                            <label class="form-label">Ibu</label>
+                            <input type="text" class="form-control" id="searchIbu" placeholder="Ketik nama ibu..." oninput="searchOrangTua('ibu')">
+                            <div class="search-results" id="ibuResults"></div>
+                            <input type="hidden" id="editIbuId">
+                            <div id="selectedIbu"></div>
+                        </div>
+                    </div>
+
                     <button class="btn btn-primary w-100" onclick="saveDataDiri()">💾 Simpan Data</button>
                 </div>
                 
@@ -435,6 +459,30 @@
                     <label class="form-label">Alamat</label>
                     <textarea class="form-control" id="addAlamat" rows="2"></textarea>
                 </div>
+
+                <!-- Data Orang Tua -->
+                <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #e5e7eb;">
+                    <h4 style="font-size:0.9rem;margin-bottom:0.75rem;color:#065f46;">👨‍👩‍👧 Data Orang Tua (Opsional)</h4>
+
+                    <!-- Ayah -->
+                    <div class="form-group search-select">
+                        <label class="form-label">Ayah</label>
+                        <input type="text" class="form-control" id="addSearchAyah" placeholder="Ketik nama ayah..." oninput="searchAddOrangTua('ayah')">
+                        <div class="search-results" id="addAyahResults"></div>
+                        <input type="hidden" id="addAyahId">
+                        <div id="addSelectedAyah"></div>
+                    </div>
+
+                    <!-- Ibu -->
+                    <div class="form-group search-select">
+                        <label class="form-label">Ibu</label>
+                        <input type="text" class="form-control" id="addSearchIbu" placeholder="Ketik nama ibu..." oninput="searchAddOrangTua('ibu')">
+                        <div class="search-results" id="addIbuResults"></div>
+                        <input type="hidden" id="addIbuId">
+                        <div id="addSelectedIbu"></div>
+                    </div>
+                </div>
+
                 <button class="btn btn-primary w-100" onclick="saveNewGenerus()">💾 Simpan Generus</button>
             </div>
         </div>
@@ -819,6 +867,15 @@
                         group.putra.sort(function(a, b) { return (a.nama || '').localeCompare(b.nama || ''); });
                         group.putra.forEach(function(m, idx) {
                             var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
+                            var parentInfo = '';
+                            if (m.ayah_nama || m.ibu_nama) {
+                                var parents = [];
+                                if (m.ayah_nama) parents.push('Ayah: ' + m.ayah_nama);
+                                if (m.ibu_nama) parents.push('Ibu: ' + m.ibu_nama);
+                                parentInfo = ' • 👨‍👩‍👧 ' + parents.join(', ');
+                            } else if (m.ayah_id || m.ibu_id) {
+                                parentInfo = ' • 👨‍👩‍👧';
+                            }
                             html += '<div class="member-item putra-item">';
                             html += '<div class="member-no">' + (idx + 1) + '</div>';
                             html += '<div class="member-avatar putra-avatar">🧔</div>';
@@ -826,7 +883,7 @@
                             html += '<div class="member-name">' + escapeHtml(m.nama || '-');
                             if (m.nama_panggilan) html += ' <small>(' + escapeHtml(m.nama_panggilan) + ')</small>';
                             html += '</div>';
-                            html += '<div class="member-meta">' + umur + ' tahun</div>';
+                            html += '<div class="member-meta">' + umur + ' tahun' + parentInfo + '</div>';
                             html += '</div>';
                             if (canEdit) {
                                 html += '<div class="member-action">';
@@ -864,6 +921,15 @@
                         group.putri.sort(function(a, b) { return (a.nama || '').localeCompare(b.nama || ''); });
                         group.putri.forEach(function(m, idx) {
                             var umur = m.tanggal_lahir ? hitungUmur(m.tanggal_lahir) : '-';
+                            var parentInfo = '';
+                            if (m.ayah_nama || m.ibu_nama) {
+                                var parents = [];
+                                if (m.ayah_nama) parents.push('Ayah: ' + m.ayah_nama);
+                                if (m.ibu_nama) parents.push('Ibu: ' + m.ibu_nama);
+                                parentInfo = ' • 👨‍👩‍👧 ' + parents.join(', ');
+                            } else if (m.ayah_id || m.ibu_id) {
+                                parentInfo = ' • 👨‍👩‍👧';
+                            }
                             html += '<div class="member-item putri-item">';
                             html += '<div class="member-no">' + (idx + 1) + '</div>';
                             html += '<div class="member-avatar putri-avatar">🧕</div>';
@@ -871,7 +937,7 @@
                             html += '<div class="member-name">' + escapeHtml(m.nama || '-');
                             if (m.nama_panggilan) html += ' <small>(' + escapeHtml(m.nama_panggilan) + ')</small>';
                             html += '</div>';
-                            html += '<div class="member-meta">' + umur + ' tahun</div>';
+                            html += '<div class="member-meta">' + umur + ' tahun' + parentInfo + '</div>';
                             html += '</div>';
                             if (canEdit) {
                                 html += '<div class="member-action">';
@@ -980,7 +1046,10 @@
                 
                 // Clear selected pasangan
                 clearPasangan();
-                
+
+                // Load data orang tua
+                await loadOrangTuaData(jamaah);
+
                 // Show modal
                 $('editModal').classList.add('show');
                 switchTab('tabData', document.querySelector('.tab'));
@@ -1068,15 +1137,21 @@
                 showToast('ID tidak valid', 'error');
                 return;
             }
-            
+
             try {
+                // Get ayah_id dan ibu_id
+                var ayahId = $('editAyahId')?.value;
+                var ibuId = $('editIbuId')?.value;
+
                 var jamaahData = {
                     nama: $('editNama')?.value || '',
                     nama_panggilan: $('editNamaPanggilan')?.value || null,
                     jenis_kelamin: $('editJenisKelamin')?.value || null,
                     tanggal_lahir: $('editTanggalLahir')?.value || null,
                     phone: $('editPhone')?.value || null,
-                    alamat_lengkap: $('editAlamat')?.value || null
+                    alamat_lengkap: $('editAlamat')?.value || null,
+                    ayah_id: ayahId ? parseInt(ayahId) : null,
+                    ibu_id: ibuId ? parseInt(ibuId) : null
                 };
                 
                 if (!jamaahData.nama) {
@@ -1200,7 +1275,170 @@
             $('pasanganJamaahId').value = '';
             $('selectedPasangan').innerHTML = '';
         }
-        
+
+        // ========== FUNGSI ORANG TUA ==========
+        async function searchOrangTua(tipe) {
+            var searchInput = tipe === 'ayah' ? $('searchAyah') : $('searchIbu');
+            var resultsEl = tipe === 'ayah' ? $('ayahResults') : $('ibuResults');
+            var query = searchInput?.value;
+
+            if (!resultsEl) return;
+
+            if (!query || query.length < 2) {
+                resultsEl.classList.remove('show');
+                return;
+            }
+
+            try {
+                var results = await jamaahApi.search(query, 10);
+                var currentId = $('editId')?.value;
+
+                // Filter: ayah harus laki-laki, ibu harus perempuan
+                var genderFilter = tipe === 'ayah' ? 'L' : 'P';
+                results = results.filter(function(r) {
+                    return r.id != currentId && r.jenis_kelamin === genderFilter;
+                });
+
+                if (!results.length) {
+                    resultsEl.innerHTML = '<div class="search-result-item text-muted">Tidak ditemukan</div>';
+                } else {
+                    var html = '';
+                    results.forEach(function(r) {
+                        var info = r.wilayah_nama || '-';
+                        html += '<div class="search-result-item" onclick="selectOrangTua(\'' + tipe + '\', ' + r.id + ', \'' + escapeHtml(r.nama).replace(/'/g, "\\'") + '\')">';
+                        html += '<strong>' + escapeHtml(r.nama) + '</strong>';
+                        if (r.nama_panggilan) html += ' (' + escapeHtml(r.nama_panggilan) + ')';
+                        html += '<br><small style="color:#6b7280;">' + info + '</small>';
+                        html += '</div>';
+                    });
+                    resultsEl.innerHTML = html;
+                }
+                resultsEl.classList.add('show');
+
+            } catch (error) {
+                console.error('Search orang tua error:', error);
+            }
+        }
+
+        function selectOrangTua(tipe, id, nama) {
+            var idField = tipe === 'ayah' ? $('editAyahId') : $('editIbuId');
+            var selectedEl = tipe === 'ayah' ? $('selectedAyah') : $('selectedIbu');
+            var resultsEl = tipe === 'ayah' ? $('ayahResults') : $('ibuResults');
+            var searchInput = tipe === 'ayah' ? $('searchAyah') : $('searchIbu');
+            var icon = tipe === 'ayah' ? '👨' : '👩';
+
+            if (idField) idField.value = id;
+            if (selectedEl) {
+                selectedEl.innerHTML = '<div class="selected-person"><span>' + icon + ' ' + escapeHtml(nama) + '</span><span class="remove" onclick="clearOrangTua(\'' + tipe + '\')">✕</span></div>';
+            }
+            if (resultsEl) resultsEl.classList.remove('show');
+            if (searchInput) searchInput.value = '';
+        }
+
+        function clearOrangTua(tipe) {
+            var idField = tipe === 'ayah' ? $('editAyahId') : $('editIbuId');
+            var selectedEl = tipe === 'ayah' ? $('selectedAyah') : $('selectedIbu');
+
+            if (idField) idField.value = '';
+            if (selectedEl) selectedEl.innerHTML = '';
+        }
+
+        async function loadOrangTuaData(jamaah) {
+            // Load data ayah jika ada
+            if (jamaah.ayah_id) {
+                try {
+                    var ayah = await jamaahApi.getById(jamaah.ayah_id);
+                    if (ayah) {
+                        selectOrangTua('ayah', ayah.id, ayah.nama);
+                    }
+                } catch (e) {
+                    console.error('Error load ayah:', e);
+                }
+            } else {
+                clearOrangTua('ayah');
+            }
+
+            // Load data ibu jika ada
+            if (jamaah.ibu_id) {
+                try {
+                    var ibu = await jamaahApi.getById(jamaah.ibu_id);
+                    if (ibu) {
+                        selectOrangTua('ibu', ibu.id, ibu.nama);
+                    }
+                } catch (e) {
+                    console.error('Error load ibu:', e);
+                }
+            } else {
+                clearOrangTua('ibu');
+            }
+        }
+
+        // ========== FUNGSI ORANG TUA UNTUK FORM TAMBAH ==========
+        async function searchAddOrangTua(tipe) {
+            var searchInput = tipe === 'ayah' ? $('addSearchAyah') : $('addSearchIbu');
+            var resultsEl = tipe === 'ayah' ? $('addAyahResults') : $('addIbuResults');
+            var query = searchInput?.value;
+
+            if (!resultsEl) return;
+
+            if (!query || query.length < 2) {
+                resultsEl.classList.remove('show');
+                return;
+            }
+
+            try {
+                var results = await jamaahApi.search(query, 10);
+
+                // Filter: ayah harus laki-laki, ibu harus perempuan
+                var genderFilter = tipe === 'ayah' ? 'L' : 'P';
+                results = results.filter(function(r) {
+                    return r.jenis_kelamin === genderFilter;
+                });
+
+                if (!results.length) {
+                    resultsEl.innerHTML = '<div class="search-result-item text-muted">Tidak ditemukan</div>';
+                } else {
+                    var html = '';
+                    results.forEach(function(r) {
+                        var info = r.wilayah_nama || '-';
+                        html += '<div class="search-result-item" onclick="selectAddOrangTua(\'' + tipe + '\', ' + r.id + ', \'' + escapeHtml(r.nama).replace(/'/g, "\\'") + '\')">';
+                        html += '<strong>' + escapeHtml(r.nama) + '</strong>';
+                        if (r.nama_panggilan) html += ' (' + escapeHtml(r.nama_panggilan) + ')';
+                        html += '<br><small style="color:#6b7280;">' + info + '</small>';
+                        html += '</div>';
+                    });
+                    resultsEl.innerHTML = html;
+                }
+                resultsEl.classList.add('show');
+
+            } catch (error) {
+                console.error('Search add orang tua error:', error);
+            }
+        }
+
+        function selectAddOrangTua(tipe, id, nama) {
+            var idField = tipe === 'ayah' ? $('addAyahId') : $('addIbuId');
+            var selectedEl = tipe === 'ayah' ? $('addSelectedAyah') : $('addSelectedIbu');
+            var resultsEl = tipe === 'ayah' ? $('addAyahResults') : $('addIbuResults');
+            var searchInput = tipe === 'ayah' ? $('addSearchAyah') : $('addSearchIbu');
+            var icon = tipe === 'ayah' ? '👨' : '👩';
+
+            if (idField) idField.value = id;
+            if (selectedEl) {
+                selectedEl.innerHTML = '<div class="selected-person"><span>' + icon + ' ' + escapeHtml(nama) + '</span><span class="remove" onclick="clearAddOrangTua(\'' + tipe + '\')">✕</span></div>';
+            }
+            if (resultsEl) resultsEl.classList.remove('show');
+            if (searchInput) searchInput.value = '';
+        }
+
+        function clearAddOrangTua(tipe) {
+            var idField = tipe === 'ayah' ? $('addAyahId') : $('addIbuId');
+            var selectedEl = tipe === 'ayah' ? $('addSelectedAyah') : $('addSelectedIbu');
+
+            if (idField) idField.value = '';
+            if (selectedEl) selectedEl.innerHTML = '';
+        }
+
         async function saveStatus() {
             var jamaahId = $('editId')?.value;
             var status = $('newStatus')?.value;
@@ -1358,6 +1596,12 @@
             $('addAlamat').value = '';
             if ($('addUmurInfo')) $('addUmurInfo').textContent = '';
             if ($('addJenjangInfo')) $('addJenjangInfo').textContent = '';
+
+            // Reset orang tua
+            clearAddOrangTua('ayah');
+            clearAddOrangTua('ibu');
+            if ($('addSearchAyah')) $('addSearchAyah').value = '';
+            if ($('addSearchIbu')) $('addSearchIbu').value = '';
             
             // Populate jenjang dropdown
             var addJenjang = $('addJenjang');
@@ -1449,7 +1693,11 @@
             var kelompokId = $('addKelompok').value;
             var phone = $('addPhone').value.trim();
             var alamat = $('addAlamat').value.trim();
-            
+
+            // Get orang tua IDs
+            var ayahId = $('addAyahId')?.value;
+            var ibuId = $('addIbuId')?.value;
+
             // Validasi
             if (!nama) {
                 showToast('Nama wajib diisi!', 'error');
@@ -1467,7 +1715,7 @@
                 showToast('Kelompok wajib dipilih!', 'error');
                 return;
             }
-            
+
             try {
                 var jamaahData = {
                     nama: nama,
@@ -1480,11 +1728,19 @@
                     kelompok_id: parseInt(kelompokId),
                     jenjang_id: parseInt(jenjangId)
                 };
-                
+
                 console.log('Creating new generus:', jamaahData);
                 var newId = await jamaahApi.create(jamaahData);
-                
+
                 if (newId) {
+                    // Update orang tua jika ada
+                    if (ayahId || ibuId) {
+                        var parentData = {};
+                        if (ayahId) parentData.ayah_id = parseInt(ayahId);
+                        if (ibuId) parentData.ibu_id = parseInt(ibuId);
+                        await jamaahApi.update(newId, parentData);
+                    }
+
                     showToast('Generus berhasil ditambahkan!', 'success');
                     closeAddModal();
                     await loadGenerus(); // Refresh data
