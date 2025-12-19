@@ -774,6 +774,67 @@ function getUserWilayahTingkat(allWilayah) {
 window.getAccessibleWilayahIds = getAccessibleWilayahIds;
 window.getUserWilayahTingkat = getUserWilayahTingkat;
 
+// ============================================================================
+// JSONB ARRAY HELPER (untuk konsistensi parsing jenjang_ids, dll)
+// ============================================================================
+
+/**
+ * Parse JSONB array dari database (handle berbagai format)
+ * @param {*} value - bisa array, string JSON, atau double-encoded string
+ * @returns {Array} array of integers
+ */
+function parseJsonbArray(value) {
+    if (!value) return [];
+
+    // Sudah array
+    if (Array.isArray(value)) {
+        return value.map(function(v) { return parseInt(v); }).filter(function(v) { return !isNaN(v); });
+    }
+
+    // String - perlu parse
+    if (typeof value === 'string') {
+        try {
+            var parsed = JSON.parse(value);
+            // Cek jika masih string (double-encoded)
+            if (typeof parsed === 'string') {
+                parsed = JSON.parse(parsed);
+            }
+            if (Array.isArray(parsed)) {
+                return parsed.map(function(v) { return parseInt(v); }).filter(function(v) { return !isNaN(v); });
+            }
+        } catch(e) {
+            console.error('Error parsing JSONB array:', e);
+        }
+        return [];
+    }
+
+    // Object tapi bukan array (mungkin dari JSONB)
+    if (typeof value === 'object') {
+        return Object.values(value).map(function(v) { return parseInt(v); }).filter(function(v) { return !isNaN(v); });
+    }
+
+    return [];
+}
+
+/**
+ * Filter query Supabase berdasarkan wilayah user
+ * @param {Object} query - Supabase query builder
+ * @param {string} wilayahColumn - nama kolom wilayah_id (default: 'wilayah_id')
+ * @returns {Object} query dengan filter
+ */
+function filterQueryByUserWilayah(query, wilayahColumn) {
+    if (isAdmin()) return query; // Admin tidak perlu filter
+
+    var wilayahIds = getUserWilayahIds();
+    if (wilayahIds && wilayahIds.length > 0) {
+        return query.in(wilayahColumn || 'wilayah_id', wilayahIds);
+    }
+    return query;
+}
+
+window.parseJsonbArray = parseJsonbArray;
+window.filterQueryByUserWilayah = filterQueryByUserWilayah;
+
 // Export existing functions (untuk memastikan tersedia di window)
 window.currentUser = currentUser;
 window.currentUserData = currentUserData;
