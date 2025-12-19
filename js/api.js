@@ -2079,7 +2079,9 @@ const jadwalRutinApi = {
             if (data.jenjang_ids && Array.isArray(data.jenjang_ids) && data.jenjang_ids.length > 0) {
                 insertData.jenjang_ids = data.jenjang_ids;
             }
-            
+
+            console.log('jadwalRutinApi.create - insertData:', insertData);
+
             // Setting HARIAN
             if (data.tipe === 'harian') {
                 insertData.hari_minggu = data.hari_minggu || false;
@@ -2156,7 +2158,9 @@ const jadwalRutinApi = {
             } else {
                 updateData.jenjang_ids = null;
             }
-            
+
+            console.log('jadwalRutinApi.update - updateData:', updateData);
+
             // Reset semua setting
             updateData.hari_minggu = false;
             updateData.hari_senin = false;

@@ -1013,8 +1013,10 @@
             // Get selected jenjang
             var selectedJenjang = [];
             document.querySelectorAll('input[name="rutinJenjang"]:checked').forEach(function(cb) {
+                console.log('Checkbox checked:', cb.value, 'type:', typeof cb.value);
                 selectedJenjang.push(cb.value);
             });
+            console.log('Selected jenjang (raw):', selectedJenjang);
             if (selectedJenjang.length === 0) { showToast('Pilih minimal satu jenjang', 'error'); return; }
 
             // Base data tanpa jenjang_id
@@ -1036,12 +1038,17 @@
             // Untuk backward compatibility, set jenjang_id ke yang pertama
             baseData.jenjang_id = selectedJenjang[0];
 
+            console.log('Saving jadwal rutin with data:', baseData);
+            console.log('jenjang_ids to save:', baseData.jenjang_ids);
+
             try {
                 if (id) {
                     var success = await jadwalRutinApi.update(id, baseData);
+                    console.log('Update result:', success);
                     if (success) { showToast('Berhasil!', 'success'); hideModal('rutinModal'); loadRutin(); }
                 } else {
                     var result = await jadwalRutinApi.create(baseData);
+                    console.log('Create result:', result);
                     if (result) {
                         showToast('Jadwal rutin berhasil dibuat!', 'success');
                         hideModal('rutinModal');
