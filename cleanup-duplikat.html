@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>Cleanup Duplikat Pengajian - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .duplicate-group { background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; }
+        .duplicate-header { background: #fef3c7; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 0.75rem; }
+        .duplicate-header strong { color: #92400e; }
+        .duplicate-items { display: flex; flex-direction: column; gap: 0.5rem; }
+        .duplicate-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+        .duplicate-item.selected { background: #fee2e2; border-color: #fca5a5; }
+        .duplicate-info { flex: 1; }
+        .duplicate-detail { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background: white; border-radius: 0.75rem; padding: 1rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-card.danger { border-left: 4px solid #ef4444; }
+        .stat-card.warning { border-left: 4px solid #f59e0b; }
+        .stat-card.success { border-left: 4px solid #10b981; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: #1f2937; }
+        .stat-label { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; }
+        .action-buttons { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+        @media (max-width: 640px) {
+            .duplicate-item { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="cleanup-duplikat.html" class="nav-item active admin-only" style="display:none;"><span class="nav-icon">🧹</span><span class="nav-text">Cleanup Duplikat</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">🧹 Cleanup Duplikat Pengajian</h1>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="page-header">
+                    <div>
+                        <div class="breadcrumb"><a href="dashboard.html">Dashboard</a><span>/</span><span>Cleanup Duplikat</span></div>
+                        <h2 class="page-title">Deteksi & Hapus Pengajian Duplikat</h2>
+                    </div>
+                </div>
+
+                <!-- Alert -->
+                <div class="alert alert-warning mb-lg">
+                    <strong>⚠️ Peringatan:</strong> Fitur ini akan mendeteksi pengajian yang memiliki tanggal, wilayah, dan waktu yang sama. Pastikan Anda memeriksa dengan teliti sebelum menghapus data.
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card success">
+                        <div class="stat-value" id="statTotal">-</div>
+                        <div class="stat-label">Total Pengajian</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="stat-value" id="statDuplikat">-</div>
+                        <div class="stat-label">Pengajian Duplikat</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-value" id="statGroup">-</div>
+                        <div class="stat-label">Grup Duplikat</div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card mb-lg">
+                    <div class="card-body">
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="detectDuplicates()" id="btnDetect">🔍 Deteksi Duplikat</button>
+                            <button class="btn btn-danger" onclick="deleteSelected()" id="btnDelete" style="display:none;">🗑️ Hapus Yang Dipilih</button>
+                            <button class="btn btn-outline" onclick="selectOldest()" id="btnSelectOld" style="display:none;">✓ Pilih Yang Terlama</button>
+                            <button class="btn btn-outline" onclick="selectNewest()" id="btnSelectNew" style="display:none;">✓ Pilih Yang Terbaru</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div id="resultsContainer">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🔍</div>
+                                <div class="empty-state-title">Belum Ada Deteksi</div>
+                                <p class="text-muted">Klik "Deteksi Duplikat" untuk memulai pencarian pengajian duplikat</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+
+    <script>
+        var allPengajian = [];
+        var duplicateGroups = [];
+        var selectedForDeletion = new Set();
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            if (!await requireAuth()) return;
+
+            // Only admin can access this page
+            if (!isAdmin()) {
+                showToast('Hanya admin yang dapat mengakses halaman ini', 'error');
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+                return;
+            }
+
+            updateSidebarUserInfo();
+            initSidebar();
+        });
+
+        async function detectDuplicates() {
+            var btn = $('btnDetect');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Mendeteksi...';
+            }
+
+            try {
+                // Load all pengajian
+                var { data, error } = await db.from('pengajian')
+                    .select('id, tanggal, wilayah_id, wilayah:wilayah_id(nama), materi, keterangan, created_at, created_by, jenis_kelamin')
+                    .order('tanggal', { ascending: false });
+
+                if (error) throw error;
+
+                allPengajian = data || [];
+                $('statTotal').textContent = allPengajian.length;
+
+                // Detect duplicates - group by date + wilayah + materi
+                var groupMap = {};
+
+                allPengajian.forEach(function(p) {
+                    // Create a unique key: date + wilayah_id + jenis_kelamin (ignore materi/keterangan)
+                    var key = p.tanggal + '_' + p.wilayah_id + '_' + (p.jenis_kelamin || 'all');
+
+                    if (!groupMap[key]) {
+                        groupMap[key] = [];
+                    }
+                    groupMap[key].push(p);
+                });
+
+                // Filter groups that have duplicates (more than 1 item)
+                duplicateGroups = Object.values(groupMap).filter(function(group) {
+                    return group.length > 1;
+                });
+
+                // Calculate stats
+                var totalDuplicates = duplicateGroups.reduce(function(sum, group) {
+                    return sum + group.length;
+                }, 0);
+
+                $('statDuplikat').textContent = totalDuplicates;
+                $('statGroup').textContent = duplicateGroups.length;
+
+                // Render results
+                renderDuplicates();
+
+                if (duplicateGroups.length > 0) {
+                    $('btnDelete').style.display = 'inline-block';
+                    $('btnSelectOld').style.display = 'inline-block';
+                    $('btnSelectNew').style.display = 'inline-block';
+                    showToast('Ditemukan ' + duplicateGroups.length + ' grup duplikat', 'warning');
+                } else {
+                    showToast('Tidak ditemukan pengajian duplikat', 'success');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal mendeteksi duplikat: ' + error.message, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '🔍 Deteksi Duplikat';
+                }
+            }
+        }
+
+        function renderDuplicates() {
+            var container = $('resultsContainer');
+
+            if (duplicateGroups.length === 0) {
+                container.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">✅</div>
+                                <div class="empty-state-title">Tidak Ada Duplikat</div>
+                                <p class="text-muted">Semua pengajian sudah bersih dari duplikasi</p>
+                            </div>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            var html = '<div class="card"><div class="card-body">';
+            html += '<h3 class="card-title mb-3">Grup Duplikat Ditemukan (' + duplicateGroups.length + ')</h3>';
+
+            duplicateGroups.forEach(function(group, groupIndex) {
+                var first = group[0];
+
+                html += '<div class="duplicate-group">';
+                html += '<div class="duplicate-header">';
+                html += '<strong>Grup #' + (groupIndex + 1) + ':</strong> ';
+                html += formatTanggal(first.tanggal) + ' - ' + escapeHtml(first.wilayah?.nama || '-');
+                if (first.jenis_kelamin) {
+                    html += ' (' + (first.jenis_kelamin === 'L' ? '♂ Ikhwan' : '♀ Akhwat') + ')';
+                }
+                html += ' <span class="badge badge-warning ml-2">' + group.length + ' duplikat</span>';
+                html += '</div>';
+                html += '<div class="duplicate-items">';
+
+                group.forEach(function(item) {
+                    var isSelected = selectedForDeletion.has(item.id);
+                    html += '<div class="duplicate-item ' + (isSelected ? 'selected' : '') + '" onclick="toggleSelection(' + item.id + ')">';
+                    html += '<div class="duplicate-info">';
+                    html += '<div><strong>' + escapeHtml(item.materi || 'Pengajian') + '</strong></div>';
+                    html += '<div class="duplicate-detail">';
+                    html += '📅 ' + formatTanggalLengkap(item.tanggal) + ' | ';
+                    html += '🏘️ ' + escapeHtml(item.wilayah?.nama || '-') + ' | ';
+                    html += '⏰ Dibuat: ' + formatDateTime(item.created_at);
+                    if (item.keterangan) {
+                        html += '<br>📝 ' + escapeHtml(item.keterangan);
+                    }
+                    html += '</div></div>';
+                    html += '<div><input type="checkbox" ' + (isSelected ? 'checked' : '') + ' onclick="event.stopPropagation(); toggleSelection(' + item.id + ')"></div>';
+                    html += '</div>';
+                });
+
+                html += '</div></div>';
+            });
+
+            html += '</div></div>';
+            container.innerHTML = html;
+        }
+
+        function toggleSelection(id) {
+            if (selectedForDeletion.has(id)) {
+                selectedForDeletion.delete(id);
+            } else {
+                selectedForDeletion.add(id);
+            }
+            renderDuplicates();
+        }
+
+        function selectOldest() {
+            selectedForDeletion.clear();
+
+            duplicateGroups.forEach(function(group) {
+                // Sort by created_at
+                var sorted = group.slice().sort(function(a, b) {
+                    return new Date(a.created_at) - new Date(b.created_at);
+                });
+
+                // Select all except the oldest (first after sort)
+                for (var i = 1; i < sorted.length; i++) {
+                    selectedForDeletion.add(sorted[i].id);
+                }
+            });
+
+            renderDuplicates();
+            showToast('Dipilih: ' + selectedForDeletion.size + ' pengajian (pertahankan yang terlama)', 'info');
+        }
+
+        function selectNewest() {
+            selectedForDeletion.clear();
+
+            duplicateGroups.forEach(function(group) {
+                // Sort by created_at descending
+                var sorted = group.slice().sort(function(a, b) {
+                    return new Date(b.created_at) - new Date(a.created_at);
+                });
+
+                // Select all except the newest (first after sort)
+                for (var i = 1; i < sorted.length; i++) {
+                    selectedForDeletion.add(sorted[i].id);
+                }
+            });
+
+            renderDuplicates();
+            showToast('Dipilih: ' + selectedForDeletion.size + ' pengajian (pertahankan yang terbaru)', 'info');
+        }
+
+        async function deleteSelected() {
+            if (selectedForDeletion.size === 0) {
+                showToast('Pilih pengajian yang akan dihapus', 'warning');
+                return;
+            }
+
+            if (!confirm('Yakin ingin menghapus ' + selectedForDeletion.size + ' pengajian yang dipilih?\n\nPerhatian: Data presensi yang terkait juga akan terhapus!')) {
+                return;
+            }
+
+            var btn = $('btnDelete');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Menghapus...';
+            }
+
+            try {
+                var idsToDelete = Array.from(selectedForDeletion);
+
+                // Delete presensi first (FK constraint)
+                var { error: presensiError } = await db.from('keaktifan_pengajian')
+                    .delete()
+                    .in('pengajian_id', idsToDelete);
+
+                if (presensiError) {
+                    console.warn('Error deleting presensi:', presensiError);
+                }
+
+                // Delete pengajian
+                var { error } = await db.from('pengajian')
+                    .delete()
+                    .in('id', idsToDelete);
+
+                if (error) throw error;
+
+                showToast('Berhasil menghapus ' + idsToDelete.length + ' pengajian duplikat', 'success');
+
+                // Reset and re-detect
+                selectedForDeletion.clear();
+                await detectDuplicates();
+
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal menghapus: ' + error.message, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '🗑️ Hapus Yang Dipilih';
+                }
+            }
+        }
+
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '-';
+            var d = new Date(dateStr);
+            return formatTanggal(dateStr) + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        }
+    </script>
+</body>
+</html>

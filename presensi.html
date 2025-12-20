@@ -14,6 +14,96 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        /* Mobile responsive table styling */
+        @media (max-width: 768px) {
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            #presensiTable {
+                min-width: 100%;
+                font-size: 0.75rem;
+            }
+
+            #presensiTable th,
+            #presensiTable td {
+                padding: 0.4rem 0.3rem;
+                white-space: nowrap;
+            }
+
+            #presensiTable th:first-child,
+            #presensiTable td:first-child {
+                position: sticky;
+                left: 0;
+                background: white;
+                z-index: 10;
+                min-width: 30px;
+            }
+
+            #presensiTable th:nth-child(2),
+            #presensiTable td:nth-child(2) {
+                position: sticky;
+                left: 30px;
+                background: white;
+                z-index: 10;
+                max-width: 120px;
+                white-space: normal;
+                word-wrap: break-word;
+            }
+
+            #presensiTable thead th {
+                background: var(--primary-color, #059669);
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 11;
+            }
+
+            #presensiTable thead th:first-child,
+            #presensiTable thead th:nth-child(2) {
+                z-index: 12;
+            }
+
+            /* Radio buttons spacing */
+            #presensiTable input[type="radio"] {
+                margin: 0;
+                transform: scale(1.2);
+            }
+
+            /* Keterangan input smaller on mobile */
+            #presensiTable input[type="text"] {
+                min-width: 100px;
+                font-size: 0.7rem;
+                padding: 0.3rem;
+            }
+
+            /* Gender header styling */
+            .gender-header td {
+                position: sticky;
+                left: 0;
+                background: inherit !important;
+                z-index: 10;
+            }
+
+            /* Filter section responsive */
+            .card-body > div[style*="display:flex"] {
+                flex-direction: column !important;
+            }
+
+            .card-body > div[style*="display:flex"] > div {
+                width: 100% !important;
+                min-width: 100% !important;
+            }
+
+            /* Pengajian info responsive */
+            #pengajianInfo > div > div {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -42,6 +132,7 @@
                 <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
                 <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
                 <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="cleanup-duplikat.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🧹</span><span class="nav-text">Cleanup Duplikat</span></a>
                 <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
                 <a href="pengaturan-akses.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🔐</span><span class="nav-text">Pengaturan Akses</span></a>
             </nav>
