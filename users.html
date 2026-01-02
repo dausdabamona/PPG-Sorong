@@ -109,7 +109,7 @@
                     
                     <div class="tab-content active" id="tabUsers">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title">Daftar Pengguna</h3></div>
+                            <div class="card-header"><h3 class="card-title">Daftar Pengguna</h3><button class="btn btn-primary btn-sm" onclick="showAddUserModal()">+ Tambah User</button></div>
                             <div class="card-body">
                                 <div class="table-container">
                                     <table class="table" id="usersTable">
@@ -123,11 +123,11 @@
                     
                     <div class="tab-content" id="tabRoles">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title">Daftar Role</h3></div>
+                            <div class="card-header"><h3 class="card-title">Daftar Role</h3><button class="btn btn-primary btn-sm" onclick="showAddRoleModal()">+ Tambah Role</button></div>
                             <div class="card-body">
                                 <div class="table-container">
                                     <table class="table" id="rolesTable">
-                                        <thead><tr><th>No</th><th>Kode</th><th>Nama</th><th>Level</th><th>Deskripsi</th></tr></thead>
+                                        <thead><tr><th>No</th><th>Kode</th><th>Nama</th><th>Level</th><th>Deskripsi</th><th>Aksi</th></tr></thead>
                                         <tbody></tbody>
                                     </table>
                                 </div>
@@ -183,6 +183,36 @@
                 </form>
             </div>
             <div class="modal-footer"><button class="btn btn-secondary" onclick="hideModal('assignModal')">Batal</button><button class="btn btn-primary" onclick="saveAssignment()">Simpan</button></div>
+        </div>
+    </div>
+
+    <div class="modal" id="addUserModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Tambah User Baru</h3><button class="modal-close" onclick="hideModal('addUserModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="form-group"><label class="form-label required">Nama</label><input type="text" class="form-control" name="nama" id="addUserNama" required></div>
+                    <div class="form-group"><label class="form-label required">Email</label><input type="email" class="form-control" name="email" id="addUserEmail" required></div>
+                    <div class="form-group"><label class="form-label">No. HP</label><input type="tel" class="form-control" name="phone" id="addUserPhone"></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="hideModal('addUserModal')">Batal</button><button class="btn btn-primary" onclick="saveNewUser()">Simpan</button></div>
+        </div>
+    </div>
+
+    <div class="modal" id="roleModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3 id="roleModalTitle">Tambah Role</h3><button class="modal-close" onclick="hideModal('roleModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="roleForm">
+                    <input type="hidden" name="id" id="roleId">
+                    <div class="form-group"><label class="form-label required">Kode</label><input type="text" class="form-control" name="kode" id="roleKode" required placeholder="contoh: ADMIN"></div>
+                    <div class="form-group"><label class="form-label required">Nama</label><input type="text" class="form-control" name="nama" id="roleNama" required placeholder="contoh: Administrator"></div>
+                    <div class="form-group"><label class="form-label required">Level</label><input type="number" class="form-control" name="level" id="roleLevel" required min="1" max="100" value="50"></div>
+                    <div class="form-group"><label class="form-label">Deskripsi</label><textarea class="form-control" name="deskripsi" id="roleDeskripsi" rows="2"></textarea></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="hideModal('roleModal')">Batal</button><button class="btn btn-primary" onclick="saveRole()">Simpan</button></div>
         </div>
     </div>
 
@@ -265,7 +295,7 @@
                         '<td>' + escapeHtml(u.email || '') + '</td>' +
                         '<td>' + roles + '</td>' +
                         '<td>' + escapeHtml(u.phone || '-') + '</td>' +
-                        '<td><button class="btn btn-sm btn-outline" onclick="editUser(' + u.id + ')">✏️</button></td>' +
+                        '<td><div class="btn-group"><button class="btn btn-sm btn-outline" onclick="editUser(' + u.id + ')">✏️</button><button class="btn btn-sm btn-danger" onclick="deleteUser(' + u.id + ')">🗑️</button></div></td>' +
                         '</tr>';
                 }).join('') || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
             }
@@ -293,8 +323,8 @@
             const { data } = await db.from('role').select('*').order('level');
             allRoles = data || [];
             $$('#rolesTable tbody').innerHTML = allRoles.map((r, i) => `
-                <tr><td>${i+1}</td><td><code>${r.kode}</code></td><td><strong>${r.nama}</strong></td><td><span class="badge badge-info">${r.level}</span></td><td>${r.deskripsi || '-'}</td></tr>
-            `).join('') || '<tr><td colspan="5" class="text-center text-muted">Tidak ada data</td></tr>';
+                <tr><td>${i+1}</td><td><code>${r.kode}</code></td><td><strong>${r.nama}</strong></td><td><span class="badge badge-info">${r.level}</span></td><td>${r.deskripsi || '-'}</td><td><div class="btn-group"><button class="btn btn-sm btn-outline" onclick="editRole(${r.id})">✏️</button><button class="btn btn-sm btn-danger" onclick="deleteRole(${r.id})">🗑️</button></div></td></tr>
+            `).join('') || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
         }
         
         async function loadWilayah() {
@@ -350,6 +380,139 @@
             showToast('Penugasan dihapus', 'success');
             await loadAssignments();
             await loadUsers();
+        }
+
+        // Add User functions
+        function showAddUserModal() {
+            $('addUserForm').reset();
+            showModal('addUserModal');
+        }
+
+        async function saveNewUser() {
+            var nama = $('addUserNama').value.trim();
+            var email = $('addUserEmail').value.trim();
+            var phone = $('addUserPhone').value.trim();
+
+            if (!nama || !email) {
+                showToast('Nama dan email wajib diisi', 'error');
+                return;
+            }
+
+            try {
+                var { error } = await db.from('users').insert({
+                    nama: nama,
+                    email: email,
+                    phone: phone || null
+                });
+                if (error) throw error;
+
+                showToast('User berhasil ditambahkan', 'success');
+                hideModal('addUserModal');
+                await loadUsers();
+                await loadAllData();
+            } catch (e) {
+                showToast('Gagal: ' + e.message, 'error');
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!await confirmDialog('Yakin hapus user ini? Semua penugasan role juga akan dihapus.')) return;
+
+            try {
+                // Delete user_role first
+                await db.from('user_role').delete().eq('user_id', id);
+                // Delete user
+                var { error } = await db.from('users').delete().eq('id', id);
+                if (error) throw error;
+
+                showToast('User berhasil dihapus', 'success');
+                await loadUsers();
+                await loadAllData();
+            } catch (e) {
+                showToast('Gagal: ' + e.message, 'error');
+            }
+        }
+
+        // Role CRUD functions
+        function showAddRoleModal() {
+            $('roleModalTitle').textContent = 'Tambah Role';
+            $('roleForm').reset();
+            $('roleId').value = '';
+            $('roleLevel').value = '50';
+            showModal('roleModal');
+        }
+
+        function editRole(id) {
+            var role = allRoles.find(function(r) { return r.id === id; });
+            if (!role) return;
+
+            $('roleModalTitle').textContent = 'Edit Role';
+            $('roleId').value = role.id;
+            $('roleKode').value = role.kode || '';
+            $('roleNama').value = role.nama || '';
+            $('roleLevel').value = role.level || 50;
+            $('roleDeskripsi').value = role.deskripsi || '';
+            showModal('roleModal');
+        }
+
+        async function saveRole() {
+            var id = $('roleId').value;
+            var kode = $('roleKode').value.trim().toUpperCase();
+            var nama = $('roleNama').value.trim();
+            var level = parseInt($('roleLevel').value) || 50;
+            var deskripsi = $('roleDeskripsi').value.trim();
+
+            if (!kode || !nama) {
+                showToast('Kode dan nama wajib diisi', 'error');
+                return;
+            }
+
+            try {
+                var data = {
+                    kode: kode,
+                    nama: nama,
+                    level: level,
+                    deskripsi: deskripsi || null
+                };
+
+                if (id) {
+                    var { error } = await db.from('role').update(data).eq('id', parseInt(id));
+                    if (error) throw error;
+                    showToast('Role berhasil diperbarui', 'success');
+                } else {
+                    var { error } = await db.from('role').insert(data);
+                    if (error) throw error;
+                    showToast('Role berhasil ditambahkan', 'success');
+                }
+
+                hideModal('roleModal');
+                await loadRoles();
+                await loadAllData();
+            } catch (e) {
+                showToast('Gagal: ' + e.message, 'error');
+            }
+        }
+
+        async function deleteRole(id) {
+            if (!await confirmDialog('Yakin hapus role ini? Pastikan tidak ada user yang menggunakan role ini.')) return;
+
+            try {
+                // Check if role is in use
+                var { count } = await db.from('user_role').select('*', { count: 'exact', head: true }).eq('role_id', id);
+                if (count > 0) {
+                    showToast('Role masih digunakan oleh ' + count + ' penugasan. Hapus penugasan terlebih dahulu.', 'error');
+                    return;
+                }
+
+                var { error } = await db.from('role').delete().eq('id', id);
+                if (error) throw error;
+
+                showToast('Role berhasil dihapus', 'success');
+                await loadRoles();
+                await loadAllData();
+            } catch (e) {
+                showToast('Gagal: ' + e.message, 'error');
+            }
         }
     </script>
 

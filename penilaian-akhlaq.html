@@ -246,6 +246,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closePenilaianModal()">Batal</button>
+                <button class="btn btn-danger" id="btnDeletePenilaian" style="display:none;" onclick="deletePenilaian()">Hapus</button>
                 <button class="btn btn-primary" onclick="savePenilaian()">Simpan</button>
             </div>
         </div>
@@ -441,9 +442,11 @@
                 currentRatings.kemandirian = existing.kemandirian || 0;
                 currentRatings.kebersihan = existing.kebersihan || 0;
                 $('penilaianCatatan').value = existing.catatan || '';
+                $('btnDeletePenilaian').style.display = 'inline-block';
             } else {
                 $('penilaianId').value = '';
                 $('penilaianCatatan').value = '';
+                $('btnDeletePenilaian').style.display = 'none';
             }
 
             // Update UI
@@ -565,6 +568,25 @@
             } catch (error) {
                 console.error('Error save:', error);
                 showToast('Gagal menyimpan: ' + (error.message || error), 'error');
+            }
+        }
+
+        async function deletePenilaian() {
+            var penilaianId = $('penilaianId').value;
+            if (!penilaianId) return;
+
+            if (!confirm('Yakin ingin menghapus penilaian ini?')) return;
+
+            try {
+                var { error } = await db.from('penilaian_akhlaq').delete().eq('id', parseInt(penilaianId));
+                if (error) throw error;
+
+                showToast('Penilaian berhasil dihapus', 'success');
+                closePenilaianModal();
+                await loadSantri();
+            } catch (error) {
+                console.error('Error delete:', error);
+                showToast('Gagal menghapus: ' + (error.message || error), 'error');
             }
         }
     </script>
