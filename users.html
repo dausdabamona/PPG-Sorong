@@ -108,6 +108,7 @@
                         <div class="tab-item active" onclick="switchTab('users', this)">👤 Daftar User</div>
                         <div class="tab-item" onclick="switchTab('roles', this)">🎭 Role</div>
                         <div class="tab-item" onclick="switchTab('assignments', this)">🔗 Penugasan Role</div>
+                        <div class="tab-item" onclick="switchTab('byWilayah', this)">🗺️ Per Wilayah</div>
                     </div>
                     
                     <div class="tab-content active" id="tabUsers">
@@ -145,11 +146,43 @@
                                 <button class="btn btn-primary" onclick="showAssignModal()">➕ Tambah Penugasan</button>
                             </div>
                             <div class="card-body">
+                                <div class="filter-grid mb-md">
+                                    <select class="form-control" id="filterAssignRole" onchange="loadAssignments()">
+                                        <option value="">Semua Role</option>
+                                    </select>
+                                    <select class="form-control" id="filterAssignWilayah" onchange="loadAssignments()">
+                                        <option value="">Semua Wilayah</option>
+                                    </select>
+                                </div>
                                 <div class="table-container">
                                     <table class="table" id="assignmentsTable">
                                         <thead><tr><th>No</th><th>User</th><th>Role</th><th>Wilayah</th><th>Status</th><th>Aksi</th></tr></thead>
                                         <tbody></tbody>
                                     </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="tabByWilayah">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">User Per Wilayah</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="filter-grid mb-md">
+                                    <select class="form-control" id="filterWilayahTingkat" onchange="loadByWilayah()">
+                                        <option value="">Semua Tingkat</option>
+                                        <option value="daerah">Daerah</option>
+                                        <option value="desa">Desa</option>
+                                        <option value="kelompok">Kelompok</option>
+                                    </select>
+                                    <select class="form-control" id="filterWilayahSelected" onchange="loadByWilayah()">
+                                        <option value="">Pilih Wilayah</option>
+                                    </select>
+                                </div>
+                                <div id="byWilayahContainer">
+                                    <div class="text-center text-muted py-4">Pilih wilayah untuk melihat user</div>
                                 </div>
                             </div>
                         </div>
@@ -263,6 +296,97 @@
             if (totalUsersEl) totalUsersEl.textContent = allUsers.length;
             if (activeUsersEl) activeUsersEl.textContent = allUsers.length;
             if (totalRolesEl) totalRolesEl.textContent = allRoles.length;
+
+            // Populate filter dropdowns
+            populateFilters();
+        }
+
+        function populateFilters() {
+            // Populate role filter
+            var filterAssignRole = $('filterAssignRole');
+            if (filterAssignRole) {
+                filterAssignRole.innerHTML = '<option value="">Semua Role</option>' +
+                    allRoles.map(r => '<option value="' + r.id + '">' + escapeHtml(r.nama) + '</option>').join('');
+            }
+
+            // Populate wilayah filter
+            var filterAssignWilayah = $('filterAssignWilayah');
+            if (filterAssignWilayah) {
+                filterAssignWilayah.innerHTML = '<option value="">Semua Wilayah</option>' +
+                    allWilayah.map(w => '<option value="' + w.id + '">' + escapeHtml(w.nama) + ' (' + w.tingkat + ')</option>').join('');
+            }
+
+            // Populate Per Wilayah tab filter
+            var filterWilayahSelected = $('filterWilayahSelected');
+            if (filterWilayahSelected) {
+                filterWilayahSelected.innerHTML = '<option value="">Pilih Wilayah</option>' +
+                    allWilayah.map(w => '<option value="' + w.id + '" data-tingkat="' + w.tingkat + '">' + escapeHtml(w.nama) + ' (' + w.tingkat + ')</option>').join('');
+            }
+        }
+
+        function updateWilayahDropdown() {
+            var tingkat = $('filterWilayahTingkat').value;
+            var filterWilayahSelected = $('filterWilayahSelected');
+            if (!filterWilayahSelected) return;
+
+            var filtered = tingkat ? allWilayah.filter(w => w.tingkat === tingkat) : allWilayah;
+            filterWilayahSelected.innerHTML = '<option value="">Pilih Wilayah</option>' +
+                filtered.map(w => '<option value="' + w.id + '">' + escapeHtml(w.nama) + ' (' + w.tingkat + ')</option>').join('');
+        }
+
+        async function loadByWilayah() {
+            var wilayahId = $('filterWilayahSelected').value;
+            var tingkat = $('filterWilayahTingkat').value;
+            var container = $('byWilayahContainer');
+
+            // Update wilayah dropdown when tingkat changes
+            updateWilayahDropdown();
+
+            if (!wilayahId) {
+                container.innerHTML = '<div class="text-center text-muted py-4">Pilih wilayah untuk melihat user</div>';
+                return;
+            }
+
+            // Find selected wilayah
+            var wilayah = allWilayah.find(w => w.id == wilayahId);
+            if (!wilayah) {
+                container.innerHTML = '<div class="text-center text-muted py-4">Wilayah tidak ditemukan</div>';
+                return;
+            }
+
+            // Filter assignments for this wilayah
+            var wilayahAssignments = allAssignments.filter(a => a.wilayah_id == wilayahId);
+
+            if (!wilayahAssignments.length) {
+                container.innerHTML = '<div class="text-center text-muted py-4">Tidak ada user yang ditugaskan di wilayah ini</div>';
+                return;
+            }
+
+            // Group by role
+            var byRole = {};
+            wilayahAssignments.forEach(a => {
+                var roleName = a.role?.nama || 'Tanpa Role';
+                if (!byRole[roleName]) byRole[roleName] = [];
+                byRole[roleName].push(a);
+            });
+
+            var html = '<div class="mb-md"><h4>📍 ' + escapeHtml(wilayah.nama) + ' <span class="badge badge-info">' + wilayah.tingkat + '</span></h4></div>';
+
+            Object.keys(byRole).forEach(roleName => {
+                var users = byRole[roleName];
+                html += '<div class="card mb-sm">';
+                html += '<div class="card-header"><h4 class="card-title" style="font-size:0.9rem;">' + escapeHtml(roleName) + ' <span class="badge badge-secondary">' + users.length + '</span></h4></div>';
+                html += '<div class="card-body" style="padding:0.5rem;">';
+                users.forEach(a => {
+                    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-bottom:1px solid #f1f5f9;">';
+                    html += '<div><strong>' + escapeHtml(a.user?.nama || '-') + '</strong><br><small class="text-muted">' + escapeHtml(a.user?.email || '') + '</small></div>';
+                    html += '<span class="badge ' + (a.is_aktif ? 'badge-success' : 'badge-secondary') + '">' + (a.is_aktif ? 'Aktif' : 'Nonaktif') + '</span>';
+                    html += '</div>';
+                });
+                html += '</div></div>';
+            });
+
+            container.innerHTML = html;
         }
         
         function switchTab(tab, el) {
@@ -336,18 +460,37 @@
         }
         
         async function loadAssignments() {
-            const { data } = await db.from('user_role').select('*, user:user_id(nama, email), role:role_id(nama), wilayah:wilayah_id(nama)').order('user_id');
+            const { data } = await db.from('user_role').select('*, user:user_id(nama, email), role:role_id(nama), wilayah:wilayah_id(nama, tingkat)').order('user_id');
             allAssignments = data || [];
-            $$('#assignmentsTable tbody').innerHTML = allAssignments.map((a, i) => `
-                <tr>
-                    <td>${i+1}</td>
-                    <td><strong>${a.user?.nama || '-'}</strong><br><small class="text-muted">${a.user?.email || ''}</small></td>
-                    <td><span class="badge badge-primary">${a.role?.nama || '-'}</span></td>
-                    <td>${a.wilayah?.nama || '<span class="text-muted">Semua</span>'}</td>
-                    <td><span class="badge ${a.is_aktif ? 'badge-success' : 'badge-secondary'}">${a.is_aktif ? 'Aktif' : 'Nonaktif'}</span></td>
-                    <td><div class="btn-group"><button class="btn btn-sm btn-outline" onclick="toggleAssign(${a.id}, ${!a.is_aktif})">${a.is_aktif ? '❌' : '✅'}</button><button class="btn btn-sm btn-danger" onclick="deleteAssign(${a.id})">🗑️</button></div></td>
-                </tr>
-            `).join('') || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
+            renderAssignments();
+        }
+
+        function renderAssignments() {
+            // Apply filters
+            var roleFilter = $('filterAssignRole')?.value;
+            var wilayahFilter = $('filterAssignWilayah')?.value;
+
+            var filtered = allAssignments;
+            if (roleFilter) {
+                filtered = filtered.filter(a => a.role_id == roleFilter);
+            }
+            if (wilayahFilter) {
+                filtered = filtered.filter(a => a.wilayah_id == wilayahFilter);
+            }
+
+            var tbody = $$('#assignmentsTable tbody');
+            if (tbody) {
+                tbody.innerHTML = filtered.map((a, i) => `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td><strong>${escapeHtml(a.user?.nama || '-')}</strong><br><small class="text-muted">${escapeHtml(a.user?.email || '')}</small></td>
+                        <td><span class="badge badge-primary">${escapeHtml(a.role?.nama || '-')}</span></td>
+                        <td>${a.wilayah ? escapeHtml(a.wilayah.nama) + ' <small>(' + a.wilayah.tingkat + ')</small>' : '<span class="text-muted">Semua</span>'}</td>
+                        <td><span class="badge ${a.is_aktif ? 'badge-success' : 'badge-secondary'}">${a.is_aktif ? 'Aktif' : 'Nonaktif'}</span></td>
+                        <td><div class="btn-group"><button class="btn btn-sm btn-outline" onclick="toggleAssign(${a.id}, ${!a.is_aktif})">${a.is_aktif ? '❌' : '✅'}</button><button class="btn btn-sm btn-danger" onclick="deleteAssign(${a.id})">🗑️</button></div></td>
+                    </tr>
+                `).join('') || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
+            }
         }
         
         function showAssignModal() {

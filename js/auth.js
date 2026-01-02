@@ -295,7 +295,23 @@ function hasRole(roleKode) {
 
 // Cek apakah admin
 function isAdmin() {
-    return userRoles.some(ur => ur.role?.kode?.toLowerCase() === 'admin');
+    return userRoles.some(ur => {
+        const kode = ur.role?.kode?.toLowerCase();
+        return kode === 'admin' || kode === 'super_admin' || kode === 'superadmin';
+    });
+}
+
+// Cek apakah super admin (level tertinggi)
+function isSuperAdmin() {
+    return userRoles.some(ur => {
+        const kode = ur.role?.kode?.toLowerCase();
+        return kode === 'super_admin' || kode === 'superadmin' || kode === 'admin';
+    });
+}
+
+// Cek apakah operator
+function isOperator() {
+    return userRoles.some(ur => ur.role?.kode?.toLowerCase() === 'operator');
 }
 
 // Cek apakah mubaligh/pengajar
