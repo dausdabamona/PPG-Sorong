@@ -65,45 +65,35 @@ function applyFilters(query, filters = {}) {
 const jamaahApi = {
     /**
      * Get semua jamaah dengan filter opsional
+     * Uses regular table query (fallback from view)
      * @param {Object} filters - { status_aktif, wilayah_id, jenjang_id, search }
      * @returns {Promise<Array>}
      */
     getAll: async function(filters = {}) {
         try {
-            let query = db.from('v_jamaah_lengkap').select('*');
-            
+            // Use jamaah table directly with basic filters
+            let query = db.from('jamaah').select('*');
+
             if (filters.status_aktif) {
                 query = query.eq('status_aktif', filters.status_aktif);
             }
-            if (filters.wilayah_id) {
-                query = query.eq('wilayah_id', safeInt(filters.wilayah_id));
-            }
-            if (filters.jenjang_id) {
-                query = query.eq('jenjang_id', safeInt(filters.jenjang_id));
-            }
-            if (filters.desa_id) {
-                query = query.eq('desa_id', safeInt(filters.desa_id));
-            }
-            if (filters.daerah_id) {
-                query = query.eq('daerah_id', safeInt(filters.daerah_id));
-            }
-            
+
             query = query.order('nama');
-            
+
             const { data, error } = await query;
             if (error) throw error;
-            
+
             // Client-side search filter
             let result = data || [];
             if (filters.search) {
                 const searchLower = filters.search.toLowerCase();
-                result = result.filter(j => 
+                result = result.filter(j =>
                     (j.nama && j.nama.toLowerCase().includes(searchLower)) ||
                     (j.nama_panggilan && j.nama_panggilan.toLowerCase().includes(searchLower)) ||
                     (j.nomor_induk && j.nomor_induk.toLowerCase().includes(searchLower))
                 );
             }
-            
+
             return result;
         } catch (error) {
             handleApiError(error, 'Gagal memuat data jamaah');
@@ -113,23 +103,43 @@ const jamaahApi = {
 
     /**
      * Search jamaah by nama (untuk pencarian pasangan dll)
+     * Uses regular table query with joins (fallback from view)
      * @param {string} query - Kata kunci pencarian
      * @param {number} limit - Maksimal hasil
      * @returns {Promise<Array>}
      */
-    search: async function(query, limit = 20) {
+    search: async function(searchQuery, limit = 20) {
         try {
-            if (!query || query.length < 2) return [];
+            if (!searchQuery || searchQuery.length < 2) return [];
 
-            const { data, error } = await db
-                .from('v_jamaah_lengkap')
-                .select('id, nama, nama_panggilan, jenis_kelamin, tanggal_lahir, wilayah_nama, jenjang_nama, status_aktif')
-                .or(`nama.ilike.%${query}%,nama_panggilan.ilike.%${query}%`)
+            // Use regular jamaah table with enrollment join
+            const { data: jamaahData, error } = await db
+                .from('jamaah')
+                .select('id, nama, nama_panggilan, jenis_kelamin, tanggal_lahir, status_aktif')
+                .or(`nama.ilike.%${searchQuery}%,nama_panggilan.ilike.%${searchQuery}%`)
                 .order('nama')
                 .limit(limit);
 
             if (error) throw error;
-            return data || [];
+
+            // Get enrollment info for each jamaah
+            var result = [];
+            for (var j of (jamaahData || [])) {
+                var { data: enroll } = await db
+                    .from('enrollment')
+                    .select('wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)')
+                    .eq('jamaah_id', j.id)
+                    .eq('status', 'aktif')
+                    .maybeSingle();
+
+                result.push({
+                    ...j,
+                    wilayah_nama: enroll?.wilayah?.nama || null,
+                    jenjang_nama: enroll?.jenjang?.nama || null
+                });
+            }
+
+            return result;
         } catch (error) {
             handleApiError(error, 'Gagal mencari jamaah');
             return [];
@@ -138,17 +148,18 @@ const jamaahApi = {
 
     /**
      * Get jamaah by ID
+     * Uses regular table query (fallback from view)
      * @param {number} id
      * @returns {Promise<Object|null>}
      */
     getById: async function(id) {
         try {
             const { data, error } = await db
-                .from('v_jamaah_lengkap')
+                .from('jamaah')
                 .select('*')
                 .eq('id', safeInt(id))
                 .single();
-            
+
             if (error) throw error;
             return data;
         } catch (error) {
@@ -668,16 +679,18 @@ const enrollmentApi = {
 const pengajianApi = {
     /**
      * Get semua pengajian dengan filter
+     * Uses regular table query with joins (fallback from view)
      * @param {Object} filters - { bulan (YYYY-MM), jenjang_id, wilayah_id }
      * @returns {Promise<Array>}
      */
     getAll: async function(filters = {}) {
         try {
+            // Use regular table query with joins instead of view
             let query = db
-                .from('v_pengajian_lengkap')
-                .select('*')
+                .from('pengajian')
+                .select('*, jenjang:jenjang_id(id, nama, kode), wilayah:wilayah_id(id, nama, tingkat)')
                 .order('tanggal', { ascending: false });
-            
+
             if (filters.jenjang_id) {
                 query = query.eq('jenjang_id', safeInt(filters.jenjang_id));
             }
@@ -709,10 +722,22 @@ const pengajianApi = {
             if (filters.limit) {
                 query = query.limit(filters.limit);
             }
-            
+
             const { data, error } = await query;
             if (error) throw error;
-            return data || [];
+
+            // Transform data to match expected format from view
+            var result = (data || []).map(function(p) {
+                return {
+                    ...p,
+                    jenjang_nama: p.jenjang ? p.jenjang.nama : null,
+                    jenjang_kode: p.jenjang ? p.jenjang.kode : null,
+                    wilayah_nama: p.wilayah ? p.wilayah.nama : null,
+                    wilayah_tingkat: p.wilayah ? p.wilayah.tingkat : null
+                };
+            });
+
+            return result;
         } catch (error) {
             handleApiError(error, 'Gagal memuat data pengajian');
             return [];
@@ -721,18 +746,28 @@ const pengajianApi = {
 
     /**
      * Get pengajian by ID
+     * Uses regular table query with joins (fallback from view)
      * @param {number} id
      * @returns {Promise<Object|null>}
      */
     getById: async function(id) {
         try {
             const { data, error } = await db
-                .from('v_pengajian_lengkap')
-                .select('*')
+                .from('pengajian')
+                .select('*, jenjang:jenjang_id(id, nama, kode), wilayah:wilayah_id(id, nama, tingkat)')
                 .eq('id', safeInt(id))
                 .single();
-            
+
             if (error) throw error;
+
+            // Transform data to match expected format from view
+            if (data) {
+                data.jenjang_nama = data.jenjang ? data.jenjang.nama : null;
+                data.jenjang_kode = data.jenjang ? data.jenjang.kode : null;
+                data.wilayah_nama = data.wilayah ? data.wilayah.nama : null;
+                data.wilayah_tingkat = data.wilayah ? data.wilayah.tingkat : null;
+            }
+
             return data;
         } catch (error) {
             handleApiError(error, 'Gagal memuat pengajian');
