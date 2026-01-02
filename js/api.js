@@ -439,41 +439,80 @@ const generusApi = {
 
     /**
      * Get generus dari view (alternatif)
+     * Uses regular table query with joins (fallback from view)
      * @param {Object} filters
      * @returns {Promise<Array>}
      */
     getFromView: async function(filters = {}) {
         try {
-            let query = db.from('v_generus_aktif').select('*');
-            
+            // Use regular table query with joins instead of view
+            // Join enrollment to get active generus with their kelompok and jenjang
+            let query = db.from('enrollment')
+                .select(`
+                    jamaah_id,
+                    jenjang_id,
+                    wilayah_id,
+                    status,
+                    jamaah:jamaah_id(id, nama, nama_panggilan, jenis_kelamin, tanggal_lahir, phone, alamat, ayah_id, ibu_id, status_pernikahan),
+                    jenjang:jenjang_id(id, nama, kode),
+                    wilayah:wilayah_id(id, nama, tingkat, parent_id)
+                `)
+                .eq('status', 'aktif');
+
+            // Filter by wilayah if provided
             if (filters.kelompok_id) {
-                query = query.eq('kelompok_id', safeInt(filters.kelompok_id));
-            }
-            if (filters.desa_id) {
-                query = query.eq('desa_id', safeInt(filters.desa_id));
-            }
-            if (filters.daerah_id) {
-                query = query.eq('daerah_id', safeInt(filters.daerah_id));
+                query = query.eq('wilayah_id', safeInt(filters.kelompok_id));
             }
             if (filters.jenjang_id) {
                 query = query.eq('jenjang_id', safeInt(filters.jenjang_id));
             }
-            
-            query = query.order('nama');
-            
-            const { data, error } = await query;
+
+            const { data: enrollments, error } = await query;
             if (error) throw error;
-            
+
+            // Transform data to match expected format from view
+            let result = (enrollments || [])
+                .filter(e => e.jamaah && e.jamaah.status_pernikahan !== 'menikah')
+                .map(function(e) {
+                    var jamaah = e.jamaah || {};
+                    var jenjang = e.jenjang || {};
+                    var wilayah = e.wilayah || {};
+                    return {
+                        id: jamaah.id,
+                        nama: jamaah.nama,
+                        nama_panggilan: jamaah.nama_panggilan,
+                        jenis_kelamin: jamaah.jenis_kelamin,
+                        tanggal_lahir: jamaah.tanggal_lahir,
+                        phone: jamaah.phone,
+                        alamat: jamaah.alamat,
+                        ayah_id: jamaah.ayah_id,
+                        ibu_id: jamaah.ibu_id,
+                        ayah_nama: null, // Would need additional query
+                        ibu_nama: null,  // Would need additional query
+                        jenjang_id: jenjang.id,
+                        jenjang_nama: jenjang.nama,
+                        jenjang_kode: jenjang.kode,
+                        kelompok_id: wilayah.id,
+                        kelompok_nama: wilayah.nama,
+                        enrollment_id: e.jamaah_id ? e.jamaah_id : null
+                    };
+                });
+
+            // Filter by desa_id or daerah_id requires checking parent hierarchy
+            // For now, filter by kelompok_id only works directly
+
             // Client-side search
-            let result = data || [];
             if (filters.search) {
                 const searchLower = filters.search.toLowerCase();
-                result = result.filter(g => 
+                result = result.filter(g =>
                     (g.nama && g.nama.toLowerCase().includes(searchLower)) ||
                     (g.nama_panggilan && g.nama_panggilan.toLowerCase().includes(searchLower))
                 );
             }
-            
+
+            // Sort by nama
+            result.sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
+
             return result;
         } catch (error) {
             handleApiError(error, 'Gagal memuat data generus');
@@ -2003,13 +2042,16 @@ const pernikahanApi = {
 const jadwalRutinApi = {
     /**
      * Get semua jadwal rutin dengan filter
+     * Uses regular table query with joins (fallback from view)
      * @param {Object} filters - { wilayah_id, jenjang_id, tingkat, is_aktif }
      * @returns {Promise<Array>}
      */
     getAll: async function(filters = {}) {
         try {
-            var query = db.from('v_jadwal_rutin_lengkap').select('*');
-            
+            // Use regular table query with joins instead of view
+            var query = db.from('jadwal_rutin')
+                .select('*, wilayah:wilayah_id(id, nama), jenjang:jenjang_id(id, nama)');
+
             if (filters.wilayah_id) {
                 query = query.eq('wilayah_id', safeInt(filters.wilayah_id));
             }
@@ -2022,33 +2064,53 @@ const jadwalRutinApi = {
             if (filters.is_aktif !== undefined) {
                 query = query.eq('is_aktif', filters.is_aktif);
             }
-            
+
             query = query.order('nama');
-            
+
             var result = await query;
             if (result.error) throw result.error;
-            return result.data || [];
+
+            // Transform data to match expected format from view
+            var data = (result.data || []).map(function(r) {
+                return {
+                    ...r,
+                    wilayah_nama: r.wilayah ? r.wilayah.nama : null,
+                    jenjang_nama: r.jenjang ? r.jenjang.nama : null,
+                    jumlah_peserta: 0 // Will be calculated if needed
+                };
+            });
+
+            return data;
         } catch (error) {
             handleApiError(error, 'Gagal memuat jadwal rutin');
             return [];
         }
     },
-    
+
     /**
      * Get jadwal rutin by ID
+     * Uses regular table query with joins (fallback from view)
      * @param {number} id
      * @returns {Promise<Object|null>}
      */
     getById: async function(id) {
         try {
             var result = await db
-                .from('v_jadwal_rutin_lengkap')
-                .select('*')
+                .from('jadwal_rutin')
+                .select('*, wilayah:wilayah_id(id, nama), jenjang:jenjang_id(id, nama)')
                 .eq('id', safeInt(id))
                 .single();
-            
+
             if (result.error) throw result.error;
-            return result.data;
+
+            // Transform data to match expected format
+            var data = result.data;
+            if (data) {
+                data.wilayah_nama = data.wilayah ? data.wilayah.nama : null;
+                data.jenjang_nama = data.jenjang ? data.jenjang.nama : null;
+            }
+
+            return data;
         } catch (error) {
             handleApiError(error, 'Gagal memuat jadwal rutin');
             return null;

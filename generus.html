@@ -611,14 +611,15 @@
                 var fabAdd = $('fabAdd');
                 
                 // Cek apakah user bisa edit (admin atau imam kelompok)
-                var canEdit = userRoles && userRoles.some(function(r) {
+                // isAdmin() checks for 'admin' role - ensures admin always has CRUD access
+                var canEdit = isAdmin() || (userRoles && userRoles.some(function(r) {
                     var kode = r.role && r.role.kode ? r.role.kode.toLowerCase() : '';
-                    // Role yang bisa edit: admin, mubaligh, ki, pjp, mt di semua tingkat
-                    return ['admin', 'operator',
+                    // Role yang bisa edit: operator, mubaligh, ki, pjp, mt di semua tingkat
+                    return ['operator', 'super_admin', 'superadmin',
                             'ki_daerah', 'wakil_ki_daerah', 'mubaligh_daerah', 'pakar_pendidik',
                             'ki_desa', 'wakil_ki_desa', 'pjp_desa', 'mubaligh_desa',
                             'ki_kelompok', 'pjp_kelompok', 'mt_kelompok'].includes(kode);
-                });
+                }));
                 
                 // Tampilkan tombol tambah jika bisa edit
                 if (canEdit) {
@@ -795,16 +796,17 @@
                 return;
             }
             
-            var canEdit = userRoles && userRoles.some(function(r) {
+            // isAdmin() checks for 'admin' role - ensures admin always has CRUD access
+            var canEdit = isAdmin() || (userRoles && userRoles.some(function(r) {
                 var kode = r.role && r.role.kode ? r.role.kode.toLowerCase() : '';
-                // Role yang bisa edit: admin, mubaligh, ki, pjp, mt di semua tingkat
-                return ['admin', 'operator',
+                // Role yang bisa edit: operator, mubaligh, ki, pjp, mt di semua tingkat
+                return ['operator', 'super_admin', 'superadmin',
                         'ki_daerah', 'wakil_ki_daerah', 'mubaligh_daerah', 'pakar_pendidik',
                         'ki_desa', 'wakil_ki_desa', 'pjp_desa', 'mubaligh_desa',
                         'ki_kelompok', 'pjp_kelompok', 'mt_kelompok'].includes(kode);
-            });
-            
-            console.log('canEdit:', canEdit, 'userRoles:', userRoles);
+            }));
+
+            console.log('canEdit:', canEdit, 'isAdmin:', isAdmin(), 'userRoles:', userRoles);
             
             var isMobile = window.innerWidth <= 768;
             var useGridView = isMobile && currentViewMode === 'grid';

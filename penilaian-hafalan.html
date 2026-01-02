@@ -280,17 +280,25 @@
         
         async function loadMateri() {
             try {
-                // Load dari view v_materi_hafalan
+                // Load dari materi_item dengan join ke kategori_materi (fallback dari view)
                 var result = await db
-                    .from('v_materi_hafalan')
-                    .select('*')
-                    .order('kategori_nama')
+                    .from('materi_item')
+                    .select('*, kategori:kategori_id(id, nama, kode)')
+                    .eq('is_hafalan', true)
+                    .order('kategori_id')
                     .order('nomor');
 
                 if (result.error) throw result.error;
 
-                var materiData = result.data || [];
-                console.log('Materi hafalan dari view:', materiData);
+                // Transform data to match expected format from view
+                var materiData = (result.data || []).map(function(m) {
+                    return {
+                        ...m,
+                        kategori_nama: m.kategori ? m.kategori.nama : null,
+                        kategori_kode: m.kategori ? m.kategori.kode : null
+                    };
+                });
+                console.log('Materi hafalan dari tabel:', materiData);
 
                 // Filter per kategori berdasarkan nama
                 materiSurat = materiData.filter(function(m) {
