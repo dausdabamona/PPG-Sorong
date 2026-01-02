@@ -267,7 +267,7 @@
 
                 // Load lima unsur
                 var unsurQuery = db.from('lima_unsur')
-                    .select('*, jamaah:jamaah_id(id, nama, jenis_kelamin)')
+                    .select('*, jamaah:jamaah_id(id, nama, jenis_kelamin, status_aktif)')
                     .eq('is_aktif', true);
 
                 if (tahunAjaranId) unsurQuery = unsurQuery.eq('tahun_ajaran_id', parseInt(tahunAjaranId));
@@ -423,6 +423,11 @@
             searchTimeout = setTimeout(async function() {
                 try {
                     var results = await jamaahApi.search(query, 10);
+
+                    // Filter only active jamaah
+                    results = results.filter(function(r) {
+                        return r.status_aktif === 'aktif';
+                    });
 
                     if (results.length === 0) {
                         container.innerHTML = '<p class="text-muted text-center" style="font-size:0.8rem;">Tidak ditemukan</p>';

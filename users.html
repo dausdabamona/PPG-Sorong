@@ -416,6 +416,12 @@
         }
 
         async function deleteUser(id) {
+            // Prevent self-delete
+            if (currentUserData && currentUserData.id === id) {
+                showToast('Tidak dapat menghapus akun sendiri', 'error');
+                return;
+            }
+
             if (!await confirmDialog('Yakin hapus user ini? Semua penugasan role juga akan dihapus.')) return;
 
             try {

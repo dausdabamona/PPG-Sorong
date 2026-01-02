@@ -246,6 +246,33 @@
         </div>
     </div>
 
+    <!-- Modal Peserta -->
+    <div class="modal" id="pesertaModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Peserta Musyawarah</h3>
+                <button class="modal-close" onclick="closePesertaModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid #e5e7eb;">
+                    <strong id="pesertaMusyawarahNama">-</strong>
+                    <div style="font-size:0.8rem; color:#6b7280;" id="pesertaCount">0 peserta</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tambah Peserta</label>
+                    <input type="text" class="form-control" id="searchPeserta" placeholder="Cari nama..." oninput="searchPesertaJamaah()">
+                    <div id="pesertaSearchResult" style="max-height:150px; overflow-y:auto; margin-top:0.5rem;"></div>
+                </div>
+                <div id="pesertaList" style="max-height:250px; overflow-y:auto;">
+                    <p class="text-center text-muted">Memuat...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closePesertaModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
@@ -377,6 +404,7 @@
 
                 html += '<div class="musyawarah-footer">';
                 html += '<button class="btn btn-sm btn-outline" onclick="showDetail(' + m.id + ')">👁️ Detail</button>';
+                html += '<button class="btn btn-sm btn-outline" onclick="showPeserta(' + m.id + ', \'' + m.judul.replace(/'/g, "\\'") + '\')">👥 Peserta</button>';
                 html += '<button class="btn btn-sm btn-outline" onclick="editMusyawarah(' + m.id + ')">✏️ Edit</button>';
                 html += '<button class="btn btn-sm btn-outline" onclick="deleteMusyawarah(' + m.id + ')">🗑️ Hapus</button>';
                 html += '</div>';
@@ -621,6 +649,159 @@
 
         function closeDetailModal() {
             $('detailModal').classList.remove('show');
+        }
+
+        // Peserta Management
+        var currentMusyawarahId = null;
+        var currentPeserta = [];
+        var pesertaSearchTimeout;
+
+        async function showPeserta(musyawarahId, nama) {
+            currentMusyawarahId = musyawarahId;
+            $('pesertaMusyawarahNama').textContent = nama;
+            $('searchPeserta').value = '';
+            $('pesertaSearchResult').innerHTML = '';
+
+            try {
+                var { data, error } = await db.from('musyawarah_peserta')
+                    .select('*, jamaah:jamaah_id(id, nama, jenis_kelamin)')
+                    .eq('musyawarah_id', musyawarahId);
+
+                if (error) throw error;
+
+                currentPeserta = data || [];
+                renderPesertaList();
+                $('pesertaModal').classList.add('show');
+
+            } catch (error) {
+                console.error('Error load peserta:', error);
+                showToast('Gagal memuat peserta', 'error');
+            }
+        }
+
+        function renderPesertaList() {
+            var container = $('pesertaList');
+            $('pesertaCount').textContent = currentPeserta.length + ' peserta';
+
+            if (currentPeserta.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted" style="font-size:0.85rem;">Belum ada peserta</p>';
+                return;
+            }
+
+            var html = '';
+            currentPeserta.forEach(function(p) {
+                var jk = p.jamaah?.jenis_kelamin || '?';
+                var bgColor = jk === 'L' ? '#dbeafe' : '#fce7f3';
+                var textColor = jk === 'L' ? '#1e40af' : '#be185d';
+
+                html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem;background:#f8fafc;border-radius:0.5rem;margin-bottom:0.5rem;">';
+                html += '<div style="display:flex;align-items:center;gap:0.5rem;">';
+                html += '<div style="width:32px;height:32px;border-radius:50%;background:' + bgColor + ';color:' + textColor + ';display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.8rem;">' + jk + '</div>';
+                html += '<span style="font-size:0.85rem;">' + (p.jamaah?.nama || '-') + '</span>';
+                html += '</div>';
+                html += '<button class="btn btn-xs btn-outline" onclick="removePeserta(' + p.id + ')">×</button>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function closePesertaModal() {
+            $('pesertaModal').classList.remove('show');
+            currentMusyawarahId = null;
+        }
+
+        async function searchPesertaJamaah() {
+            var query = $('searchPeserta').value.trim();
+            var container = $('pesertaSearchResult');
+
+            if (query.length < 2) {
+                container.innerHTML = '';
+                return;
+            }
+
+            clearTimeout(pesertaSearchTimeout);
+            pesertaSearchTimeout = setTimeout(async function() {
+                try {
+                    var results = await jamaahApi.search(query, 10);
+
+                    // Filter out already added peserta
+                    var existingIds = currentPeserta.map(function(p) { return p.jamaah_id; });
+                    results = results.filter(function(r) { return existingIds.indexOf(r.id) === -1; });
+
+                    if (results.length === 0) {
+                        container.innerHTML = '<p class="text-muted text-center" style="font-size:0.8rem;">Tidak ditemukan</p>';
+                        return;
+                    }
+
+                    var html = '';
+                    results.forEach(function(r) {
+                        var bgColor = r.jenis_kelamin === 'L' ? '#dbeafe' : '#fce7f3';
+                        var textColor = r.jenis_kelamin === 'L' ? '#1e40af' : '#be185d';
+
+                        html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem;border-bottom:1px solid #f1f5f9;">';
+                        html += '<div style="display:flex;align-items:center;gap:0.5rem;">';
+                        html += '<div style="width:28px;height:28px;border-radius:50%;background:' + bgColor + ';color:' + textColor + ';display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.7rem;">' + r.jenis_kelamin + '</div>';
+                        html += '<span style="font-size:0.8rem;">' + r.nama + '</span>';
+                        html += '</div>';
+                        html += '<button class="btn btn-xs btn-primary" onclick="addPeserta(' + r.id + ', \'' + r.nama.replace(/'/g, "\\'") + '\', \'' + r.jenis_kelamin + '\')">+</button>';
+                        html += '</div>';
+                    });
+
+                    container.innerHTML = html;
+
+                } catch (error) {
+                    console.error('Error search:', error);
+                }
+            }, 300);
+        }
+
+        async function addPeserta(jamaahId, nama, jk) {
+            try {
+                var { error } = await db.from('musyawarah_peserta').insert({
+                    musyawarah_id: currentMusyawarahId,
+                    jamaah_id: jamaahId
+                });
+
+                if (error) throw error;
+
+                // Add to local array
+                currentPeserta.push({
+                    id: Date.now(),
+                    musyawarah_id: currentMusyawarahId,
+                    jamaah_id: jamaahId,
+                    jamaah: { id: jamaahId, nama: nama, jenis_kelamin: jk }
+                });
+
+                $('searchPeserta').value = '';
+                $('pesertaSearchResult').innerHTML = '';
+                renderPesertaList();
+                showToast('Peserta ditambahkan', 'success');
+
+                // Reload to get actual ID
+                await showPeserta(currentMusyawarahId, $('pesertaMusyawarahNama').textContent);
+
+            } catch (error) {
+                console.error('Error add peserta:', error);
+                showToast('Gagal menambah peserta', 'error');
+            }
+        }
+
+        async function removePeserta(id) {
+            if (!confirm('Hapus peserta ini?')) return;
+
+            try {
+                var { error } = await db.from('musyawarah_peserta').delete().eq('id', id);
+                if (error) throw error;
+
+                currentPeserta = currentPeserta.filter(function(p) { return p.id !== id; });
+                renderPesertaList();
+                showToast('Peserta dihapus', 'success');
+
+            } catch (error) {
+                console.error('Error remove peserta:', error);
+                showToast('Gagal menghapus peserta', 'error');
+            }
         }
     </script>
 </body>

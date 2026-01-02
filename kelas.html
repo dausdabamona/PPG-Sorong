@@ -558,14 +558,36 @@
             $('anggotaKelasNama').textContent = kelasNama;
 
             try {
+                // Simplified query - get anggota with jamaah data only
                 var { data, error } = await db.from('anggota_kelas')
-                    .select('*, jamaah:jamaah_id(id, nama, jenis_kelamin, jenjang:enrollment(jenjang:jenjang_id(nama)))')
+                    .select('*, jamaah:jamaah_id(id, nama, jenis_kelamin)')
                     .eq('kelas_id', kelasId)
                     .order('tanggal_bergabung', { ascending: false });
 
                 if (error) throw error;
 
                 currentAnggota = data || [];
+
+                // Load jenjang separately for each jamaah that has enrollment
+                if (currentAnggota.length > 0) {
+                    var jamaahIds = currentAnggota.map(function(a) { return a.jamaah_id; }).filter(Boolean);
+                    if (jamaahIds.length > 0) {
+                        var { data: enrollments } = await db.from('enrollment')
+                            .select('jamaah_id, jenjang:jenjang_id(nama)')
+                            .in('jamaah_id', jamaahIds)
+                            .eq('status', 'aktif');
+
+                        var jenjangMap = {};
+                        (enrollments || []).forEach(function(e) {
+                            if (e.jenjang) jenjangMap[e.jamaah_id] = e.jenjang.nama;
+                        });
+
+                        currentAnggota.forEach(function(a) {
+                            a.jenjang_nama = jenjangMap[a.jamaah_id] || '-';
+                        });
+                    }
+                }
+
                 renderAnggota();
                 $('anggotaModal').classList.add('show');
 
@@ -592,7 +614,7 @@
             var html = '';
             filtered.forEach(function(a) {
                 var jk = a.jamaah?.jenis_kelamin || '?';
-                var jenjang = a.jamaah?.jenjang?.[0]?.jenjang?.nama || '-';
+                var jenjang = a.jenjang_nama || '-';
                 var statusBadge = a.status === 'aktif' ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-secondary">' + a.status + '</span>';
 
                 html += '<div class="anggota-item">';

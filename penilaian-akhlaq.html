@@ -556,6 +556,18 @@
                     var { error } = await db.from('penilaian_akhlaq').update(data).eq('id', parseInt(penilaianId));
                     if (error) throw error;
                 } else {
+                    // Check duplicate before insert
+                    var { count } = await db.from('penilaian_akhlaq')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('jamaah_id', parseInt(jamaahId))
+                        .eq('periode_bulan', parseInt(bulan))
+                        .eq('periode_tahun', parseInt(tahun));
+
+                    if (count > 0) {
+                        showToast('Penilaian untuk santri ini pada periode tersebut sudah ada', 'error');
+                        return;
+                    }
+
                     // Insert
                     var { error } = await db.from('penilaian_akhlaq').insert(data);
                     if (error) throw error;
