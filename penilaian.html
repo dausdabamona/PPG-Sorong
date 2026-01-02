@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <title>Penilaian - PPG Sorong</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <link rel="stylesheet" href="css/mobile-grid.css">
+    <link rel="stylesheet" href="css/pwa-enhanced.css">
+    <link rel="stylesheet" href="css/mobile-menu.css">
+    <style>
+        :root { --alim: #0891b2; --faqih: #7c3aed; --akhlaq: #059669; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        .tabs-container { border-bottom: 2px solid var(--gray-200); margin-bottom: 1.5rem; }
+        .tabs { display: flex; gap: 0; overflow-x: auto; }
+        .tab-item { padding: 0.875rem 1.5rem; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -2px; cursor: pointer; font-weight: 500; color: var(--gray-500); transition: all 0.2s; }
+        .tab-item:hover { color: var(--gray-700); }
+        .tab-item.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .selection-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        
+        .nilai-card { background: white; border: 1px solid var(--gray-200); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; transition: all 0.2s; }
+        .nilai-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .nilai-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+        .nilai-card-title { font-weight: 600; font-size: 1rem; }
+        .nilai-card-subtitle { font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem; }
+        .nilai-card-badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .nilai-card-badge.thobiat { background: #dcfce7; color: #166534; }
+        .nilai-card-badge.tali { background: #ede9fe; color: #5b21b6; }
+        
+        .nilai-input-group { display: flex; align-items: center; gap: 1rem; }
+        .nilai-slider { flex: 1; -webkit-appearance: none; height: 8px; border-radius: 4px; background: var(--gray-200); }
+        .nilai-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+        .nilai-display { min-width: 60px; padding: 0.5rem 1rem; background: var(--gray-100); border-radius: 8px; text-align: center; font-weight: 700; font-size: 1.125rem; }
+        .nilai-display.excellent { background: #dcfce7; color: #166534; }
+        .nilai-display.good { background: #fef3c7; color: #92400e; }
+        .nilai-display.fair { background: #fee2e2; color: #991b1b; }
+        
+        .santri-list { max-height: 400px; overflow-y: auto; }
+        .santri-item { display: flex; align-items: center; padding: 0.75rem 1rem; border: 1px solid var(--gray-200); border-radius: 8px; margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s; }
+        .santri-item:hover { border-color: var(--primary); background: var(--gray-50); }
+        .santri-item.selected { border-color: var(--primary); background: #ecfdf5; }
+        .santri-item input[type="radio"] { margin-right: 0.75rem; }
+        .santri-name { font-weight: 500; }
+        .santri-jenjang { font-size: 0.8rem; color: var(--gray-500); margin-left: auto; }
+        
+        .jenis-btn-group { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .jenis-btn { flex: 1; padding: 0.75rem 1rem; border: 2px solid var(--gray-200); border-radius: 8px; background: white; cursor: pointer; font-weight: 500; transition: all 0.2s; text-align: center; }
+        .jenis-btn:hover { border-color: var(--primary); }
+        .jenis-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        .kejadian-input { width: 100%; padding: 0.75rem; border: 1px solid var(--gray-200); border-radius: 8px; font-family: inherit; resize: vertical; min-height: 80px; }
+        .kejadian-input:focus { outline: none; border-color: var(--primary); }
+        
+        @media (max-width: 768px) { .selection-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand"><div class="sidebar-title">PPG Sorong</div><div class="sidebar-subtitle">Pembinaan Generasi Penerus</div></div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian.html" class="nav-item active"><span class="nav-icon">📝</span><span class="nav-text">Penilaian</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebarUserName">Loading...</div><div class="sidebar-user-role" id="sidebarUserRole">-</div></div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left"><button class="btn-menu" onclick="toggleSidebar()">☰</button><h1 class="header-title">Penilaian</h1></div>
+                <div class="header-right">
+                    <div class="user-menu"><div class="user-avatar" id="userAvatar">?</div><div class="user-info"><div class="user-name" id="userName">Loading...</div><div class="user-role" id="userRole">-</div></div></div>
+                    <button class="btn btn-outline btn-sm" onclick="logout()">Keluar</button>
+                </div>
+            </header>
+            
+            <div class="page-content">
+                <div class="page-header">
+                    <div><div class="breadcrumb"><a href="dashboard.html">Dashboard</a><span>/</span><span>Penilaian</span></div><h2 class="page-title">Input Penilaian Generus</h2></div>
+                </div>
+                
+                <div class="tabs-container">
+                    <div class="tabs">
+                        <div class="tab-item active" onclick="switchTab('akhlaq')">💎 Akhlaq (Harian)</div>
+                        <div class="tab-item" onclick="switchTab('bulanan')">📖 Alim & Faqih (Bulanan)</div>
+                        <div class="tab-item" onclick="switchTab('history')">📋 Riwayat</div>
+                    </div>
+                </div>
+                
+                <!-- Tab: Akhlaq -->
+                <div class="tab-content active" id="tabAkhlaq">
+                    <div class="card mb-lg">
+                        <div class="card-body">
+                            <div class="selection-grid">
+                                <div><label class="form-label">Wilayah</label><select class="form-control" id="selectWilayah" onchange="loadSantriList()"><option value="">-- Pilih Wilayah --</option></select></div>
+                                <div><label class="form-label">Tanggal</label><input type="date" class="form-control" id="tanggalPenilaian"></div>
+                                <div><label class="form-label">Penilai</label><select class="form-control" id="penilaiTipe"><option value="mubaligh">Mubaligh</option><option value="orang_tua">Orang Tua</option></select></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-lg">
+                        <div class="card-header"><h3 class="card-title">Pilih Santri</h3></div>
+                        <div class="card-body"><div class="santri-list" id="santriList"><p class="text-muted text-center">Pilih wilayah terlebih dahulu</p></div></div>
+                    </div>
+                    
+                    <div id="nilaiAkhlaqForm" style="display:none;">
+                        <div class="card mb-lg">
+                            <div class="card-header"><h3 class="card-title">Jenis Penilaian</h3></div>
+                            <div class="card-body">
+                                <div class="jenis-btn-group">
+                                    <button class="jenis-btn active" onclick="setJenisPenilaian('harian', this)">📅 Harian</button>
+                                    <button class="jenis-btn" onclick="setJenisPenilaian('insidentil', this)">⚡ Insidentil</button>
+                                </div>
+                                <div id="kejadianContainer" style="display:none;"><label class="form-label">Deskripsi Kejadian</label><textarea class="kejadian-input" id="kejadianText" placeholder="Jelaskan kejadian yang diamati..."></textarea></div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-lg">
+                            <div class="card-header"><h3 class="card-title">💎 6 Thobiat Luhur</h3></div>
+                            <div class="card-body" id="thobiatInputs"></div>
+                        </div>
+                        
+                        <button class="btn btn-primary btn-lg w-100" onclick="saveAkhlaqPenilaian()" id="btnSaveAkhlaq">💾 Simpan Penilaian Akhlaq</button>
+                    </div>
+                </div>
+                
+                <!-- Tab: Bulanan -->
+                <div class="tab-content" id="tabBulanan">
+                    <div class="card mb-lg">
+                        <div class="card-body">
+                            <div class="selection-grid">
+                                <div><label class="form-label">Santri</label><select class="form-control" id="selectSantriBulanan" onchange="loadBulananProgress()"><option value="">-- Pilih Santri --</option></select></div>
+                                <div><label class="form-label">Periode</label><input type="month" class="form-control" id="periodeBulanan"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="bulananForm" style="display:none;">
+                        <div class="card mb-lg">
+                            <div class="card-header"><h3 class="card-title">🔗 4 Tali Keimanan</h3></div>
+                            <div class="card-body" id="taliInputs"></div>
+                        </div>
+                        <button class="btn btn-primary btn-lg w-100" onclick="saveBulananProgress()">💾 Simpan Progress Bulanan</button>
+                    </div>
+                </div>
+                
+                <!-- Tab: History -->
+                <div class="tab-content" id="tabHistory">
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title">📋 Riwayat Penilaian</h3></div>
+                        <div class="card-body">
+                            <div class="selection-grid">
+                                <div><label class="form-label">Santri</label><select class="form-control" id="selectSantriHistory" onchange="loadHistory()"><option value="">-- Pilih Santri --</option></select></div>
+                            </div>
+                            <div class="table-container">
+                                <table class="table" id="historyTable">
+                                    <thead><tr><th>Tanggal</th><th>Kategori</th><th>Nilai</th><th>Jenis</th><th>Penilai</th></tr></thead>
+                                    <tbody><tr><td colspan="5" class="text-center text-muted">Pilih santri</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        let allWilayah = [], allSantri = [], allThobiat = [], allTali = [];
+        let selectedSantri = null, jenisPenilaian = 'harian';
+        
+        function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); $('sidebarOverlay').classList.toggle('show'); }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
+            $('tanggalPenilaian').value = new Date().toISOString().split('T')[0];
+            $('periodeBulanan').value = new Date().toISOString().slice(0, 7);
+            await loadInitialData();
+        });
+        
+        async function loadInitialData() {
+            try {
+                const [wilayah, thobiat, tali, santri] = await Promise.all([
+                    db.from('wilayah').select('id, nama').eq('is_aktif', true).order('nama'),
+                    db.from('nilai_karakter').select('*').eq('is_aktif', true).order('urutan'),
+                    db.from('tali_keimanan').select('*').eq('is_aktif', true).order('urutan'),
+                    db.from('jamaah').select('id, nama').eq('status_aktif', 'aktif').order('nama')
+                ]);
+                
+                allWilayah = wilayah.data || [];
+                allThobiat = thobiat.data || [];
+                allTali = tali.data || [];
+                allSantri = santri.data || [];
+                
+                $('selectWilayah').innerHTML = '<option value="">-- Pilih Wilayah --</option>' + allWilayah.map(w => `<option value="${w.id}">${w.nama}</option>`).join('');
+                const santriOpts = '<option value="">-- Pilih Santri --</option>' + allSantri.map(s => `<option value="${s.id}">${s.nama}</option>`).join('');
+                $('selectSantriBulanan').innerHTML = santriOpts;
+                $('selectSantriHistory').innerHTML = santriOpts;
+                
+                renderThobiatInputs();
+                renderTaliInputs();
+            } catch (error) { console.error('Error:', error); showToast('Gagal memuat data', 'error'); }
+        }
+        
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            $('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+        }
+        
+        async function loadSantriList() {
+            const wilayahId = $('selectWilayah').value;
+            if (!wilayahId) { $('santriList').innerHTML = '<p class="text-muted text-center">Pilih wilayah</p>'; $('nilaiAkhlaqForm').style.display = 'none'; return; }
+            try {
+                const { data } = await db.from('enrollment').select('jamaah:jamaah_id(id, nama), jenjang:jenjang_id(nama)').eq('wilayah_id', wilayahId).eq('status', 'aktif');
+                const list = data?.map(e => ({ id: e.jamaah.id, nama: e.jamaah.nama, jenjang: e.jenjang?.nama })) || [];
+                if (list.length === 0) { $('santriList').innerHTML = '<p class="text-muted text-center">Tidak ada santri</p>'; return; }
+                $('santriList').innerHTML = list.map(s => `<div class="santri-item" onclick="selectSantriAkhlaq(${s.id}, this)"><input type="radio" name="santriAkhlaq" value="${s.id}"><span class="santri-name">${s.nama}</span><span class="santri-jenjang">${s.jenjang || '-'}</span></div>`).join('');
+            } catch (error) { console.error('Error:', error); }
+        }
+        
+        function selectSantriAkhlaq(id, el) {
+            document.querySelectorAll('.santri-item').forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected'); el.querySelector('input[type="radio"]').checked = true;
+            selectedSantri = id; $('nilaiAkhlaqForm').style.display = 'block';
+        }
+        
+        function setJenisPenilaian(jenis, btn) {
+            jenisPenilaian = jenis;
+            document.querySelectorAll('.jenis-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            $('kejadianContainer').style.display = jenis === 'insidentil' ? 'block' : 'none';
+        }
+        
+        function renderThobiatInputs() {
+            const icons = ['🎯', '🤝', '💪', '🕊️', '🤜🤛', '🤲'];
+            $('thobiatInputs').innerHTML = allThobiat.map((t, i) => `
+                <div class="nilai-card">
+                    <div class="nilai-card-header">
+                        <div><div class="nilai-card-title">${icons[i] || '💎'} ${t.nama}</div><div class="nilai-card-subtitle">${t.pengertian || ''}</div></div>
+                        <span class="nilai-card-badge thobiat">#${t.urutan}</span>
+                    </div>
+                    <div class="nilai-input-group">
+                        <input type="range" class="nilai-slider" id="thobiat_${t.id}" min="0" max="100" value="75" oninput="updateDisplay(this)">
+                        <div class="nilai-display good" id="display_thobiat_${t.id}">75</div>
+                    </div>
+                </div>`).join('');
+        }
+        
+        function renderTaliInputs() {
+            const icons = ['🙏', '💪', '✨', '🤲'];
+            $('taliInputs').innerHTML = allTali.map((t, i) => `
+                <div class="nilai-card">
+                    <div class="nilai-card-header">
+                        <div><div class="nilai-card-title">${icons[i] || '🔗'} ${t.nama}</div><div class="nilai-card-subtitle">${t.pengertian || ''}</div></div>
+                        <span class="nilai-card-badge tali">#${t.urutan}</span>
+                    </div>
+                    <div class="nilai-input-group">
+                        <input type="range" class="nilai-slider" id="tali_${t.id}" min="0" max="100" value="75" oninput="updateDisplay(this)">
+                        <div class="nilai-display good" id="display_tali_${t.id}">75</div>
+                    </div>
+                </div>`).join('');
+        }
+        
+        function updateDisplay(slider) {
+            const display = $('display_' + slider.id);
+            const v = parseInt(slider.value);
+            display.textContent = v;
+            display.className = 'nilai-display ' + (v >= 80 ? 'excellent' : v >= 60 ? 'good' : 'fair');
+        }
+        
+        async function saveAkhlaqPenilaian() {
+            if (!selectedSantri) { showToast('Pilih santri', 'warning'); return; }
+            const btn = $('btnSaveAkhlaq'); btn.disabled = true; btn.textContent = 'Menyimpan...';
+            try {
+                const data = allThobiat.map(t => ({
+                    jamaah_id: selectedSantri,
+                    karakter_id: t.id,
+                    tanggal: $('tanggalPenilaian').value,
+                    jenis_penilaian: jenisPenilaian,
+                    nilai: parseInt($('thobiat_' + t.id).value),
+                    kejadian: jenisPenilaian === 'insidentil' ? $('kejadianText').value : null,
+                    penilai_tipe: $('penilaiTipe').value
+                }));
+                const { error } = await db.from('penilaian_akhlaq').insert(data);
+                if (error) throw error;
+                showToast('Penilaian berhasil disimpan', 'success');
+            } catch (error) { showToast('Gagal: ' + error.message, 'error'); }
+            finally { btn.disabled = false; btn.textContent = '💾 Simpan Penilaian Akhlaq'; }
+        }
+        
+        function loadBulananProgress() { if ($('selectSantriBulanan').value) $('bulananForm').style.display = 'block'; }
+        function saveBulananProgress() { showToast('Fitur simpan progress bulanan', 'info'); }
+        
+        async function loadHistory() {
+            const id = $('selectSantriHistory').value;
+            if (!id) return;
+            try {
+                const { data } = await db.from('penilaian_akhlaq').select('*, karakter:karakter_id(nama)').eq('jamaah_id', id).order('tanggal', { ascending: false }).limit(20);
+                const tbody = document.querySelector('#historyTable tbody');
+                tbody.innerHTML = (data || []).map(p => `<tr><td>${formatTanggal(p.tanggal)}</td><td>${p.karakter?.nama || '-'}</td><td><strong>${p.nilai}</strong></td><td><span class="badge ${p.jenis_penilaian === 'harian' ? 'badge-primary' : 'badge-warning'}">${p.jenis_penilaian}</span></td><td>${p.penilai_tipe}</td></tr>`).join('') || '<tr><td colspan="5" class="text-center text-muted">Tidak ada data</td></tr>';
+            } catch (error) { console.error('Error:', error); }
+        }
+    </script>
+
+    <script src="js/mobile-menu.js"></script>
+</body>
+</html>

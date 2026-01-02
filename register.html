@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>Daftar - PPG Sorong</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div style="width:60px;height:60px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:white;font-size:1.5rem;font-weight:bold;">
+                    PPG
+                </div>
+                <h1>PPG Sorong</h1>
+                <p>Buat Akun Baru</p>
+            </div>
+            
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label class="form-label required" for="nama">Nama Lengkap</label>
+                    <input type="text" class="form-control" id="nama" name="nama" 
+                           placeholder="Masukkan nama lengkap" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label required" for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           placeholder="Masukkan email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label required" for="password">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" 
+                           placeholder="Minimal 6 karakter" minlength="6" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label required" for="confirmPassword">Konfirmasi Password</label>
+                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" 
+                           placeholder="Ulangi password" required>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnRegister">
+                        Daftar
+                    </button>
+                </div>
+                
+                <div id="errorMessage" class="text-danger text-center" style="display:none;"></div>
+                <div id="successMessage" class="text-success text-center" style="display:none;"></div>
+            </form>
+            
+            <div class="text-center mt-lg">
+                <p class="text-muted text-sm">
+                    Sudah punya akun? <a href="index.html">Masuk di sini</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const nama = $('nama').value.trim();
+            const email = $('email').value.trim();
+            const password = $('password').value;
+            const confirmPassword = $('confirmPassword').value;
+            const btnRegister = $('btnRegister');
+            const errorMessage = $('errorMessage');
+            const successMessage = $('successMessage');
+            
+            // Reset messages
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            // Validate password match
+            if (password !== confirmPassword) {
+                errorMessage.textContent = 'Password tidak sama';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            // Disable button
+            btnRegister.disabled = true;
+            btnRegister.innerHTML = 'Memproses...';
+            
+            try {
+                const result = await register(email, password, nama);
+                
+                if (result.success) {
+                    successMessage.textContent = 'Pendaftaran berhasil! Silakan cek email untuk verifikasi, atau langsung login.';
+                    successMessage.style.display = 'block';
+                    $('registerForm').reset();
+                    
+                    // Redirect ke login setelah 3 detik
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 3000);
+                } else {
+                    errorMessage.textContent = result.error || 'Pendaftaran gagal';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
+                errorMessage.style.display = 'block';
+            } finally {
+                btnRegister.disabled = false;
+                btnRegister.innerHTML = 'Daftar';
+            }
+        }
+    </script>
+</body>
+</html>

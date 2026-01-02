@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>Rapor - PPG Sorong</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .rapor-container { max-width: 800px; margin: 0 auto; }
+        .rapor-header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--gray-300); }
+        .rapor-logo { font-size: 3rem; margin-bottom: 0.5rem; }
+        .rapor-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.25rem; }
+        .rapor-subtitle { color: var(--gray-600); }
+        .rapor-info { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+        .rapor-info-item { display: flex; gap: 0.5rem; }
+        .rapor-info-label { font-weight: 500; min-width: 120px; }
+        .rapor-section { margin-bottom: 1.5rem; }
+        .rapor-section-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--gray-200); }
+        .nilai-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        .nilai-card { background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); text-align: center; }
+        .nilai-card-label { font-size: 0.875rem; color: var(--gray-600); margin-bottom: 0.25rem; }
+        .nilai-card-value { font-size: 1.5rem; font-weight: bold; }
+        .nilai-alim { color: var(--primary); }
+        .nilai-akhlak { color: var(--success); }
+        .nilai-mandiri { color: var(--warning); }
+        @media print {
+            .no-print { display: none !important; }
+            .card { box-shadow: none; border: 1px solid #ddd; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar no-print" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div><div class="sidebar-title">PPG Sorong</div><div class="sidebar-subtitle">Pembinaan Generasi Penerus</div></div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">Menu Utama</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span>Dashboard</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span>Data Jamaah</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span>Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span>Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📈</span><span>Penilaian Hafalan</span></a>
+                <div class="nav-section">Laporan</div>
+                <a href="rapor.html" class="nav-item active"><span class="nav-icon">📋</span><span>Rapor</span></a>
+            </nav>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <main class="main-content">
+            <header class="header no-print">
+                <div class="header-left"><h1 class="header-title">Rapor Santri</h1></div>
+                </header>
+            
+            <div class="page-content">
+                <!-- Filter -->
+                <div class="card mb-lg no-print">
+                    <div class="card-body">
+                        <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;">
+                            <div style="flex:1;min-width:200px;">
+                                <label class="form-label">Santri</label>
+                                <select class="form-control" id="selectSantri" onchange="loadRapor()">
+                                    <option value="">-- Pilih Santri --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Tahun Ajaran</label>
+                                <select class="form-control" id="selectTahunAjaran" onchange="loadRapor()">
+                                    <option value="">-- Pilih --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Periode</label>
+                                <select class="form-control" id="selectPeriode" onchange="loadRapor()">
+                                    <option value="semester_1">Semester 1</option>
+                                    <option value="semester_2">Semester 2</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="window.print()">🖨️ Cetak</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Rapor Content -->
+                <div class="card" id="raporCard" style="display:none;">
+                    <div class="card-body">
+                        <div class="rapor-container">
+                            <div class="rapor-header">
+                                <div class="rapor-logo">📖</div>
+                                <div class="rapor-title">RAPOR SANTRI</div>
+                                <div class="rapor-subtitle">Pembinaan Generasi Penerus (PPG) Sorong</div>
+                            </div>
+                            
+                            <div class="rapor-info">
+                                <div>
+                                    <div class="rapor-info-item"><span class="rapor-info-label">Nama</span><span>: <span id="raporNama">-</span></span></div>
+                                    <div class="rapor-info-item"><span class="rapor-info-label">Tempat, Tgl Lahir</span><span>: <span id="raporTTL">-</span></span></div>
+                                    <div class="rapor-info-item"><span class="rapor-info-label">Jenis Kelamin</span><span>: <span id="raporJK">-</span></span></div>
+                                </div>
+                                <div>
+                                    <div class="rapor-info-item"><span class="rapor-info-label">Jenjang</span><span>: <span id="raporJenjang">-</span></span></div>
+                                    <div class="rapor-info-item"><span class="rapor-info-label">Kelompok</span><span>: <span id="raporKelompok">-</span></span></div>
+                                    <div class="rapor-info-item"><span class="rapor-info-label">Tahun Ajaran</span><span>: <span id="raporTA">-</span></span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="rapor-section">
+                                <div class="rapor-section-title">🏆 Nilai Tri Sukses</div>
+                                <div class="nilai-grid">
+                                    <div class="nilai-card">
+                                        <div class="nilai-card-label">Alim Faqih</div>
+                                        <div class="nilai-card-value nilai-alim" id="nilaiAlim">-</div>
+                                    </div>
+                                    <div class="nilai-card">
+                                        <div class="nilai-card-label">Akhlaqul Karimah</div>
+                                        <div class="nilai-card-value nilai-akhlak" id="nilaiAkhlak">-</div>
+                                    </div>
+                                    <div class="nilai-card">
+                                        <div class="nilai-card-label">Mandiri</div>
+                                        <div class="nilai-card-value nilai-mandiri" id="nilaiMandiri">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="rapor-section">
+                                <div class="rapor-section-title">📊 Keaktifan</div>
+                                <div style="display:flex;gap:2rem;flex-wrap:wrap;">
+                                    <div><strong>Total Pengajian:</strong> <span id="totalPengajian">-</span></div>
+                                    <div><strong>Hadir:</strong> <span id="totalHadir">-</span></div>
+                                    <div><strong>Persentase:</strong> <span id="persenKeaktifan">-</span></div>
+                                </div>
+                                <div class="progress mt-md" style="height:12px;">
+                                    <div class="progress-bar" id="progressBar" style="width:0%;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="rapor-section">
+                                <div class="rapor-section-title">📝 Capaian Target Kurikulum</div>
+                                <div id="progressContainer">
+                                    <!-- Progress per bidang dan kategori akan di-render di sini -->
+                                </div>
+                            </div>
+                            
+                            <div class="rapor-section">
+                                <div class="rapor-section-title">📌 Catatan & Rekomendasi</div>
+                                <div style="background:var(--gray-50);padding:1rem;border-radius:var(--radius-md);min-height:60px;" id="catatanRapor">
+                                    -
+                                </div>
+                            </div>
+                            
+                            <div style="display:flex;justify-content:flex-end;margin-top:2rem;">
+                                <div style="text-align:center;">
+                                    <p>Sorong, <span id="tanggalRapor">-</span></p>
+                                    <p style="margin-top:60px;border-top:1px solid var(--gray-400);padding-top:0.5rem;">Mubaligh</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card" id="emptyCard">
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <div class="empty-state-title">Pilih Santri</div>
+                            <p class="text-muted">Silakan pilih santri untuk melihat rapor</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    
+    <script>
+        
+        function toggleSidebar() {
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
+            updateSidebarUserInfo();
+            initSidebar();
+            updateUserUI();
+            await loadFilters();
+        });
+        
+        function updateUserUI() {
+            if (!currentUserData) return;
+            
+            var userNameEl = $('userName');
+            var userAvatarEl = $('userAvatar');
+            var userRoleEl = $('userRole');
+            
+            if (userNameEl) userNameEl.textContent = currentUserData.nama || currentUserData.email || 'User';
+            if (userAvatarEl) userAvatarEl.textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
+            if (userRoleEl && userRoles && userRoles.length > 0) {
+                userRoleEl.textContent = userRoles[0].role?.nama || '-';
+            }
+        }
+        
+        async function loadFilters() {
+            try {
+                // Dapatkan wilayah IDs dari role user
+                var wilayahIds = [];
+                if (!isAdmin() && userRoles && userRoles.length > 0) {
+                    userRoles.forEach(function(r) {
+                        if (r.wilayah_id) wilayahIds.push(r.wilayah_id);
+                    });
+                }
+
+                // Load jamaah berdasarkan wilayah user (atau semua jika admin)
+                var jamaahData = [];
+                if (isAdmin() || wilayahIds.length === 0) {
+                    // Admin: tampilkan semua jamaah aktif
+                    jamaahData = await jamaahApi.getAll({ status_aktif: 'aktif' });
+                } else {
+                    // Non-admin: filter berdasarkan enrollment di wilayah user
+                    var { data: enrollments } = await db.from('enrollment')
+                        .select('jamaah:jamaah_id(id, nama)')
+                        .in('wilayah_id', wilayahIds)
+                        .eq('status', 'aktif');
+
+                    if (enrollments) {
+                        // Deduplicate jamaah (satu jamaah bisa di beberapa wilayah)
+                        var jamaahMap = {};
+                        enrollments.forEach(function(e) {
+                            if (e.jamaah && !jamaahMap[e.jamaah.id]) {
+                                jamaahMap[e.jamaah.id] = e.jamaah;
+                            }
+                        });
+                        jamaahData = Object.values(jamaahMap).sort(function(a, b) {
+                            return a.nama.localeCompare(b.nama);
+                        });
+                    }
+                }
+
+                var selectSantri = $('selectSantri');
+                if (selectSantri && jamaahData) {
+                    jamaahData.forEach(function(j) {
+                        selectSantri.innerHTML += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>';
+                    });
+                }
+                
+                // Load tahun ajaran menggunakan api.js
+                var taData = await masterApi.getTahunAjaran();
+                var selectTA = $('selectTahunAjaran');
+                if (selectTA && taData) {
+                    taData.forEach(function(t) { 
+                        selectTA.innerHTML += '<option value="' + t.id + '">' + escapeHtml(t.kode) + '</option>'; 
+                    });
+                    if (taData.length > 0) selectTA.value = taData[0].id;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal memuat filter', 'error');
+            }
+        }
+        
+        async function loadRapor() {
+            var selectSantriEl = $('selectSantri');
+            var selectTAEl = $('selectTahunAjaran');
+            var selectPeriodeEl = $('selectPeriode');
+            var raporCardEl = $('raporCard');
+            var emptyCardEl = $('emptyCard');
+            
+            var jamaahId = selectSantriEl?.value || '';
+            var tahunAjaranId = selectTAEl?.value || '';
+            var periode = selectPeriodeEl?.value || '';
+            
+            if (!jamaahId) {
+                if (raporCardEl) raporCardEl.style.display = 'none';
+                if (emptyCardEl) emptyCardEl.style.display = 'block';
+                return;
+            }
+            
+            try {
+                // Get jamaah info menggunakan api.js
+                var jamaah = await jamaahApi.getById(jamaahId);
+                if (!jamaah) {
+                    showToast('Data jamaah tidak ditemukan', 'error');
+                    return;
+                }
+                
+                // Get tahun ajaran
+                var taData = await masterApi.getTahunAjaran();
+                var ta = taData?.find(function(t) { return t.id == tahunAjaranId; });
+                
+                // Fill rapor info dengan null safety
+                var raporNamaEl = $('raporNama');
+                var raporTTLEl = $('raporTTL');
+                var raporJKEl = $('raporJK');
+                var raporJenjangEl = $('raporJenjang');
+                var raporKelompokEl = $('raporKelompok');
+                var raporTAEl = $('raporTA');
+                var tanggalRaporEl = $('tanggalRapor');
+                
+                if (raporNamaEl) raporNamaEl.textContent = escapeHtml(jamaah.nama || '-');
+                if (raporTTLEl) raporTTLEl.textContent = escapeHtml(jamaah.tempat_lahir || '-') + ', ' + formatTanggal(jamaah.tanggal_lahir);
+                if (raporJKEl) raporJKEl.textContent = jamaah.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';
+                if (raporJenjangEl) raporJenjangEl.textContent = escapeHtml(jamaah.jenjang_nama || '-');
+                if (raporKelompokEl) raporKelompokEl.textContent = escapeHtml(jamaah.kelompok_nama || '-');
+                if (raporTAEl) raporTAEl.textContent = escapeHtml(ta?.kode || '-');
+                if (tanggalRaporEl) tanggalRaporEl.textContent = formatTanggal(new Date().toISOString());
+                
+                // Get progress untuk nilai per bidang
+                var progress = await progressApi.getByJamaah(jamaahId);
+                var nilaiAlim = [], nilaiAkhlak = [], nilaiMandiri = [];
+                
+                if (progress) {
+                    progress.forEach(function(p) {
+                        if (p.nilai) {
+                            // Simplified - in real app would join with materi_item to get bidang
+                            nilaiAlim.push(p.nilai);
+                        }
+                    });
+                }
+                
+                var avg = function(arr) { 
+                    return arr.length ? (arr.reduce(function(a,b) { return a+b; }, 0) / arr.length).toFixed(1) : '-'; 
+                };
+                
+                var nilaiAlimEl = $('nilaiAlim');
+                var nilaiAkhlakEl = $('nilaiAkhlak');
+                var nilaiMandiriEl = $('nilaiMandiri');
+                
+                if (nilaiAlimEl) nilaiAlimEl.textContent = avg(nilaiAlim);
+                if (nilaiAkhlakEl) nilaiAkhlakEl.textContent = avg(nilaiAkhlak);
+                if (nilaiMandiriEl) nilaiMandiriEl.textContent = avg(nilaiMandiri);
+                
+                // Keaktifan menggunakan api.js
+                var presensiRekap = await presensiApi.getRekapJamaah(jamaahId);
+                
+                var totalPengajianEl = $('totalPengajian');
+                var totalHadirEl = $('totalHadir');
+                var persenKeaktifanEl = $('persenKeaktifan');
+                var progressBarEl = $('progressBar');
+                
+                if (totalPengajianEl) totalPengajianEl.textContent = presensiRekap?.total_pengajian || '-';
+                if (totalHadirEl) totalHadirEl.textContent = presensiRekap?.total_hadir || '-';
+                if (persenKeaktifanEl) persenKeaktifanEl.textContent = (presensiRekap?.persentase_hadir || 0) + '%';
+                if (progressBarEl) progressBarEl.style.width = (presensiRekap?.persentase_hadir || 0) + '%';
+                
+                // Progress per kategori sesuai jenjang santri
+                var jenjangId = jamaah.jenjang_id || null;
+                var progressKategori = await progressApi.getSummaryByKategori(jamaahId, jenjangId);
+
+                var progressContainer = $('progressContainer');
+                var progressHtml = '';
+
+                if (progressKategori && progressKategori.length > 0) {
+                    // Group by bidang
+                    var bidangGroups = {};
+                    progressKategori.forEach(function(k) {
+                        var bidang = k.bidang_nama || 'Lainnya';
+                        if (!bidangGroups[bidang]) {
+                            bidangGroups[bidang] = { items: [], totalTarget: 0, totalSelesai: 0 };
+                        }
+                        bidangGroups[bidang].items.push(k);
+                        bidangGroups[bidang].totalTarget += k.target || 0;
+                        bidangGroups[bidang].totalSelesai += k.selesai || 0;
+                    });
+
+                    // Render each bidang
+                    Object.keys(bidangGroups).forEach(function(bidangNama) {
+                        var group = bidangGroups[bidangNama];
+                        var bidangPersen = group.totalTarget > 0 ? ((group.totalSelesai / group.totalTarget) * 100).toFixed(0) : 0;
+                        var bidangBarClass = bidangPersen >= 80 ? 'success' : bidangPersen >= 50 ? 'warning' : '';
+
+                        progressHtml += '<div style="margin-bottom:1.5rem;">';
+                        progressHtml += '<div style="background:var(--primary);color:white;padding:0.5rem 1rem;border-radius:0.5rem 0.5rem 0 0;display:flex;justify-content:space-between;align-items:center;">';
+                        progressHtml += '<strong>📚 ' + escapeHtml(bidangNama) + '</strong>';
+                        progressHtml += '<span style="background:rgba(255,255,255,0.2);padding:0.2rem 0.5rem;border-radius:0.25rem;font-size:0.8rem;">' + group.totalSelesai + '/' + group.totalTarget + ' (' + bidangPersen + '%)</span>';
+                        progressHtml += '</div>';
+                        progressHtml += '<table class="table" style="margin:0;border-radius:0 0 0.5rem 0.5rem;overflow:hidden;">';
+                        progressHtml += '<thead><tr><th>Kategori</th><th>Selesai</th><th>Target</th><th>Nilai</th><th>Progress</th></tr></thead><tbody>';
+
+                        group.items.forEach(function(k) {
+                            var persen = k.target > 0 ? ((k.selesai / k.target) * 100).toFixed(0) : 0;
+                            var barClass = persen >= 80 ? 'success' : persen >= 50 ? 'warning' : '';
+
+                            progressHtml += '<tr>';
+                            progressHtml += '<td>' + escapeHtml(k.kategori_nama || '-') + '</td>';
+                            progressHtml += '<td>' + (k.selesai || 0) + '</td>';
+                            progressHtml += '<td>' + (k.target || 0) + '</td>';
+                            progressHtml += '<td>' + (k.rata_nilai || '-') + '</td>';
+                            progressHtml += '<td><div style="display:flex;align-items:center;gap:0.5rem;">';
+                            progressHtml += '<div class="progress" style="flex:1;height:8px;">';
+                            progressHtml += '<div class="progress-bar ' + barClass + '" style="width:' + persen + '%;"></div>';
+                            progressHtml += '</div><span style="min-width:35px;text-align:right;">' + persen + '%</span></div></td>';
+                            progressHtml += '</tr>';
+                        });
+
+                        progressHtml += '</tbody></table></div>';
+                    });
+                } else {
+                    progressHtml = '<div class="text-center text-muted py-4">Tidak ada target kurikulum untuk jenjang ini</div>';
+                }
+
+                if (progressContainer) progressContainer.innerHTML = progressHtml;
+                
+                var catatanRaporEl = $('catatanRapor');
+                if (catatanRaporEl) catatanRaporEl.textContent = 'Terus tingkatkan hafalan dan keaktifan mengaji.';
+                
+                if (emptyCardEl) emptyCardEl.style.display = 'none';
+                if (raporCardEl) raporCardEl.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal memuat rapor: ' + (error.message || error), 'error');
+            }
+        }
+    </script>
+
+
+    <!-- Bottom Navigation for Mobile -->
+        <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
+</body>
+</html>

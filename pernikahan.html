@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>Data Pernikahan - PPG Sorong</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <link rel="stylesheet" href="css/mobile-grid.css">
+    <link rel="stylesheet" href="css/pwa-enhanced.css">
+    <link rel="stylesheet" href="css/mobile-menu.css">
+    <style>
+        .couple-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #ec4899;
+        }
+        .couple-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .couple-names {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .person-box {
+            background: #f3f4f6;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .person-box.suami {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+        }
+        .person-box.istri {
+            background: #fce7f3;
+            border: 1px solid #ec4899;
+        }
+        .person-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 2px;
+        }
+        .person-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .heart-icon {
+            color: #ec4899;
+            font-size: 20px;
+        }
+        .couple-info {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: #6b7280;
+            flex-wrap: wrap;
+        }
+        .couple-info span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .istri-count {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #059669;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        .search-box {
+            position: relative;
+        }
+        .search-box input {
+            padding-left: 36px;
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #6b7280;
+        }
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="pernikahan.html" class="nav-item active"><span class="nav-icon">💒</span><span class="nav-text">Data Pernikahan</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+                <a href="pengaturan-akses.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🔐</span><span class="nav-text">Pengaturan Akses</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Data Pernikahan</h1>
+                </div>
+                <div class="header-right">
+                    <div class="user-menu">
+                        <div class="user-avatar" id="userAvatar">?</div>
+                        <div class="user-info">
+                            <div class="user-name" id="userName">Loading...</div>
+                            <div class="user-role" id="userRole">-</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="logout()">Keluar</button>
+                </div>
+            </header>
+            
+            <div class="page-content">
+                <!-- Access Denied for non-admin -->
+                <div id="accessDenied" style="display:none;">
+                    <div class="empty-state">
+                        <div class="icon">🔒</div>
+                        <h3>Akses Ditolak</h3>
+                        <p>Halaman ini hanya dapat diakses oleh Administrator</p>
+                        <a href="dashboard.html" class="btn btn-primary mt-md">Kembali ke Dashboard</a>
+                    </div>
+                </div>
+                
+                <!-- Main Content for Admin -->
+                <div id="mainContent" style="display:none;">
+                    <div class="page-header">
+                        <div>
+                            <div class="breadcrumb"><a href="dashboard.html">Dashboard</a><span>/</span><span>Pengaturan</span><span>/</span><span>Data Pernikahan</span></div>
+                            <h2 class="page-title">Data Pernikahan</h2>
+                            <p class="text-muted">Kelola data pernikahan jamaah</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="showAddModal()">💒 Tambah Pernikahan</button>
+                    </div>
+                    
+                    <!-- Statistics -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="statTotal">0</div>
+                            <div class="stat-label">Total Pernikahan</div>
+                        </div>
+                        <div class="stat-card" id="cardMonogami" style="display:none;">
+                            <div class="stat-number" id="statMonogami">0</div>
+                            <div class="stat-label">Monogami</div>
+                        </div>
+                        <div class="stat-card" id="cardPoligami" style="display:none;">
+                            <div class="stat-number" id="statPoligami">0</div>
+                            <div class="stat-label">Poligami</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="statTahunIni">0</div>
+                            <div class="stat-label">Menikah Tahun Ini</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter & Search -->
+                    <div class="card mb-sm">
+                        <div class="card-body">
+                            <div class="filter-grid">
+                                <div class="search-box">
+                                    <span class="search-icon">🔍</span>
+                                    <input type="text" class="form-control" id="searchInput" placeholder="Cari nama suami/istri..." onkeyup="debounceSearch()">
+                                </div>
+                                <select class="form-control" id="filterStatus" onchange="loadPernikahan()">
+                                    <option value="aktif">Aktif</option>
+                                    <option value="">Semua Status</option>
+                                    <option value="cerai">Cerai</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Data List -->
+                    <div id="pernikahanContainer">
+                        <div class="text-center text-muted py-4">Memuat data...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal Tambah/Edit Pernikahan -->
+    <div class="modal" id="pernikahanModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Tambah Pernikahan</h3>
+                <button class="modal-close" onclick="hideModal('pernikahanModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="pernikahanForm">
+                    <input type="hidden" id="relasiId" name="id">
+                    
+                    <div class="form-group">
+                        <label class="form-label required">Suami (Laki-laki)</label>
+                        <select class="form-control" name="suami_id" id="formSuami" required onchange="onSuamiChange()">
+                            <option value="">-- Pilih Suami --</option>
+                        </select>
+                        <small class="form-text" id="suamiInfo"></small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label required">Istri (Perempuan)</label>
+                        <select class="form-control" name="istri_id" id="formIstri" required>
+                            <option value="">-- Pilih Istri --</option>
+                        </select>
+                        <small class="form-text" id="istriInfo">Menampilkan perempuan yang belum menikah</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label required">Tanggal Menikah</label>
+                        <input type="date" class="form-control" name="tanggal_menikah" id="formTanggal" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Keterangan</label>
+                        <textarea class="form-control" name="keterangan" id="formKeterangan" rows="2" placeholder="Catatan tambahan..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('pernikahanModal')">Batal</button>
+                <button class="btn btn-primary" onclick="savePernikahan()" id="btnSave">💒 Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    
+    <script>
+        let allLakiLaki = [];
+        let allPerempuan = [];
+        let jumlahIstriMap = {};
+        let editMode = false;
+        const debounceSearch = debounce(() => loadPernikahan(), 300);
+        
+        function toggleSidebar() {
+            const sidebar = $('sidebar');
+            const overlay = $('sidebarOverlay');
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('show');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
+            if (overlay) overlay.classList.toggle('show');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
+            updateSidebarUserInfo();
+            initSidebar();
+            updateUserUI();
+            
+            // Cek apakah admin
+            const isAdmin = userRoles.some(r => r.role?.kode?.toLowerCase() === 'admin');
+            
+            if (!isAdmin) {
+                $('accessDenied').style.display = 'block';
+                $('mainContent').style.display = 'none';
+                return;
+            }
+            
+            $('accessDenied').style.display = 'none';
+            $('mainContent').style.display = 'block';
+            
+            // Tampilkan statistik monogami/poligami hanya untuk Firdaus Dabamona
+            const isFirdaus = currentUserData?.nama?.toLowerCase().includes('firdaus') && 
+                              currentUserData?.nama?.toLowerCase().includes('dabamona');
+            if (isFirdaus) {
+                if ($('cardMonogami')) $('cardMonogami').style.display = 'block';
+                if ($('cardPoligami')) $('cardPoligami').style.display = 'block';
+            }
+            
+            await loadCalonPasangan();
+            await loadPernikahan();
+            await loadStatistics();
+        });
+        
+        function updateUserUI() {
+            if (currentUserData) {
+                $('userName').textContent = currentUserData.nama || currentUserData.email;
+                $('userAvatar').textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
+                if (userRoles.length > 0) $('userRole').textContent = userRoles[0].role?.nama || '-';
+            }
+        }
+        
+        // Load semua calon pasangan (laki-laki dan perempuan)
+        async function loadCalonPasangan() {
+            try {
+                // Load semua laki-laki
+                const { data: lakiLaki } = await db
+                    .from('jamaah')
+                    .select('id, nama, nama_panggilan, status_aktif')
+                    .eq('jenis_kelamin', 'L')
+                    .order('nama');
+                allLakiLaki = lakiLaki || [];
+                
+                // Load semua perempuan yang belum menikah (pasangan_id = null)
+                const { data: perempuan } = await db
+                    .from('jamaah')
+                    .select('id, nama, nama_panggilan, status_aktif, pasangan_id')
+                    .eq('jenis_kelamin', 'P')
+                    .order('nama');
+                allPerempuan = perempuan || [];
+                
+                // Hitung jumlah istri per laki-laki dari relasi_keluarga
+                const { data: relasiIstri } = await db
+                    .from('relasi_keluarga')
+                    .select('jamaah_id')
+                    .eq('tipe_relasi', 'istri')
+                    .eq('status_relasi', 'aktif');
+                
+                jumlahIstriMap = {};
+                (relasiIstri || []).forEach(r => {
+                    jumlahIstriMap[r.jamaah_id] = (jumlahIstriMap[r.jamaah_id] || 0) + 1;
+                });
+                
+                // Populate dropdown suami
+                $('formSuami').innerHTML = '<option value="">-- Pilih Suami --</option>' +
+                    allLakiLaki.map(l => {
+                        const jmlIstri = jumlahIstriMap[l.id] || 0;
+                        const label = jmlIstri > 0 ? `${l.nama} (${jmlIstri} istri)` : l.nama;
+                        const disabled = jmlIstri >= 4 ? 'disabled' : '';
+                        return `<option value="${l.id}" ${disabled}>${label}</option>`;
+                    }).join('');
+                
+                // Populate dropdown istri (hanya yang belum menikah)
+                updateIstriDropdown();
+                
+            } catch (error) {
+                console.error('Error loading calon pasangan:', error);
+            }
+        }
+        
+        // Update dropdown istri berdasarkan suami yang dipilih
+        function updateIstriDropdown(excludeIstriId = null) {
+            const perempuanBelumNikah = allPerempuan.filter(p => !p.pasangan_id || p.id == excludeIstriId);
+            
+            $('formIstri').innerHTML = '<option value="">-- Pilih Istri --</option>' +
+                perempuanBelumNikah.map(p => `<option value="${p.id}">${p.nama}</option>`).join('');
+        }
+        
+        // Handler saat suami dipilih
+        function onSuamiChange() {
+            const suamiId = $('formSuami').value;
+            const suamiInfo = $('suamiInfo');
+            
+            if (!suamiId) {
+                suamiInfo.innerHTML = '';
+                return;
+            }
+            
+            const jmlIstri = jumlahIstriMap[suamiId] || 0;
+            
+            if (jmlIstri >= 4) {
+                suamiInfo.innerHTML = '<span class="text-danger">⚠️ Sudah memiliki 4 istri (maksimal)</span>';
+            } else if (jmlIstri > 0) {
+                suamiInfo.innerHTML = `<span class="text-warning">ℹ️ Sudah memiliki ${jmlIstri} istri, dapat menambah ${4 - jmlIstri} lagi</span>`;
+            } else {
+                suamiInfo.innerHTML = '<span class="text-success">✓ Belum menikah</span>';
+            }
+        }
+        
+        // Load daftar pernikahan
+        async function loadPernikahan() {
+            try {
+                const search = $('searchInput').value.trim().toLowerCase();
+                const status = $('filterStatus').value;
+                
+                let query = db
+                    .from('relasi_keluarga')
+                    .select(`
+                        id,
+                        jamaah_id,
+                        relasi_dengan_jamaah_id,
+                        tipe_relasi,
+                        status_relasi,
+                        tanggal_mulai,
+                        keterangan,
+                        suami:jamaah_id(id, nama, nama_panggilan),
+                        istri:relasi_dengan_jamaah_id(id, nama, nama_panggilan)
+                    `)
+                    .eq('tipe_relasi', 'istri')
+                    .order('tanggal_mulai', { ascending: false });
+                
+                if (status) {
+                    query = query.eq('status_relasi', status);
+                }
+                
+                const { data, error } = await query;
+                
+                if (error) throw error;
+                
+                let filtered = data || [];
+                
+                // Filter by search
+                if (search) {
+                    filtered = filtered.filter(r => 
+                        r.suami?.nama?.toLowerCase().includes(search) ||
+                        r.istri?.nama?.toLowerCase().includes(search)
+                    );
+                }
+                
+                renderPernikahan(filtered);
+                
+            } catch (error) {
+                console.error('Error loading pernikahan:', error);
+                showToast('Gagal memuat data: ' + error.message, 'error');
+            }
+        }
+        
+        // Render daftar pernikahan
+        function renderPernikahan(data) {
+            const container = $('pernikahanContainer');
+            
+            if (!data.length) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">💒</div>
+                        <h3>Belum Ada Data Pernikahan</h3>
+                        <p>Klik tombol "Tambah Pernikahan" untuk menambahkan data</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Group by suami untuk deteksi poligami
+            const groupedBySuami = {};
+            data.forEach(r => {
+                const suamiId = r.jamaah_id;
+                if (!groupedBySuami[suamiId]) {
+                    groupedBySuami[suamiId] = {
+                        suami: r.suami,
+                        istri: []
+                    };
+                }
+                groupedBySuami[suamiId].istri.push(r);
+            });
+            
+            let html = '';
+            
+            Object.values(groupedBySuami).forEach(group => {
+                const suami = group.suami;
+                const istriList = group.istri;
+                const isPoligami = istriList.length > 1;
+                
+                istriList.forEach((r, index) => {
+                    const statusBadge = r.status_relasi === 'aktif' 
+                        ? '<span class="badge badge-success">Aktif</span>'
+                        : '<span class="badge badge-secondary">Cerai</span>';
+                    
+                    html += `
+                        <div class="couple-card">
+                            <div class="couple-header">
+                                <div class="couple-names">
+                                    <div class="person-box suami">
+                                        <div class="person-label">Suami</div>
+                                        <div class="person-name">${suami?.nama || '-'}</div>
+                                    </div>
+                                    <span class="heart-icon">💕</span>
+                                    <div class="person-box istri">
+                                        <div class="person-label">Istri${isPoligami ? ' ke-' + (index + 1) : ''}</div>
+                                        <div class="person-name">${r.istri?.nama || '-'}</div>
+                                    </div>
+                                    ${isPoligami ? `<span class="istri-count">${istriList.length} istri</span>` : ''}
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline" onclick="editPernikahan(${r.id})" title="Edit">✏️</button>
+                                    <button class="btn btn-sm btn-danger" onclick="hapusPernikahan(${r.id})" title="Hapus">🗑️</button>
+                                </div>
+                            </div>
+                            <div class="couple-info">
+                                <span>📅 ${r.tanggal_mulai ? formatTanggal(r.tanggal_mulai) : '-'}</span>
+                                ${statusBadge}
+                                ${r.keterangan ? `<span>📝 ${r.keterangan}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                // Total pernikahan aktif
+                const { count: total } = await db
+                    .from('relasi_keluarga')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('tipe_relasi', 'istri')
+                    .eq('status_relasi', 'aktif');
+                
+                $('statTotal').textContent = total || 0;
+                
+                // Hitung monogami dan poligami
+                const { data: relasiData } = await db
+                    .from('relasi_keluarga')
+                    .select('jamaah_id')
+                    .eq('tipe_relasi', 'istri')
+                    .eq('status_relasi', 'aktif');
+                
+                const suamiCount = {};
+                (relasiData || []).forEach(r => {
+                    suamiCount[r.jamaah_id] = (suamiCount[r.jamaah_id] || 0) + 1;
+                });
+                
+                let monogami = 0;
+                let poligami = 0;
+                Object.values(suamiCount).forEach(count => {
+                    if (count === 1) monogami++;
+                    else poligami++;
+                });
+                
+                $('statMonogami').textContent = monogami;
+                $('statPoligami').textContent = poligami;
+                
+                // Menikah tahun ini
+                const tahunIni = new Date().getFullYear();
+                const { count: tahunIniCount } = await db
+                    .from('relasi_keluarga')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('tipe_relasi', 'istri')
+                    .gte('tanggal_mulai', `${tahunIni}-01-01`);
+                
+                $('statTahunIni').textContent = tahunIniCount || 0;
+                
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+        
+        // Show modal tambah
+        function showAddModal() {
+            editMode = false;
+            $('modalTitle').textContent = 'Tambah Pernikahan';
+            $('pernikahanForm').reset();
+            $('relasiId').value = '';
+            $('suamiInfo').innerHTML = '';
+            $('istriInfo').innerHTML = 'Menampilkan perempuan yang belum menikah';
+            
+            // Reset dropdown
+            loadCalonPasangan();
+            
+            showModal('pernikahanModal');
+        }
+        
+        // Edit pernikahan
+        async function editPernikahan(id) {
+            try {
+                const { data, error } = await db
+                    .from('relasi_keluarga')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                
+                if (error) throw error;
+                
+                editMode = true;
+                $('modalTitle').textContent = 'Edit Pernikahan';
+                $('relasiId').value = data.id;
+                
+                // Load ulang dropdown dengan include istri yang sedang diedit
+                await loadCalonPasangan();
+                updateIstriDropdown(data.relasi_dengan_jamaah_id);
+                
+                $('formSuami').value = data.jamaah_id;
+                $('formIstri').value = data.relasi_dengan_jamaah_id;
+                $('formTanggal').value = data.tanggal_mulai || '';
+                $('formKeterangan').value = data.keterangan || '';
+                
+                onSuamiChange();
+                
+                showModal('pernikahanModal');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal memuat data', 'error');
+            }
+        }
+        
+        // Simpan pernikahan
+        async function savePernikahan() {
+            const form = $('pernikahanForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            const btn = $('btnSave');
+            btn.disabled = true;
+            btn.textContent = 'Menyimpan...';
+            
+            try {
+                const formData = getFormData('pernikahanForm');
+                const suamiId = parseInt(formData.suami_id);
+                const istriId = parseInt(formData.istri_id);
+                
+                // Validasi max 4 istri
+                const jmlIstri = jumlahIstriMap[suamiId] || 0;
+                if (!editMode && jmlIstri >= 4) {
+                    throw new Error('Laki-laki ini sudah memiliki 4 istri (maksimal)');
+                }
+                
+                const relasiData = {
+                    jamaah_id: suamiId,
+                    relasi_dengan_jamaah_id: istriId,
+                    tipe_relasi: 'istri',
+                    status_relasi: 'aktif',
+                    tanggal_mulai: formData.tanggal_menikah,
+                    keterangan: formData.keterangan || null
+                };
+                
+                if (editMode && formData.id) {
+                    // Update
+                    const { error } = await db
+                        .from('relasi_keluarga')
+                        .update(relasiData)
+                        .eq('id', formData.id);
+                    if (error) throw error;
+                } else {
+                    // Insert
+                    const { error } = await db
+                        .from('relasi_keluarga')
+                        .insert(relasiData);
+                    if (error) throw error;
+                    
+                    // Cari status_id untuk 'menikah'
+                    const { data: statusMenikah } = await db
+                        .from('status_jamaah')
+                        .select('id')
+                        .eq('kode', 'menikah')
+                        .single();
+                    
+                    const statusMenikahId = statusMenikah?.id;
+                    
+                    // Update status jamaah istri menjadi menikah
+                    await db.from('jamaah').update({
+                        status_id: statusMenikahId,
+                        pasangan_id: suamiId,
+                        tanggal_menikah: formData.tanggal_menikah
+                    }).eq('id', istriId);
+                    
+                    // Update jenjang istri ke Dewasa
+                    const { data: jenjangDewasa } = await db
+                        .from('jenjang')
+                        .select('id')
+                        .ilike('nama', '%dewasa%')
+                        .single();
+                    
+                    if (jenjangDewasa) {
+                        // Nonaktifkan enrollment lama
+                        await db.from('enrollment').update({
+                            status: 'nonaktif'
+                        }).eq('jamaah_id', istriId).eq('status', 'aktif');
+                        
+                        // Ambil wilayah terakhir
+                        const { data: lastEnrollment } = await db
+                            .from('enrollment')
+                            .select('wilayah_id, tahun_ajaran_id')
+                            .eq('jamaah_id', istriId)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .single();
+                        
+                        // Buat enrollment baru dengan jenjang Dewasa
+                        if (lastEnrollment) {
+                            await db.from('enrollment').insert({
+                                jamaah_id: istriId,
+                                wilayah_id: lastEnrollment.wilayah_id,
+                                jenjang_id: jenjangDewasa.id,
+                                tahun_ajaran_id: lastEnrollment.tahun_ajaran_id,
+                                status: 'aktif'
+                            });
+                        }
+                    }
+                    
+                    // Cek apakah suami sudah status menikah, jika belum update
+                    const { data: suamiData } = await db
+                        .from('jamaah')
+                        .select('status_id, status:status_id(kode)')
+                        .eq('id', suamiId)
+                        .single();
+                    
+                    if (suamiData?.status?.kode !== 'menikah') {
+                        await db.from('jamaah').update({
+                            status_id: statusMenikahId,
+                            tanggal_menikah: formData.tanggal_menikah
+                        }).eq('id', suamiId);
+                        
+                        // Update jenjang suami ke Dewasa juga
+                        if (jenjangDewasa) {
+                            await db.from('enrollment').update({
+                                status: 'nonaktif'
+                            }).eq('jamaah_id', suamiId).eq('status', 'aktif');
+                            
+                            const { data: suamiEnrollment } = await db
+                                .from('enrollment')
+                                .select('wilayah_id, tahun_ajaran_id')
+                                .eq('jamaah_id', suamiId)
+                                .order('created_at', { ascending: false })
+                                .limit(1)
+                                .single();
+                            
+                            if (suamiEnrollment) {
+                                await db.from('enrollment').insert({
+                                    jamaah_id: suamiId,
+                                    wilayah_id: suamiEnrollment.wilayah_id,
+                                    jenjang_id: jenjangDewasa.id,
+                                    tahun_ajaran_id: suamiEnrollment.tahun_ajaran_id,
+                                    status: 'aktif'
+                                });
+                            }
+                        }
+                    }
+                }
+                
+                showToast('Data pernikahan berhasil disimpan', 'success');
+                hideModal('pernikahanModal');
+                
+                await loadCalonPasangan();
+                await loadPernikahan();
+                await loadStatistics();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal menyimpan: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💒 Simpan';
+            }
+        }
+        
+        // Hapus pernikahan
+        async function hapusPernikahan(id) {
+            if (!await confirmDialog('Yakin ingin menghapus data pernikahan ini?')) return;
+            
+            try {
+                // Get data dulu untuk update jamaah
+                const { data: relasi } = await db
+                    .from('relasi_keluarga')
+                    .select('jamaah_id, relasi_dengan_jamaah_id')
+                    .eq('id', id)
+                    .single();
+                
+                // Hapus relasi
+                const { error } = await db
+                    .from('relasi_keluarga')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                // Cari status_id untuk 'aktif'
+                const { data: statusAktif } = await db
+                    .from('status_jamaah')
+                    .select('id')
+                    .eq('kode', 'aktif')
+                    .single();
+                
+                const statusAktifId = statusAktif?.id;
+                
+                // Reset status istri jika tidak punya pasangan lain
+                if (relasi) {
+                    await db.from('jamaah').update({
+                        status_id: statusAktifId,
+                        pasangan_id: null,
+                        tanggal_menikah: null
+                    }).eq('id', relasi.relasi_dengan_jamaah_id);
+                    
+                    // Cek apakah suami masih punya istri lain
+                    const { count } = await db
+                        .from('relasi_keluarga')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('jamaah_id', relasi.jamaah_id)
+                        .eq('tipe_relasi', 'istri')
+                        .eq('status_relasi', 'aktif');
+                    
+                    if (count === 0) {
+                        await db.from('jamaah').update({
+                            status_id: statusAktifId,
+                            tanggal_menikah: null
+                        }).eq('id', relasi.jamaah_id);
+                    }
+                }
+                
+                showToast('Data pernikahan berhasil dihapus', 'success');
+                
+                await loadCalonPasangan();
+                await loadPernikahan();
+                await loadStatistics();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal menghapus: ' + error.message, 'error');
+            }
+        }
+    </script>
+
+    <!-- Bottom Navigation for Mobile -->
+    <script src="js/mobile-menu.js"></script>
+</body>
+</html>

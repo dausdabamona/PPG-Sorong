@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>Materi Hafalan - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:1rem;overflow-x:auto;gap:0;}
+        .tab{padding:0.6rem 1rem;cursor:pointer;font-size:0.85rem;font-weight:500;color:#6b7280;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all 0.2s;}
+        .tab:hover{color:#059669;}
+        .tab.active{color:#059669;border-bottom-color:#059669;background:#f0fdf4;}
+        
+        .materi-card{background:#fff;border-radius:0.5rem;padding:0.75rem;margin-bottom:0.5rem;display:flex;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,0.08);transition:all 0.2s;}
+        .materi-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.12);}
+        .materi-no{width:40px;height:40px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#059669;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.85rem;margin-right:0.75rem;flex-shrink:0;}
+        .materi-info{flex:1;min-width:0;}
+        .materi-name{font-weight:600;font-size:0.9rem;color:#1f2937;}
+        .materi-detail{font-size:0.75rem;color:#6b7280;margin-top:0.15rem;}
+        .materi-badge{font-size:0.65rem;background:#dbeafe;color:#1d4ed8;padding:0.15rem 0.5rem;border-radius:1rem;margin-left:0.5rem;}
+        
+        .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1.5rem;}
+        .stat-card{background:#fff;padding:1rem;border-radius:0.75rem;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;transition:all 0.2s;border:2px solid transparent;}
+        .stat-card:hover{border-color:#059669;transform:translateY(-2px);}
+        .stat-card.active{border-color:#059669;background:linear-gradient(135deg,#f0fdf4,#dcfce7);}
+        .stat-icon{font-size:2rem;margin-bottom:0.5rem;}
+        .stat-value{font-size:1.75rem;font-weight:700;color:#059669;}
+        .stat-label{font-size:0.8rem;color:#6b7280;margin-top:0.25rem;}
+        
+        .empty-state{text-align:center;padding:3rem 1rem;color:#6b7280;}
+        .empty-icon{font-size:4rem;margin-bottom:1rem;opacity:0.5;}
+        
+        .loading-state{text-align:center;padding:3rem;color:#6b7280;}
+        .loading-spinner{width:40px;height:40px;border:3px solid #e5e7eb;border-top-color:#059669;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+        
+        .info-banner{background:linear-gradient(135deg,#dbeafe,#e0f2fe);border-left:4px solid #3b82f6;padding:0.75rem 1rem;border-radius:0.5rem;margin-bottom:1rem;font-size:0.85rem;color:#1e40af;}
+        .info-banner strong{color:#1d4ed8;}
+        
+        .kategori-header{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;padding:0.5rem;background:#f0fdf4;border-radius:0.5rem;}
+        .kategori-header .icon{font-size:1.5rem;}
+        .kategori-header .title{font-weight:600;color:#065f46;}
+        .kategori-header .badge{background:#059669;color:white;padding:0.15rem 0.5rem;border-radius:1rem;font-size:0.7rem;margin-left:auto;}
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand"><div class="sidebar-title">PPG Sorong</div></div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="materi-hafalan.html" class="nav-item active"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+                <a href="pengaturan-akses.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🔐</span><span class="nav-text">Pengaturan Akses</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn-icon" onclick="toggleSidebar()">☰</button>
+                    <h1 class="header-title">📖 Materi Hafalan</h1>
+                </div>
+            </header>
+            
+            <div class="page-content">
+                <!-- Info Banner -->
+                <div class="info-banner">
+                    ℹ️ Materi hafalan adalah materi yang dinilai secara <strong>bertahap dan berkesinambungan</strong> (persentase 0-100%).
+                    Meliputi: Hafalan Surat, Doa, dan Dalil.
+                </div>
+                
+                <!-- Statistik per Kategori -->
+                <div class="stat-grid" id="statGrid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📖</div>
+                        <div class="stat-value">-</div>
+                        <div class="stat-label">Hafalan Surat</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🤲</div>
+                        <div class="stat-value">-</div>
+                        <div class="stat-label">Hafalan Doa</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📜</div>
+                        <div class="stat-value">-</div>
+                        <div class="stat-label">Hafalan Dalil</div>
+                    </div>
+                </div>
+                
+                <!-- Search -->
+                <div class="card mb-sm">
+                    <div class="card-body">
+                        <input type="text" class="form-control" id="searchMateri" placeholder="🔍 Cari materi hafalan..." oninput="filterMateri()">
+                    </div>
+                </div>
+                
+                <!-- List Materi -->
+                <div id="materiList">
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <div>Memuat materi hafalan...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    
+    <script>
+        // Kategori ID untuk hafalan (dari kategori_materi)
+        // 60 = Hafalan Surat, 61 = Hafalan Doa GBMTPG, 63 = Hafalan Dalil GBMTPG
+        var KATEGORI_HAFALAN = {
+            SURAT: { id: 60, kode: 'ALM-HFL-01', nama: 'Hafalan Surat', icon: '📖' },
+            DOA: { id: 61, kode: 'ALM-HFL-02', nama: 'Hafalan Doa', icon: '🤲' },
+            DALIL: { id: 63, kode: 'ALM-HFL-04', nama: 'Hafalan Dalil', icon: '📜' }
+        };
+        
+        var allMateri = [];
+        var materiSurat = [];
+        var materiDoa = [];
+        var materiDalil = [];
+        var currentKategori = 'ALL'; // ALL, SURAT, DOA, DALIL
+        
+        function toggleSidebar() {
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
+        }
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            if (!await requireAuth()) return;
+            await loadMateriHafalan();
+        });
+        
+        async function loadMateriHafalan() {
+            try {
+                // Load materi dari masing-masing kategori hafalan
+                var kategoriIds = [
+                    KATEGORI_HAFALAN.SURAT.id,
+                    KATEGORI_HAFALAN.DOA.id,
+                    KATEGORI_HAFALAN.DALIL.id
+                ];
+                
+                // Query materi_item dengan kategori_id yang sesuai
+                var result = await db
+                    .from('materi_item')
+                    .select('*, kategori:kategori_materi(id, kode, nama)')
+                    .in('kategori_id', kategoriIds)
+                    .order('kategori_id')
+                    .order('nomor');
+                
+                if (result.error) throw result.error;
+                
+                allMateri = result.data || [];
+                
+                console.log('Total materi hafalan:', allMateri.length);
+                
+                // Pisahkan per kategori
+                materiSurat = allMateri.filter(function(m) { return m.kategori_id === KATEGORI_HAFALAN.SURAT.id; });
+                materiDoa = allMateri.filter(function(m) { return m.kategori_id === KATEGORI_HAFALAN.DOA.id; });
+                materiDalil = allMateri.filter(function(m) { return m.kategori_id === KATEGORI_HAFALAN.DALIL.id; });
+                
+                // Render stat cards
+                renderStatCards();
+                
+                // Render materi
+                renderMateri();
+                
+            } catch (e) {
+                console.error('Error load materi:', e);
+                $('materiList').innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><div>Gagal memuat data: ' + e.message + '</div></div>';
+            }
+        }
+        
+        function renderStatCards() {
+            var html = '';
+            
+            // Surat
+            html += '<div class="stat-card' + (currentKategori === 'SURAT' ? ' active' : '') + '" onclick="selectKategori(\'SURAT\')">';
+            html += '<div class="stat-icon">' + KATEGORI_HAFALAN.SURAT.icon + '</div>';
+            html += '<div class="stat-value">' + materiSurat.length + '</div>';
+            html += '<div class="stat-label">' + KATEGORI_HAFALAN.SURAT.nama + '</div>';
+            html += '</div>';
+            
+            // Doa
+            html += '<div class="stat-card' + (currentKategori === 'DOA' ? ' active' : '') + '" onclick="selectKategori(\'DOA\')">';
+            html += '<div class="stat-icon">' + KATEGORI_HAFALAN.DOA.icon + '</div>';
+            html += '<div class="stat-value">' + materiDoa.length + '</div>';
+            html += '<div class="stat-label">' + KATEGORI_HAFALAN.DOA.nama + '</div>';
+            html += '</div>';
+            
+            // Dalil
+            html += '<div class="stat-card' + (currentKategori === 'DALIL' ? ' active' : '') + '" onclick="selectKategori(\'DALIL\')">';
+            html += '<div class="stat-icon">' + KATEGORI_HAFALAN.DALIL.icon + '</div>';
+            html += '<div class="stat-value">' + materiDalil.length + '</div>';
+            html += '<div class="stat-label">' + KATEGORI_HAFALAN.DALIL.nama + '</div>';
+            html += '</div>';
+            
+            $('statGrid').innerHTML = html;
+        }
+        
+        function selectKategori(kategori) {
+            // Toggle - jika sudah active, kembali ke ALL
+            if (currentKategori === kategori) {
+                currentKategori = 'ALL';
+            } else {
+                currentKategori = kategori;
+            }
+            renderStatCards();
+            renderMateri();
+        }
+        
+        function filterMateri() {
+            renderMateri();
+        }
+        
+        function renderMateri() {
+            var searchEl = $('searchMateri');
+            var query = searchEl ? searchEl.value.toLowerCase().trim() : '';
+            
+            // Filter by kategori
+            var data = [];
+            if (currentKategori === 'ALL') {
+                data = allMateri;
+            } else if (currentKategori === 'SURAT') {
+                data = materiSurat;
+            } else if (currentKategori === 'DOA') {
+                data = materiDoa;
+            } else if (currentKategori === 'DALIL') {
+                data = materiDalil;
+            }
+            
+            // Filter by search
+            if (query) {
+                data = data.filter(function(m) {
+                    var nama = (m.nama || '').toLowerCase();
+                    var kode = (m.kode || '').toLowerCase();
+                    return nama.includes(query) || kode.includes(query);
+                });
+            }
+            
+            if (!data.length) {
+                var emptyMsg = currentKategori === 'ALL' ? 'Belum ada materi hafalan' : 'Tidak ada materi ditemukan';
+                $('materiList').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div>' + emptyMsg + '</div></div>';
+                return;
+            }
+            
+            // Group by kategori jika ALL
+            var html = '';
+            
+            if (currentKategori === 'ALL') {
+                // Render per kategori
+                var groups = [
+                    { key: 'SURAT', data: materiSurat, info: KATEGORI_HAFALAN.SURAT },
+                    { key: 'DOA', data: materiDoa, info: KATEGORI_HAFALAN.DOA },
+                    { key: 'DALIL', data: materiDalil, info: KATEGORI_HAFALAN.DALIL }
+                ];
+                
+                groups.forEach(function(group) {
+                    var items = group.data;
+                    
+                    // Filter by search
+                    if (query) {
+                        items = items.filter(function(m) {
+                            var nama = (m.nama || '').toLowerCase();
+                            var kode = (m.kode || '').toLowerCase();
+                            return nama.includes(query) || kode.includes(query);
+                        });
+                    }
+                    
+                    if (items.length === 0) return;
+                    
+                    html += '<div style="margin-bottom:1.5rem;">';
+                    html += '<div class="kategori-header">';
+                    html += '<span class="icon">' + group.info.icon + '</span>';
+                    html += '<span class="title">' + group.info.nama + '</span>';
+                    html += '<span class="badge">' + items.length + ' materi</span>';
+                    html += '</div>';
+                    
+                    items.forEach(function(m, idx) {
+                        html += renderMateriCard(m, idx);
+                    });
+                    
+                    html += '</div>';
+                });
+            } else {
+                // Render single kategori
+                data.forEach(function(m, idx) {
+                    html += renderMateriCard(m, idx);
+                });
+            }
+            
+            $('materiList').innerHTML = html;
+        }
+        
+        function renderMateriCard(m, idx) {
+            var detail = '';
+            try {
+                var d = typeof m.detail === 'string' ? JSON.parse(m.detail) : m.detail;
+                if (d) {
+                    var parts = [];
+                    if (d.jumlah_ayat) parts.push(d.jumlah_ayat + ' ayat');
+                    if (d.arti) parts.push(d.arti);
+                    if (d.tempat_turun) parts.push(d.tempat_turun);
+                    if (d.kategori) parts.push(d.kategori);
+                    detail = parts.join(' • ');
+                }
+            } catch (e) {}
+            
+            var html = '<div class="materi-card">';
+            html += '<div class="materi-no">' + (m.nomor || idx + 1) + '</div>';
+            html += '<div class="materi-info">';
+            html += '<div class="materi-name">' + escapeHtml(m.nama || '-');
+            if (m.tipe) html += '<span class="materi-badge">' + m.tipe + '</span>';
+            html += '</div>';
+            if (detail) html += '<div class="materi-detail">' + escapeHtml(detail) + '</div>';
+            html += '</div>';
+            html += '</div>';
+            
+            return html;
+        }
+    </script>
+</body>
+</html>

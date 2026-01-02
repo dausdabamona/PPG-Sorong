@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>Dashboard - PPG Sorong</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+</head>
+<body>
+    <!-- ============ MOBILE UI ============ -->
+    <div class="pwa-mobile">
+        <!-- Header dengan Stats -->
+        <div class="pwa-header">
+            <div class="pwa-header-top">
+                <div class="pwa-greeting">
+                    <span id="mobileGreeting">Assalamualaikum</span>
+                    <small id="mobileUserName">Loading...</small>
+                </div>
+                <div class="pwa-header-actions">
+                    <button class="pwa-header-btn" onclick="location.reload()">🔄</button>
+                    <button class="pwa-header-btn" onclick="logout()">🚪</button>
+                </div>
+            </div>
+            <div class="pwa-stats-row">
+                <div class="pwa-stat-box">
+                    <div class="pwa-stat-value" id="mobileTotalSantri">-</div>
+                    <div class="pwa-stat-label">Santri</div>
+                </div>
+                <div class="pwa-stat-box">
+                    <div class="pwa-stat-value" id="mobileTotalPengajian">-</div>
+                    <div class="pwa-stat-label">Pengajian</div>
+                </div>
+                <div class="pwa-stat-box">
+                    <div class="pwa-stat-value" id="mobileTotalKelompok">-</div>
+                    <div class="pwa-stat-label">Kelompok</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Grid -->
+        <div class="pwa-section-title">MENU UTAMA</div>
+        <div class="pwa-menu-grid">
+            <a href="generus.html" class="pwa-menu-item">
+                <div class="pwa-menu-icon green">👶</div>
+                <span class="pwa-menu-label">Data Generus</span>
+            </a>
+            <a href="pengajian.html" class="pwa-menu-item">
+                <div class="pwa-menu-icon blue">📖</div>
+                <span class="pwa-menu-label">Pengajian</span>
+            </a>
+            <a href="presensi.html" class="pwa-menu-item">
+                <div class="pwa-menu-icon yellow">✅</div>
+                <span class="pwa-menu-label">Presensi</span>
+            </a>
+            <a href="penilaian-hafalan.html" class="pwa-menu-item">
+                <div class="pwa-menu-icon purple">📝</div>
+                <span class="pwa-menu-label">Penilaian</span>
+            </a>
+            <a href="penilaian-hafalan.html" class="pwa-menu-item">
+                <div class="pwa-menu-icon cyan">📈</div>
+                <span class="pwa-menu-label">Progress</span>
+            </a>
+            <a href="rapor.html" class="pwa-menu-item">
+                <div class="pwa-menu-icon pink">📋</div>
+                <span class="pwa-menu-label">Rapor</span>
+            </a>
+            <a href="laporan-bulanan.html" class="pwa-menu-item">
+                <div class="pwa-menu-icon orange">📅</div>
+                <span class="pwa-menu-label">Laporan</span>
+            </a>
+            <a href="wilayah.html" class="pwa-menu-item">
+                <div class="pwa-menu-icon gray">🗺️</div>
+                <span class="pwa-menu-label">Wilayah</span>
+            </a>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="pwa-quick-actions">
+            <a href="presensi.html" class="pwa-quick-card highlight">
+                <div class="pwa-quick-icon">✅</div>
+                <div class="pwa-quick-text">
+                    <h4>Input Presensi</h4>
+                    <p>Absen pengajian hari ini</p>
+                </div>
+            </a>
+            <a href="pengajian.html?action=add" class="pwa-quick-card">
+                <div class="pwa-quick-icon primary">📖</div>
+                <div class="pwa-quick-text">
+                    <h4>Buat Pengajian</h4>
+                    <p>Jadwal baru</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Santri per Jenjang -->
+        <div class="pwa-section">
+            <div class="pwa-section-header">
+                <h3>📊 Santri per Jenjang</h3>
+                <a href="generus.html">Lihat →</a>
+            </div>
+            <div class="pwa-card" id="mobileJenjangStats">
+                <div class="pwa-loading"><div class="pwa-spinner"></div><p>Memuat...</p></div>
+            </div>
+        </div>
+
+        <!-- Pengajian Terbaru -->
+        <div class="pwa-section">
+            <div class="pwa-section-header">
+                <h3>📖 Pengajian Terbaru</h3>
+                <a href="pengajian.html">Lihat →</a>
+            </div>
+            <div class="pwa-card" id="mobileRecentPengajian">
+                <div class="pwa-loading"><div class="pwa-spinner"></div><p>Memuat...</p></div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="pwa-bottom-nav">
+            <a href="dashboard.html" class="pwa-nav-item active">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="generus.html" class="pwa-nav-item">
+                <span class="nav-icon">👶</span>
+                <span class="nav-label">Generus</span>
+            </a>
+            <a href="pengajian.html" class="pwa-nav-item">
+                <span class="nav-icon">📖</span>
+                <span class="nav-label">Pengajian</span>
+            </a>
+            <a href="presensi.html" class="pwa-nav-item">
+                <span class="nav-icon">✅</span>
+                <span class="nav-label">Presensi</span>
+            </a>
+            <a href="rapor.html" class="pwa-nav-item">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Rapor</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- ============ DESKTOP UI ============ -->
+    <div class="app-container desktop-only">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item active"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+                <a href="pengaturan-akses.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🔐</span><span class="nav-text">Pengaturan Akses</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Dashboard</h1>
+                </div>
+                </header>
+            
+            <div class="page-content">
+                <!-- Scope Indicator for Non-Admin -->
+                <div class="card" id="scopeIndicator" style="display:none;margin-bottom:1rem;background:linear-gradient(135deg,#059669,#10b981);color:white;">
+                    <div class="card-body" style="padding:0.75rem 1rem;">
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <span style="font-size:1.25rem;">🔒</span>
+                            <div>
+                                <div style="font-weight:600;" id="scopeTitle">Data Wilayah Anda</div>
+                                <div style="font-size:0.85rem;opacity:0.9;" id="scopeDetail">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">👥</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalSantri">-</div>
+                            <div class="stat-label">Total Santri Aktif</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon success">📖</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalPengajian">-</div>
+                            <div class="stat-label">Pengajian Bulan Ini</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">🗺️</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalKelompok">-</div>
+                            <div class="stat-label">Kelompok</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon info">📚</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalMateri">-</div>
+                            <div class="stat-label">Materi Kurikulum</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:1.5rem;">
+                    <!-- Santri per Jenjang -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Santri per Jenjang</h3>
+                        </div>
+                        <div class="card-body" id="jenjangStats">
+                            <p class="text-muted">Memuat data...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Pengajian Terbaru -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Pengajian Terbaru</h3>
+                            <a href="pengajian.html" class="btn btn-sm btn-outline">Lihat Semua</a>
+                        </div>
+                        <div class="card-body" id="recentPengajian">
+                            <p class="text-muted">Memuat data...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Terbaru -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Penilaian Hafalan Terbaru</h3>
+                            <a href="penilaian-hafalan.html" class="btn btn-sm btn-outline">Lihat Semua</a>
+                        </div>
+                        <div class="card-body" id="recentProgress">
+                            <p class="text-muted">Memuat data...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Aksi Cepat</h3>
+                        </div>
+                        <div class="card-body">
+                            <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                                <a href="jamaah.html?action=add" class="btn btn-primary">➕ Tambah Santri Baru</a>
+                                <a href="pengajian.html?action=add" class="btn btn-success">📖 Buat Pengajian</a>
+                                <a href="presensi.html" class="btn btn-warning">✅ Input Presensi</a>
+                                <a href="progress.html?action=add" class="btn btn-outline">📈 Input Hafalan</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    
+    <script>
+        // Fallback toggleSidebar jika sidebar.js gagal load
+        if (typeof toggleSidebar !== 'function') {
+            window.toggleSidebar = function() {
+                var sidebar = document.getElementById('sidebar');
+                var overlay = document.getElementById('sidebarOverlay');
+                if (sidebar) sidebar.classList.toggle('show');
+                if (overlay) overlay.classList.toggle('show');
+            };
+        }
+
+        var allWilayah = [];
+        var userWilayahList = [];
+        var userTingkat = null;
+        var userWilayahIds = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
+            if (typeof updateSidebarUserInfo === 'function') updateSidebarUserInfo();
+            if (typeof initSidebar === 'function') initSidebar();
+            updateMobileUserInfo();
+            await loadWilayahData();
+            await loadUserWilayah();
+            updateScopeIndicator();
+            await loadDashboardData();
+        });
+
+        function updateMobileUserInfo() {
+            var greeting = $('mobileGreeting');
+            var userName = $('mobileUserName');
+            var hour = new Date().getHours();
+            var greetingText = hour < 11 ? 'Selamat Pagi' : (hour < 15 ? 'Selamat Siang' : (hour < 18 ? 'Selamat Sore' : 'Selamat Malam'));
+            if (greeting) greeting.textContent = greetingText + ' 👋';
+            if (userName && currentUserData) userName.textContent = currentUserData.nama || currentUserData.email || 'User';
+        }
+
+        function updateMobileStats(santri, pengajian, kelompok) {
+            var mobileSantri = $('mobileTotalSantri');
+            var mobilePengajian = $('mobileTotalPengajian');
+            var mobileKelompok = $('mobileTotalKelompok');
+            if (mobileSantri) mobileSantri.textContent = formatAngka(santri);
+            if (mobilePengajian) mobilePengajian.textContent = formatAngka(pengajian);
+            if (mobileKelompok) mobileKelompok.textContent = formatAngka(kelompok);
+        }
+
+        function updateScopeIndicator() {
+            var indicator = $('scopeIndicator');
+            var scopeTitle = $('scopeTitle');
+            var scopeDetail = $('scopeDetail');
+
+            if (isAdmin() || userWilayahList.length === 0) {
+                if (indicator) indicator.style.display = 'none';
+                return;
+            }
+
+            if (indicator) indicator.style.display = 'block';
+
+            var tingkatLabel = {
+                'kelompok': 'Kelompok',
+                'desa': 'Desa',
+                'daerah': 'Daerah'
+            };
+
+            var names = userWilayahList.map(function(w) { return w.nama; }).join(', ');
+            var tingkat = tingkatLabel[userTingkat] || userTingkat;
+
+            if (scopeTitle) scopeTitle.textContent = 'Data Tingkat ' + tingkat;
+            if (scopeDetail) scopeDetail.textContent = names;
+        }
+
+        async function loadWilayahData() {
+            try {
+                var result = await db.from('wilayah').select('*').order('nama');
+                allWilayah = result.data || [];
+            } catch (e) {
+                console.error('Error load wilayah:', e);
+            }
+        }
+
+        async function loadUserWilayah() {
+            if (isAdmin()) {
+                userWilayahIds = []; // Admin sees all
+                return;
+            }
+
+            try {
+                // userRoles sudah di-load di auth.js saat checkSession/loadUserData
+                var roles = userRoles || [];
+                if (roles && roles.length > 0) {
+                    for (var i = 0; i < roles.length; i++) {
+                        var r = roles[i];
+                        if (r.wilayah_id) {
+                            var wInfo = allWilayah.find(function(w) { return w.id === r.wilayah_id; });
+                            if (wInfo) {
+                                userWilayahList.push(wInfo);
+                                if (!userTingkat) userTingkat = wInfo.tingkat;
+                            }
+                        }
+                    }
+
+                    // Build list of wilayah IDs user can access (including children)
+                    userWilayahIds = getUserAccessibleWilayahIds();
+                }
+            } catch (e) {
+                console.error('Error load user wilayah:', e);
+            }
+        }
+
+        function getUserAccessibleWilayahIds() {
+            var ids = [];
+            userWilayahList.forEach(function(w) {
+                ids.push(w.id);
+                // Add children based on tingkat
+                if (w.tingkat === 'daerah') {
+                    allWilayah.forEach(function(child) {
+                        if (child.parent_id === w.id) {
+                            ids.push(child.id); // desa
+                            allWilayah.forEach(function(grandchild) {
+                                if (grandchild.parent_id === child.id) ids.push(grandchild.id); // kelompok
+                            });
+                        }
+                    });
+                } else if (w.tingkat === 'desa') {
+                    allWilayah.forEach(function(child) {
+                        if (child.parent_id === w.id) ids.push(child.id); // kelompok
+                    });
+                }
+            });
+            return ids;
+        }
+        
+        async function loadDashboardData() {
+            try {
+                var totalSantriEl = $('totalSantri');
+                var totalPengajianEl = $('totalPengajian');
+                var totalKelompokEl = $('totalKelompok');
+                var totalMateriEl = $('totalMateri');
+
+                // Role-based data loading
+                if (isAdmin() || userWilayahIds.length === 0) {
+                    // Admin: load all data using existing API
+                    var stats = await dashboardApi.getStats();
+                    if (stats) {
+                        if (totalSantriEl) totalSantriEl.textContent = formatAngka(stats.total_jamaah_aktif || 0);
+                        if (totalPengajianEl) totalPengajianEl.textContent = formatAngka(stats.pengajian_bulan_ini || 0);
+                        if (totalKelompokEl) totalKelompokEl.textContent = formatAngka(stats.total_kelompok || 0);
+                        if (totalMateriEl) totalMateriEl.textContent = formatAngka(stats.total_materi || 0);
+                        // Update mobile stats
+                        updateMobileStats(stats.total_jamaah_aktif || 0, stats.pengajian_bulan_ini || 0, stats.total_kelompok || 0);
+                    }
+                } else {
+                    // Non-admin: filter by accessible wilayah
+                    await loadFilteredStats();
+                }
+
+                await loadJenjangStats();
+                await loadRecentPengajian();
+                await loadRecentProgress();
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showToast('Gagal memuat dashboard', 'error');
+            }
+        }
+
+        async function loadFilteredStats() {
+            var totalSantriEl = $('totalSantri');
+            var totalPengajianEl = $('totalPengajian');
+            var totalKelompokEl = $('totalKelompok');
+            var totalMateriEl = $('totalMateri');
+
+            // Get kelompok IDs only (generus are enrolled in kelompok)
+            var kelompokIds = allWilayah.filter(function(w) {
+                return w.tingkat === 'kelompok' && userWilayahIds.indexOf(w.id) !== -1;
+            }).map(function(w) { return w.id; });
+
+            // Count generus from enrollment
+            var enrollResult = await db.from('enrollment')
+                .select('id', { count: 'exact' })
+                .eq('status', 'aktif')
+                .in('wilayah_id', kelompokIds);
+            if (totalSantriEl) totalSantriEl.textContent = formatAngka(enrollResult.count || 0);
+
+            // Count pengajian this month
+            var now = new Date();
+            var startMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-01';
+            var endMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+
+            var pengajianResult = await db.from('pengajian')
+                .select('id', { count: 'exact' })
+                .in('wilayah_id', userWilayahIds)
+                .gte('tanggal', startMonth)
+                .lte('tanggal', endMonth);
+            if (totalPengajianEl) totalPengajianEl.textContent = formatAngka(pengajianResult.count || 0);
+
+            // Count kelompok
+            if (totalKelompokEl) totalKelompokEl.textContent = formatAngka(kelompokIds.length);
+
+            // Total materi is the same for everyone
+            var materiResult = await db.from('materi_item').select('id', { count: 'exact' });
+            if (totalMateriEl) totalMateriEl.textContent = formatAngka(materiResult.count || 0);
+
+            // Update mobile stats
+            updateMobileStats(enrollResult.count || 0, pengajianResult.count || 0, kelompokIds.length);
+        }
+        
+        async function loadJenjangStats() {
+            try {
+                var jenjangStatsEl = $('jenjangStats');
+                if (!jenjangStatsEl) return;
+
+                // Get all jenjang first
+                var jenjangList = await masterApi.getJenjang();
+                if (!jenjangList || jenjangList.length === 0) {
+                    jenjangStatsEl.innerHTML = '<p class="text-muted">Belum ada data jenjang</p>';
+                    return;
+                }
+
+                // Get kelompok IDs for filtering
+                var kelompokIds = allWilayah.filter(function(w) {
+                    return w.tingkat === 'kelompok';
+                }).map(function(w) { return w.id; });
+
+                // For non-admin, filter to accessible kelompok only
+                if (!isAdmin() && userWilayahIds.length > 0) {
+                    kelompokIds = kelompokIds.filter(function(id) {
+                        return userWilayahIds.indexOf(id) !== -1;
+                    });
+                }
+
+                // Get enrollments with jenjang - count from enrollment table for consistency
+                var enrollQuery = db.from('enrollment')
+                    .select('jenjang_id')
+                    .eq('status', 'aktif');
+
+                // Apply kelompok filter if we have specific kelompok
+                if (kelompokIds.length > 0) {
+                    enrollQuery = enrollQuery.in('wilayah_id', kelompokIds);
+                }
+
+                var enrollResult = await enrollQuery;
+
+                // Count per jenjang
+                var jenjangCount = {};
+                (enrollResult.data || []).forEach(function(e) {
+                    if (e.jenjang_id) {
+                        if (!jenjangCount[e.jenjang_id]) {
+                            jenjangCount[e.jenjang_id] = 0;
+                        }
+                        jenjangCount[e.jenjang_id]++;
+                    }
+                });
+
+                // Build display with all jenjang
+                var html = '';
+                var mobileHtml = '';
+                jenjangList.forEach(function(j) {
+                    var count = jenjangCount[j.id] || 0;
+                    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">';
+                    html += '<span>' + escapeHtml(j.nama || '-') + '</span>';
+                    html += '<span class="badge badge-primary">' + count + ' santri</span>';
+                    html += '</div>';
+                    // Mobile version
+                    mobileHtml += '<div class="pwa-list-item"><div class="pwa-list-icon">📚</div>';
+                    mobileHtml += '<div class="pwa-list-content"><h4>' + escapeHtml(j.nama || '-') + '</h4></div>';
+                    mobileHtml += '<span class="pwa-list-badge">' + count + '</span></div>';
+                });
+
+                jenjangStatsEl.innerHTML = html || '<p class="text-muted">Belum ada data</p>';
+                var mobileJenjang = $('mobileJenjangStats');
+                if (mobileJenjang) mobileJenjang.innerHTML = mobileHtml || '<div class="pwa-empty"><p>Belum ada data</p></div>';
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        async function loadRecentPengajian() {
+            try {
+                var recentPengajianEl = $('recentPengajian');
+                if (!recentPengajianEl) return;
+
+                var data;
+
+                if (isAdmin() || userWilayahIds.length === 0) {
+                    data = await dashboardApi.getRecentPengajian(5);
+                } else {
+                    // Non-admin: filter by accessible wilayah
+                    var result = await db.from('pengajian')
+                        .select('*, wilayah:wilayah_id(nama), jenjang:jenjang_id(nama)')
+                        .in('wilayah_id', userWilayahIds)
+                        .order('tanggal', { ascending: false })
+                        .limit(5);
+                    data = result.data || [];
+                }
+
+                var mobilePengajian = $('mobileRecentPengajian');
+
+                if (!data || data.length === 0) {
+                    recentPengajianEl.innerHTML = '<p class="text-muted">Belum ada pengajian</p>';
+                    if (mobilePengajian) mobilePengajian.innerHTML = '<div class="pwa-empty"><p>Belum ada pengajian</p></div>';
+                    return;
+                }
+
+                var html = data.map(function(p) {
+                    return '<div style="padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">' +
+                        '<div style="display:flex;justify-content:space-between;">' +
+                        '<strong>' + escapeHtml(p.wilayah_nama || p.wilayah?.nama || '-') + '</strong>' +
+                        '<span class="badge badge-primary">' + escapeHtml(p.jenjang_nama || p.jenjang?.nama || '-') + '</span>' +
+                        '</div>' +
+                        '<div class="text-sm text-muted mt-sm">' + formatTanggal(p.tanggal) + '</div>' +
+                        '</div>';
+                }).join('');
+
+                recentPengajianEl.innerHTML = html;
+
+                // Mobile version
+                var mobileHtml = data.map(function(p) {
+                    return '<a href="presensi.html?pengajian_id=' + p.id + '" class="pwa-list-item">' +
+                        '<div class="pwa-list-icon">📖</div>' +
+                        '<div class="pwa-list-content">' +
+                        '<h4>' + escapeHtml(p.materi || p.wilayah_nama || p.wilayah?.nama || 'Pengajian') + '</h4>' +
+                        '<p>' + formatTanggalSingkat(p.tanggal) + ' • ' + escapeHtml(p.jenjang_nama || p.jenjang?.nama || '-') + '</p>' +
+                        '</div><span class="pwa-list-arrow">→</span></a>';
+                }).join('');
+                if (mobilePengajian) mobilePengajian.innerHTML = mobileHtml;
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function loadRecentProgress() {
+            try {
+                var recentProgressEl = $('recentProgress');
+                if (!recentProgressEl) return;
+
+                var data;
+
+                if (isAdmin() || userWilayahIds.length === 0) {
+                    data = await dashboardApi.getRecentProgress(5);
+                } else {
+                    // Non-admin: filter by accessible kelompok (via enrollment)
+                    var kelompokIds = allWilayah.filter(function(w) {
+                        return w.tingkat === 'kelompok' && userWilayahIds.indexOf(w.id) !== -1;
+                    }).map(function(w) { return w.id; });
+
+                    // Get jamaah IDs in accessible wilayah
+                    var enrollResult = await db.from('enrollment')
+                        .select('jamaah_id')
+                        .eq('status', 'aktif')
+                        .in('wilayah_id', kelompokIds);
+
+                    var jamaahIds = (enrollResult.data || []).map(function(e) { return e.jamaah_id; });
+
+                    if (jamaahIds.length > 0) {
+                        var result = await db.from('progress_jamaah')
+                            .select('*, jamaah:jamaah_id(nama), materi_item:materi_item_id(nama)')
+                            .in('jamaah_id', jamaahIds)
+                            .eq('status', 'selesai')
+                            .order('created_at', { ascending: false })
+                            .limit(5);
+                        data = result.data || [];
+                    } else {
+                        data = [];
+                    }
+                }
+
+                if (!data || data.length === 0) {
+                    recentProgressEl.innerHTML = '<p class="text-muted">Belum ada progress</p>';
+                    return;
+                }
+
+                var html = data.map(function(p) {
+                    return '<div style="padding:0.75rem 0;border-bottom:1px solid var(--gray-200);">' +
+                        '<div style="display:flex;justify-content:space-between;">' +
+                        '<strong>' + escapeHtml(p.jamaah?.nama || '-') + '</strong>' +
+                        '<span class="badge badge-success">Selesai</span>' +
+                        '</div>' +
+                        '<div class="text-sm text-muted mt-sm">' + escapeHtml(p.materi_item?.nama || '-') + '</div>' +
+                        '</div>';
+                }).join('');
+
+                recentProgressEl.innerHTML = html;
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+    
+    <!-- Bottom Navigation for Mobile -->
+        <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
+</body>
+</html>

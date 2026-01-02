@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>Laporan Bulanan - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; margin-bottom: 1rem; }
+        .filter-bar .form-group { margin: 0; min-width: 140px; }
+        .filter-bar label { font-size: 0.75rem; margin-bottom: 0.25rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+        .stat-box { background: white; border-radius: 0.75rem; padding: 1rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-box.primary { border-top: 4px solid #059669; }
+        .stat-box.info { border-top: 4px solid #3b82f6; }
+        .stat-box.success { border-top: 4px solid #10b981; }
+        .stat-box.warning { border-top: 4px solid #f59e0b; }
+        .stat-value { font-size: 1.75rem; font-weight: 700; color: #1f2937; }
+        .stat-label { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; }
+        .progress-sm { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+        .progress-sm .bar { height: 100%; border-radius: 4px; }
+        .progress-sm .bar.green { background: #10b981; }
+        .progress-sm .bar.yellow { background: #f59e0b; }
+        .progress-sm .bar.red { background: #ef4444; }
+        .level-card { background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; margin-bottom: 1rem; overflow: hidden; }
+        .level-header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 0.75rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .level-header.daerah { background: linear-gradient(135deg, #1e40af, #3b82f6); }
+        .level-header.desa { background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
+        .level-header h3 { margin: 0; font-size: 1rem; }
+        .level-body { padding: 1rem; }
+        .level-body.collapsed { display: none; }
+        .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 0.75rem; font-weight: 600; margin-right: 0.5rem; }
+        .rank-1 { background: #fef3c7; color: #92400e; }
+        .rank-2 { background: #e5e7eb; color: #374151; }
+        .rank-3 { background: #fed7aa; color: #9a3412; }
+        .rank-other { background: #f3f4f6; color: #6b7280; }
+        .table th, .table td { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
+        .generus-detail { background: #f9fafb; border-top: 1px solid #e5e7eb; padding: 1rem; }
+        .generus-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .generus-table th { background: #f3f4f6; padding: 0.4rem 0.6rem; text-align: left; border-bottom: 2px solid #e5e7eb; }
+        .generus-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #e5e7eb; }
+        .generus-table tr:hover { background: #f3f4f6; }
+        .bidang-section { margin-top: 1.5rem; }
+        .bidang-header { background: #059669; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem 0.5rem 0 0; font-weight: 600; }
+        .bidang-body { background: white; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 0.5rem 0.5rem; padding: 1rem; }
+        .kategori-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed #e5e7eb; }
+        .kategori-item:last-child { border-bottom: none; }
+        .kategori-name { font-weight: 500; }
+        .kategori-stats { display: flex; gap: 1rem; font-size: 0.85rem; }
+        .detail-toggle { cursor: pointer; font-size: 0.75rem; color: #059669; text-decoration: underline; }
+        .detail-toggle:hover { color: #047857; }
+        .rekap-card { background: linear-gradient(135deg, #059669, #10b981); color: white; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .rekap-card h3 { margin: 0 0 1rem; font-size: 1.1rem; }
+        .rekap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .rekap-item { background: rgba(255,255,255,0.15); border-radius: 0.5rem; padding: 0.75rem; }
+        .rekap-item-title { font-size: 0.85rem; opacity: 0.9; }
+        .rekap-item-value { font-size: 1.5rem; font-weight: 700; }
+        @media print {
+            .no-print { display: none !important; }
+            .level-body { display: block !important; }
+            .card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+        }
+        @media (max-width: 640px) {
+            .filter-bar { flex-direction: column; }
+            .filter-bar .form-group { width: 100%; }
+            .table { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar no-print" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generus Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item active"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <main class="main-content">
+            <header class="header no-print">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">📅 Laporan Bulanan</h1>
+                </div>
+            </header>
+            
+            <div class="page-content">
+                <!-- Filter -->
+                <div class="card no-print">
+                    <div class="card-body">
+                        <div class="filter-bar">
+                            <div class="form-group">
+                                <label>Periode</label>
+                                <input type="month" class="form-control" id="filterPeriode" onchange="loadLaporan()">
+                            </div>
+                            <button class="btn btn-primary" onclick="loadLaporan()">🔍 Tampilkan</button>
+                            <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak</button>
+                        </div>
+                        <div id="filterInfo" class="mt-3" style="display:none;">
+                            <small class="text-muted">
+                                <strong>Filter Otomatis:</strong> <span id="filterInfoText">-</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Summary Stats -->
+                <div class="stats-grid" id="summaryStats">
+                    <div class="stat-box primary"><div class="stat-value" id="statGenerus">-</div><div class="stat-label">Total Generus</div></div>
+                    <div class="stat-box info"><div class="stat-value" id="statPengajian">-</div><div class="stat-label">Total Pengajian</div></div>
+                    <div class="stat-box success"><div class="stat-value" id="statKehadiran">-</div><div class="stat-label">Rata-rata Hadir</div></div>
+                    <div class="stat-box warning"><div class="stat-value" id="statProgress">-</div><div class="stat-label">Progress Hafalan</div></div>
+                </div>
+                
+                <!-- Report Header (for print) -->
+                <div class="card" id="reportHeader" style="display:none;">
+                    <div class="card-body" style="text-align:center; padding:1.5rem;">
+                        <h2 style="margin:0 0 0.5rem;">LAPORAN BULANAN PPG</h2>
+                        <p style="margin:0; color:#6b7280;" id="reportPeriode">Periode: -</p>
+                        <p style="margin:0; color:#6b7280;" id="reportWilayah">Wilayah: -</p>
+                    </div>
+                </div>
+                
+                <!-- Report Content -->
+                <div id="reportContent">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📊</div>
+                                <div class="empty-state-title">Pilih Filter</div>
+                                <p class="text-muted">Pilih periode dan tingkat laporan, lalu klik Tampilkan</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <button class="fab-menu no-print" onclick="toggleSidebar()" title="Menu">☰</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script>
+        var allWilayah = [];
+        var allDaerah = [];
+        var allDesa = [];
+        var allKelompok = [];
+        var userWilayahList = [];
+        var userTingkat = null;
+        var allBidang = [];
+        var allKategori = [];
+        var allMateri = [];
+        var generusDetails = {};
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            if (!await requireAuth()) return;
+
+            // Set default periode to current month
+            var now = new Date();
+            $('filterPeriode').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+            await loadWilayahData();
+            await loadUserWilayah();
+
+            // Auto-load report on page load
+            await loadLaporan();
+        });
+
+        async function loadUserWilayah() {
+            userWilayahList = [];
+            userTingkat = null;
+
+            if (!isAdmin()) {
+                try {
+                    // userRoles sudah di-load di auth.js saat checkSession/loadUserData
+                    var roles = userRoles || [];
+                    if (roles && roles.length > 0) {
+                        for (var i = 0; i < roles.length; i++) {
+                            var r = roles[i];
+                            if (r.wilayah_id) {
+                                var wInfo = allWilayah.find(function(w) { return w.id === r.wilayah_id; });
+                                if (wInfo) {
+                                    userWilayahList.push(wInfo);
+                                    if (!userTingkat) userTingkat = wInfo.tingkat;
+                                }
+                            }
+                        }
+                    }
+
+                    // Display filter info
+                    if (userWilayahList.length > 0) {
+                        var filterInfoEl = $('filterInfo');
+                        var filterInfoTextEl = $('filterInfoText');
+                        if (filterInfoEl && filterInfoTextEl) {
+                            filterInfoEl.style.display = 'block';
+                            var wilayahNames = userWilayahList.map(function(w) { return w.nama; }).join(', ');
+                            filterInfoTextEl.textContent = 'Menampilkan data untuk ' + (userTingkat || 'wilayah') + ': ' + wilayahNames;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error load user wilayah:', e);
+                }
+            }
+        }
+        
+        async function loadWilayahData() {
+            try {
+                var result = await db.from('wilayah').select('*').order('nama');
+                allWilayah = result.data || [];
+
+                allDaerah = allWilayah.filter(function(w) { return w.tingkat === 'daerah'; });
+                allDesa = allWilayah.filter(function(w) { return w.tingkat === 'desa'; });
+                allKelompok = allWilayah.filter(function(w) { return w.tingkat === 'kelompok'; });
+
+            } catch (e) {
+                console.error('Error load wilayah:', e);
+            }
+        }
+        
+        async function loadLaporan() {
+            var periode = $('filterPeriode').value;
+
+            if (!periode) {
+                showToast('Pilih periode', 'error');
+                return;
+            }
+
+            // Auto-determine tingkat and filter based on user role
+            var tingkat = 'daerah'; // default for admin
+            var daerahId = '';
+            var desaId = '';
+
+            if (!isAdmin() && userWilayahList.length > 0) {
+                // Use user's wilayah to determine filter
+                var userWilayah = userWilayahList[0]; // Use first wilayah
+
+                if (userTingkat === 'kelompok') {
+                    tingkat = 'kelompok';
+                    // Find parent desa and daerah
+                    var desa = allWilayah.find(function(w) { return w.id === userWilayah.parent_id; });
+                    if (desa) {
+                        desaId = desa.id;
+                        var daerah = allWilayah.find(function(w) { return w.id === desa.parent_id; });
+                        if (daerah) {
+                            daerahId = daerah.id;
+                        }
+                    }
+                } else if (userTingkat === 'desa') {
+                    tingkat = 'desa';
+                    var daerah = allWilayah.find(function(w) { return w.id === userWilayah.parent_id; });
+                    if (daerah) {
+                        daerahId = daerah.id;
+                    }
+                } else if (userTingkat === 'daerah') {
+                    tingkat = 'daerah';
+                    daerahId = userWilayah.id;
+                }
+            }
+
+            var year = parseInt(periode.split('-')[0]);
+            var month = parseInt(periode.split('-')[1]);
+            var startDate = periode + '-01';
+            var endDate = new Date(year, month, 0).toISOString().split('T')[0];
+
+            $('reportContent').innerHTML = '<div class="card"><div class="card-body text-center py-4"><div class="text-muted">⏳ Memuat laporan...</div></div></div>';
+
+            try {
+                // Load enrollments with jenjang_id
+                var enrollResult = await db.from('enrollment')
+                    .select('*, jamaah:jamaah_id(id, nama, nama_panggilan), wilayah:wilayah_id(id, nama, tingkat, parent_id), jenjang:jenjang_id(id, nama, kode)')
+                    .eq('status', 'aktif');
+                var enrollments = enrollResult.data || [];
+
+                // Load pengajian
+                var pengajianResult = await db.from('pengajian')
+                    .select('*')
+                    .gte('tanggal', startDate)
+                    .lte('tanggal', endDate);
+                var pengajianList = pengajianResult.data || [];
+
+                // Load presensi
+                var presensiResult = await db.from('presensi')
+                    .select('*, pengajian:pengajian_id(tanggal, wilayah_id)');
+                var presensiList = (presensiResult.data || []).filter(function(p) {
+                    return p.pengajian && p.pengajian.tanggal >= startDate && p.pengajian.tanggal <= endDate;
+                });
+
+                // Load ALL progress (not just for the month)
+                var progressResult = await db.from('progress_jamaah')
+                    .select('*, materi_item:materi_item_id(id, nama, kategori_id)');
+                var progressList = progressResult.data || [];
+
+                // Load kurikulum data (bidang, kategori, materi)
+                var bidangResult = await db.from('bidang_materi').select('*').order('urutan');
+                allBidang = bidangResult.data || [];
+
+                var kategoriResult = await db.from('kategori_materi').select('*').order('bidang_id').order('nama');
+                allKategori = kategoriResult.data || [];
+
+                var materiResult = await db.from('materi_item').select('*').order('kategori_id').order('urutan');
+                allMateri = materiResult.data || [];
+
+                // Build generus details with progress per kategori
+                generusDetails = buildGenerusDetails(enrollments, presensiList, progressList, startDate, endDate, daerahId, desaId);
+
+                // Build report data
+                var data = buildReportData(enrollments, pengajianList, presensiList, progressList, daerahId, desaId);
+
+                // Update summary & render
+                updateSummary(data);
+                renderReport(data, tingkat, periode);
+
+                $('reportHeader').style.display = 'block';
+                $('reportPeriode').textContent = 'Periode: ' + formatBulanTahun(periode);
+                $('reportWilayah').textContent = 'Tingkat: ' + tingkat.charAt(0).toUpperCase() + tingkat.slice(1);
+
+            } catch (e) {
+                console.error('Error:', e);
+                $('reportContent').innerHTML = '<div class="card"><div class="card-body text-center text-danger">Gagal: ' + e.message + '</div></div>';
+            }
+        }
+
+        function buildGenerusDetails(enrollments, presensiList, progressList, startDate, endDate, filterDaerahId, filterDesaId) {
+            var details = {};
+
+            // Build presensi per jamaah
+            var presensiPerJamaah = {};
+            presensiList.forEach(function(p) {
+                if (!p.pengajian) return;
+                if (!presensiPerJamaah[p.jamaah_id]) {
+                    presensiPerJamaah[p.jamaah_id] = { hadir: 0, total: 0, izin: 0, sakit: 0, alpa: 0 };
+                }
+                presensiPerJamaah[p.jamaah_id].total++;
+                if (p.status === 'hadir') presensiPerJamaah[p.jamaah_id].hadir++;
+                if (p.status === 'izin') presensiPerJamaah[p.jamaah_id].izin++;
+                if (p.status === 'sakit') presensiPerJamaah[p.jamaah_id].sakit++;
+                if (p.status === 'alpa' || p.status === 'tidak_hadir' || p.status === 'alpha') presensiPerJamaah[p.jamaah_id].alpa++;
+            });
+
+            // Build progress per jamaah per kategori
+            var progressPerJamaah = {};
+            progressList.forEach(function(p) {
+                if (!progressPerJamaah[p.jamaah_id]) progressPerJamaah[p.jamaah_id] = {};
+                var kategoriId = p.materi_item?.kategori_id;
+                if (!kategoriId) return;
+
+                if (!progressPerJamaah[p.jamaah_id][kategoriId]) {
+                    progressPerJamaah[p.jamaah_id][kategoriId] = { selesai: 0, total: 0 };
+                }
+                progressPerJamaah[p.jamaah_id][kategoriId].total++;
+                if (p.status === 'selesai' || p.status === 'lulus') {
+                    progressPerJamaah[p.jamaah_id][kategoriId].selesai++;
+                }
+            });
+
+            // Build detail per generus
+            enrollments.forEach(function(e) {
+                var kelompok = e.wilayah;
+                if (!kelompok || kelompok.tingkat !== 'kelompok') return;
+
+                var desa = allWilayah.find(function(w) { return w.id === kelompok.parent_id; });
+                var daerah = desa ? allWilayah.find(function(w) { return w.id === desa.parent_id; }) : null;
+
+                if (filterDaerahId && (!daerah || daerah.id != filterDaerahId)) return;
+                if (filterDesaId && (!desa || desa.id != filterDesaId)) return;
+
+                var jamaahId = e.jamaah_id;
+                var presensi = presensiPerJamaah[jamaahId] || { hadir: 0, total: 0, izin: 0, sakit: 0, alpa: 0 };
+                var progressKategori = progressPerJamaah[jamaahId] || {};
+
+                // Calculate total progress per bidang
+                var progressBidang = {};
+                allBidang.forEach(function(b) {
+                    progressBidang[b.id] = { selesai: 0, total: 0 };
+                });
+
+                allKategori.forEach(function(k) {
+                    var prog = progressKategori[k.id] || { selesai: 0, total: 0 };
+                    if (progressBidang[k.bidang_id]) {
+                        progressBidang[k.bidang_id].selesai += prog.selesai;
+                        progressBidang[k.bidang_id].total += prog.total;
+                    }
+                });
+
+                details[jamaahId] = {
+                    id: jamaahId,
+                    nama: e.jamaah?.nama || '-',
+                    nama_panggilan: e.jamaah?.nama_panggilan || '',
+                    jenjang: e.jenjang?.nama || '-',
+                    jenjang_kode: e.jenjang?.kode || '',
+                    kelompok_id: kelompok.id,
+                    kelompok_nama: kelompok.nama,
+                    desa_id: desa?.id,
+                    desa_nama: desa?.nama || '-',
+                    daerah_id: daerah?.id,
+                    daerah_nama: daerah?.nama || '-',
+                    presensi: presensi,
+                    progressKategori: progressKategori,
+                    progressBidang: progressBidang
+                };
+            });
+
+            return details;
+        }
+        
+        function buildReportData(enrollments, pengajianList, presensiList, progressList, filterDaerahId, filterDesaId) {
+            var data = {};
+            
+            // Process enrollments
+            enrollments.forEach(function(e) {
+                var kelompok = e.wilayah;
+                if (!kelompok || kelompok.tingkat !== 'kelompok') return;
+                
+                var desa = allWilayah.find(function(w) { return w.id === kelompok.parent_id; });
+                var daerah = desa ? allWilayah.find(function(w) { return w.id === desa.parent_id; }) : null;
+                
+                if (filterDaerahId && (!daerah || daerah.id != filterDaerahId)) return;
+                if (filterDesaId && (!desa || desa.id != filterDesaId)) return;
+                
+                var daerahKey = daerah ? daerah.id : 0;
+                var desaKey = desa ? desa.id : 0;
+                var kelompokKey = kelompok.id;
+                
+                // Init hierarchy
+                if (!data[daerahKey]) {
+                    data[daerahKey] = { id: daerahKey, nama: daerah ? daerah.nama : 'Lainnya', desa: {}, stats: initStats() };
+                }
+                if (!data[daerahKey].desa[desaKey]) {
+                    data[daerahKey].desa[desaKey] = { id: desaKey, nama: desa ? desa.nama : 'Lainnya', kelompok: {}, stats: initStats() };
+                }
+                if (!data[daerahKey].desa[desaKey].kelompok[kelompokKey]) {
+                    data[daerahKey].desa[desaKey].kelompok[kelompokKey] = { id: kelompokKey, nama: kelompok.nama, stats: initStats() };
+                }
+                
+                // Count generus
+                data[daerahKey].desa[desaKey].kelompok[kelompokKey].stats.generus++;
+                data[daerahKey].desa[desaKey].stats.generus++;
+                data[daerahKey].stats.generus++;
+            });
+            
+            // Count pengajian
+            pengajianList.forEach(function(p) {
+                var kelompok = allWilayah.find(function(w) { return w.id === p.wilayah_id; });
+                if (!kelompok) return;
+                
+                var desa = allWilayah.find(function(w) { return w.id === kelompok.parent_id; });
+                var daerah = desa ? allWilayah.find(function(w) { return w.id === desa.parent_id; }) : null;
+                
+                if (filterDaerahId && (!daerah || daerah.id != filterDaerahId)) return;
+                if (filterDesaId && (!desa || desa.id != filterDesaId)) return;
+                
+                var dk = daerah ? daerah.id : 0, dsk = desa ? desa.id : 0, kk = kelompok.id;
+                
+                if (data[dk] && data[dk].desa[dsk] && data[dk].desa[dsk].kelompok[kk]) {
+                    data[dk].desa[dsk].kelompok[kk].stats.pengajian++;
+                    data[dk].desa[dsk].stats.pengajian++;
+                    data[dk].stats.pengajian++;
+                }
+            });
+            
+            // Count presensi
+            presensiList.forEach(function(p) {
+                if (!p.pengajian) return;
+                var kelompok = allWilayah.find(function(w) { return w.id === p.pengajian.wilayah_id; });
+                if (!kelompok) return;
+                
+                var desa = allWilayah.find(function(w) { return w.id === kelompok.parent_id; });
+                var daerah = desa ? allWilayah.find(function(w) { return w.id === desa.parent_id; }) : null;
+                
+                if (filterDaerahId && (!daerah || daerah.id != filterDaerahId)) return;
+                if (filterDesaId && (!desa || desa.id != filterDesaId)) return;
+                
+                var dk = daerah ? daerah.id : 0, dsk = desa ? desa.id : 0, kk = kelompok.id;
+                
+                if (data[dk] && data[dk].desa[dsk] && data[dk].desa[dsk].kelompok[kk]) {
+                    data[dk].desa[dsk].kelompok[kk].stats.totalPresensi++;
+                    data[dk].desa[dsk].stats.totalPresensi++;
+                    data[dk].stats.totalPresensi++;
+                    
+                    if (p.status === 'hadir') {
+                        data[dk].desa[dsk].kelompok[kk].stats.hadir++;
+                        data[dk].desa[dsk].stats.hadir++;
+                        data[dk].stats.hadir++;
+                    }
+                }
+            });
+            
+            // Count progress
+            progressList.forEach(function(p) {
+                var enroll = enrollments.find(function(e) { return e.jamaah_id === p.jamaah_id; });
+                if (!enroll || !enroll.wilayah) return;
+                
+                var kelompok = enroll.wilayah;
+                var desa = allWilayah.find(function(w) { return w.id === kelompok.parent_id; });
+                var daerah = desa ? allWilayah.find(function(w) { return w.id === desa.parent_id; }) : null;
+                
+                if (filterDaerahId && (!daerah || daerah.id != filterDaerahId)) return;
+                if (filterDesaId && (!desa || desa.id != filterDesaId)) return;
+                
+                var dk = daerah ? daerah.id : 0, dsk = desa ? desa.id : 0, kk = kelompok.id;
+                
+                if (data[dk] && data[dk].desa[dsk] && data[dk].desa[dsk].kelompok[kk]) {
+                    data[dk].desa[dsk].kelompok[kk].stats.progressTotal++;
+                    data[dk].desa[dsk].stats.progressTotal++;
+                    data[dk].stats.progressTotal++;
+                    
+                    if (p.status === 'selesai' || p.status === 'lulus') {
+                        data[dk].desa[dsk].kelompok[kk].stats.progressSelesai++;
+                        data[dk].desa[dsk].stats.progressSelesai++;
+                        data[dk].stats.progressSelesai++;
+                    }
+                }
+            });
+            
+            return data;
+        }
+        
+        function initStats() {
+            return { generus: 0, pengajian: 0, hadir: 0, totalPresensi: 0, progressSelesai: 0, progressTotal: 0 };
+        }
+        
+        function updateSummary(data) {
+            var total = initStats();
+            Object.values(data).forEach(function(d) {
+                total.generus += d.stats.generus;
+                total.pengajian += d.stats.pengajian;
+                total.hadir += d.stats.hadir;
+                total.totalPresensi += d.stats.totalPresensi;
+                total.progressSelesai += d.stats.progressSelesai;
+                total.progressTotal += d.stats.progressTotal;
+            });
+            
+            $('statGenerus').textContent = total.generus;
+            $('statPengajian').textContent = total.pengajian;
+            $('statKehadiran').textContent = total.totalPresensi > 0 ? Math.round(total.hadir / total.totalPresensi * 100) + '%' : '-';
+            $('statProgress').textContent = total.progressTotal > 0 ? Math.round(total.progressSelesai / total.progressTotal * 100) + '%' : '-';
+        }
+        
+        function renderReport(data, tingkat, periode) {
+            var html = '';
+            var daerahList = Object.values(data).sort(function(a, b) { return b.stats.generus - a.stats.generus; });
+
+            if (!daerahList.length) {
+                html = '<div class="card"><div class="card-body text-center text-muted py-4">Tidak ada data</div></div>';
+                $('reportContent').innerHTML = html;
+                return;
+            }
+
+            // Render Rekapitulasi per Bidang terlebih dahulu
+            html += renderRekapBidang();
+
+            if (tingkat === 'daerah') {
+                html += '<div class="card"><div class="card-body">';
+                html += '<h3 style="margin:0 0 1rem;">📍 Rekap per Daerah</h3>';
+                html += renderTable(daerahList.map(function(d, i) {
+                    return { rank: i + 1, nama: d.nama, stats: d.stats, id: d.id, type: 'daerah' };
+                }));
+                // Add generus details for each daerah
+                daerahList.forEach(function(daerah) {
+                    html += renderGenerusDetailsByLevel('daerah', daerah.id, daerah.nama);
+                });
+                html += '</div></div>';
+
+            } else if (tingkat === 'desa') {
+                daerahList.forEach(function(daerah) {
+                    var desaList = Object.values(daerah.desa).sort(function(a, b) { return b.stats.generus - a.stats.generus; });
+
+                    html += '<div class="level-card">';
+                    html += '<div class="level-header daerah" onclick="toggleLevel(this)">';
+                    html += '<h3>📍 ' + escapeHtml(daerah.nama) + '</h3>';
+                    html += '<span class="badge">' + daerah.stats.generus + ' generus</span></div>';
+                    html += '<div class="level-body">';
+                    html += renderTable(desaList.map(function(d, i) {
+                        return { rank: i + 1, nama: d.nama, stats: d.stats, id: d.id, type: 'desa' };
+                    }));
+                    // Add generus details for each desa
+                    desaList.forEach(function(desa) {
+                        html += renderGenerusDetailsByLevel('desa', desa.id, desa.nama);
+                    });
+                    html += '</div></div>';
+                });
+
+            } else {
+                // Per Kelompok - show detailed generus
+                daerahList.forEach(function(daerah) {
+                    var desaList = Object.values(daerah.desa).sort(function(a, b) { return b.stats.generus - a.stats.generus; });
+
+                    desaList.forEach(function(desa) {
+                        var kelompokList = Object.values(desa.kelompok).sort(function(a, b) { return b.stats.generus - a.stats.generus; });
+
+                        html += '<div class="level-card">';
+                        html += '<div class="level-header desa" onclick="toggleLevel(this)">';
+                        html += '<h3>🏘️ ' + escapeHtml(desa.nama) + ' <small style="opacity:0.7">(' + escapeHtml(daerah.nama) + ')</small></h3>';
+                        html += '<span class="badge">' + desa.stats.generus + ' generus</span></div>';
+                        html += '<div class="level-body">';
+
+                        // Render each kelompok with generus details
+                        kelompokList.forEach(function(kelompok) {
+                            html += '<div class="card" style="margin-bottom:1rem;">';
+                            html += '<div class="card-header" style="background:#f9fafb;padding:0.75rem 1rem;">';
+                            html += '<strong>👥 ' + escapeHtml(kelompok.nama) + '</strong>';
+                            html += ' <span class="badge" style="background:#e5e7eb;color:#374151;">' + kelompok.stats.generus + ' generus</span>';
+                            html += '</div>';
+                            html += '<div class="card-body" style="padding:0;">';
+                            html += renderGenerusTable(kelompok.id);
+                            html += '</div></div>';
+                        });
+
+                        html += '</div></div>';
+                    });
+                });
+            }
+
+            $('reportContent').innerHTML = html;
+        }
+
+        function renderRekapBidang() {
+            // Calculate totals per bidang across all generus
+            var bidangStats = {};
+            allBidang.forEach(function(b) {
+                bidangStats[b.id] = { nama: b.nama, selesai: 0, total: 0 };
+            });
+
+            Object.values(generusDetails).forEach(function(g) {
+                allBidang.forEach(function(b) {
+                    var prog = g.progressBidang[b.id] || { selesai: 0, total: 0 };
+                    bidangStats[b.id].selesai += prog.selesai;
+                    bidangStats[b.id].total += prog.total;
+                });
+            });
+
+            var html = '<div class="rekap-card">';
+            html += '<h3>📊 Rekapitulasi Capaian per Bidang</h3>';
+            html += '<div class="rekap-grid">';
+
+            allBidang.forEach(function(b) {
+                var stat = bidangStats[b.id];
+                var pct = stat.total > 0 ? Math.round(stat.selesai / stat.total * 100) : 0;
+                html += '<div class="rekap-item">';
+                html += '<div class="rekap-item-title">' + escapeHtml(b.nama) + '</div>';
+                html += '<div class="rekap-item-value">' + pct + '%</div>';
+                html += '<div style="font-size:0.75rem;opacity:0.8;">' + stat.selesai + ' / ' + stat.total + ' item selesai</div>';
+                html += '</div>';
+            });
+
+            html += '</div></div>';
+            return html;
+        }
+
+        function renderGenerusDetailsByLevel(level, levelId, levelName) {
+            // Get generus for this level
+            var generusList = Object.values(generusDetails).filter(function(g) {
+                if (level === 'daerah') return g.daerah_id == levelId;
+                if (level === 'desa') return g.desa_id == levelId;
+                return g.kelompok_id == levelId;
+            });
+
+            if (!generusList.length) return '';
+
+            var html = '<div class="generus-detail" id="detail-' + level + '-' + levelId + '">';
+            html += '<div style="margin-bottom:0.75rem;"><strong>📋 Detail Generus - ' + escapeHtml(levelName) + '</strong></div>';
+            html += renderGenerusTableData(generusList);
+            html += '</div>';
+
+            return html;
+        }
+
+        function renderGenerusTable(kelompokId) {
+            var generusList = Object.values(generusDetails).filter(function(g) {
+                return g.kelompok_id == kelompokId;
+            });
+
+            if (!generusList.length) {
+                return '<div class="text-muted text-center py-3">Tidak ada generus</div>';
+            }
+
+            return renderGenerusTableData(generusList);
+        }
+
+        function renderGenerusTableData(generusList) {
+            // Sort by nama
+            generusList.sort(function(a, b) { return a.nama.localeCompare(b.nama); });
+
+            var html = '<div class="table-container"><table class="generus-table">';
+            html += '<thead><tr>';
+            html += '<th>Nama</th>';
+            html += '<th>Jenjang</th>';
+            html += '<th style="text-align:center;">Kehadiran</th>';
+
+            // Add columns for each bidang
+            allBidang.forEach(function(b) {
+                html += '<th style="text-align:center;">' + escapeHtml(b.nama.substring(0, 15)) + '</th>';
+            });
+
+            html += '</tr></thead><tbody>';
+
+            generusList.forEach(function(g) {
+                var pctHadir = g.presensi.total > 0 ? Math.round(g.presensi.hadir / g.presensi.total * 100) : 0;
+
+                html += '<tr>';
+                html += '<td><strong>' + escapeHtml(g.nama) + '</strong>';
+                if (g.nama_panggilan) html += ' <small style="color:#6b7280;">(' + escapeHtml(g.nama_panggilan) + ')</small>';
+                html += '</td>';
+                html += '<td>' + escapeHtml(g.jenjang_kode || g.jenjang) + '</td>';
+                html += '<td style="text-align:center;">';
+                html += '<span style="font-weight:600;' + (pctHadir >= 80 ? 'color:#059669' : pctHadir >= 50 ? 'color:#f59e0b' : 'color:#ef4444') + '">' + pctHadir + '%</span>';
+                html += '<br><small style="color:#6b7280;">' + g.presensi.hadir + '/' + g.presensi.total + '</small>';
+                html += '</td>';
+
+                // Add progress for each bidang
+                allBidang.forEach(function(b) {
+                    var prog = g.progressBidang[b.id] || { selesai: 0, total: 0 };
+                    var pctProg = prog.total > 0 ? Math.round(prog.selesai / prog.total * 100) : 0;
+                    var colorClass = pctProg >= 80 ? '#059669' : pctProg >= 50 ? '#f59e0b' : pctProg > 0 ? '#ef4444' : '#9ca3af';
+
+                    html += '<td style="text-align:center;">';
+                    html += '<span style="font-weight:600;color:' + colorClass + '">' + pctProg + '%</span>';
+                    html += '<br><small style="color:#6b7280;">' + prog.selesai + '/' + prog.total + '</small>';
+                    html += '</td>';
+                });
+
+                html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+            return html;
+        }
+        
+        function renderTable(items) {
+            var html = '<div class="table-container"><table class="table">';
+            html += '<thead><tr><th style="width:50px">Rank</th><th>Nama</th><th>Generus</th><th>Pengajian</th><th>Kehadiran</th><th>Progress</th></tr></thead><tbody>';
+            
+            items.forEach(function(item) {
+                var pctHadir = item.stats.totalPresensi > 0 ? Math.round(item.stats.hadir / item.stats.totalPresensi * 100) : 0;
+                var pctProgress = item.stats.progressTotal > 0 ? Math.round(item.stats.progressSelesai / item.stats.progressTotal * 100) : 0;
+                var rankClass = item.rank === 1 ? 'rank-1' : item.rank === 2 ? 'rank-2' : item.rank === 3 ? 'rank-3' : 'rank-other';
+                
+                html += '<tr>';
+                html += '<td><span class="rank-badge ' + rankClass + '">' + item.rank + '</span></td>';
+                html += '<td><strong>' + escapeHtml(item.nama) + '</strong></td>';
+                html += '<td>' + item.stats.generus + '</td>';
+                html += '<td>' + item.stats.pengajian + 'x</td>';
+                html += '<td>' + renderBar(pctHadir) + '</td>';
+                html += '<td>' + renderBar(pctProgress) + '</td>';
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            return html;
+        }
+        
+        function renderBar(pct) {
+            var cls = pct >= 80 ? 'green' : pct >= 50 ? 'yellow' : 'red';
+            return '<div style="display:flex;align-items:center;gap:0.5rem;min-width:80px;">' +
+                '<div class="progress-sm" style="flex:1"><div class="bar ' + cls + '" style="width:' + pct + '%"></div></div>' +
+                '<span style="font-size:0.75rem;min-width:32px;">' + pct + '%</span></div>';
+        }
+        
+        function toggleLevel(header) {
+            var body = header.nextElementSibling;
+            if (body) body.classList.toggle('collapsed');
+        }
+        
+        function formatBulanTahun(periode) {
+            var p = periode.split('-');
+            var bulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            return bulan[parseInt(p[1])] + ' ' + p[0];
+        }
+    </script>
+</body>
+</html>

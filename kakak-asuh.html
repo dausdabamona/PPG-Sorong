@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Kakak Asuh - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .pair-card { background: white; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .pair-card.inactive { opacity: 0.6; background: #f9fafb; }
+        .pair-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        .pair-status { padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.7rem; font-weight: 500; }
+        .pair-status.aktif { background: #dcfce7; color: #166534; }
+        .pair-status.selesai { background: #e5e7eb; color: #374151; }
+        .pair-content { display: flex; gap: 1rem; align-items: center; }
+        .person-card { flex: 1; background: #f8fafc; border-radius: 0.5rem; padding: 0.75rem; text-align: center; }
+        .person-card.kakak { background: #dbeafe; border: 2px solid #3b82f6; }
+        .person-card.adik { background: #fef3c7; border: 2px solid #f59e0b; }
+        .person-avatar { width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 600; }
+        .person-avatar.L { background: #dbeafe; color: #1e40af; }
+        .person-avatar.P { background: #fce7f3; color: #be185d; }
+        .person-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+        .person-jenjang { font-size: 0.7rem; color: #6b7280; }
+        .person-label { font-size: 0.65rem; text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem; }
+        .person-label.kakak { color: #3b82f6; }
+        .person-label.adik { color: #f59e0b; }
+        .arrow-icon { font-size: 1.5rem; color: #059669; }
+        .pair-meta { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e5e7eb; font-size: 0.75rem; color: #6b7280; display: flex; justify-content: space-between; }
+        .pair-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+        .filter-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .filter-row .form-control { flex: 1; min-width: 100px; }
+        .stats-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .stat-card { flex: 1; background: white; border-radius: 0.75rem; padding: 0.75rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 1.25rem; font-weight: 700; color: #059669; }
+        .stat-label { font-size: 0.7rem; color: #6b7280; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #6b7280; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .search-result-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #f1f5f9; }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-info { display: flex; align-items: center; gap: 0.5rem; }
+        .search-result-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="kelas.html" class="nav-item"><span class="nav-icon">🏫</span><span class="nav-text">Kelas Pengajian</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="penilaian-akhlaq.html" class="nav-item"><span class="nav-icon">⭐</span><span class="nav-text">Penilaian Akhlaq</span></a>
+                <div class="nav-section">ORGANISASI</div>
+                <a href="musyawarah.html" class="nav-item"><span class="nav-icon">🤝</span><span class="nav-text">Musyawarah</span></a>
+                <a href="kegiatan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Kegiatan</span></a>
+                <a href="lima-unsur.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Lima Unsur</span></a>
+                <a href="kakak-asuh.html" class="nav-item active"><span class="nav-icon">🤗</span><span class="nav-text">Kakak Asuh</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="header" id="desktopHeader">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Kakak Asuh</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="showAddModal()">+ Pasangkan</button>
+                </div>
+            </header>
+
+            <div class="pwa-page-header" id="mobileHeader" style="display:none;">
+                <button class="pwa-back-btn" onclick="location.href='dashboard.html'">←</button>
+                <h1 class="pwa-page-title">🤗 Kakak Asuh</h1>
+                <button class="pwa-page-action" onclick="showAddModal()">➕</button>
+            </div>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-label">Total Pasangan</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statAktif">0</div>
+                        <div class="stat-label">Aktif</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statSelesai">0</div>
+                        <div class="stat-label">Selesai</div>
+                    </div>
+                </div>
+
+                <!-- Filter -->
+                <div class="card mb-sm">
+                    <div class="card-body">
+                        <div class="filter-row">
+                            <select class="form-control" id="filterWilayah" onchange="loadPairs()">
+                                <option value="">Semua Wilayah</option>
+                            </select>
+                            <select class="form-control" id="filterStatus" onchange="loadPairs()">
+                                <option value="">Semua Status</option>
+                                <option value="aktif">Aktif</option>
+                                <option value="selesai">Selesai</option>
+                            </select>
+                            <input type="text" class="form-control" id="searchNama" placeholder="Cari nama..." oninput="filterPairs()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List -->
+                <div id="pairList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🤗</div>
+                        <p>Memuat data...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Tambah -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Pasangkan Kakak-Adik Asuh</h3>
+                <button class="modal-close" onclick="closeAddModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Wilayah/Kelas</label>
+                    <select class="form-control" id="inputWilayah">
+                        <option value="">Pilih Wilayah</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Kakak Asuh *</label>
+                    <input type="text" class="form-control" id="searchKakak" placeholder="Cari nama kakak..." oninput="searchKakak()">
+                    <input type="hidden" id="selectedKakakId">
+                    <div id="selectedKakak" style="margin-top:0.5rem;"></div>
+                    <div id="kakakSearchResult" style="max-height:150px; overflow-y:auto; margin-top:0.5rem;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Adik Asuh *</label>
+                    <input type="text" class="form-control" id="searchAdik" placeholder="Cari nama adik..." oninput="searchAdik()">
+                    <input type="hidden" id="selectedAdikId">
+                    <div id="selectedAdik" style="margin-top:0.5rem;"></div>
+                    <div id="adikSearchResult" style="max-height:150px; overflow-y:auto; margin-top:0.5rem;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tanggal Mulai</label>
+                    <input type="date" class="form-control" id="inputTanggalMulai">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Catatan</label>
+                    <textarea class="form-control" id="inputCatatan" rows="2" placeholder="Catatan..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeAddModal()">Batal</button>
+                <button class="btn btn-primary" onclick="savePair()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/pwa-mobile.js"></script>
+    <script>
+        var allPairs = [];
+        var filteredPairs = [];
+        var allWilayah = [];
+
+        function $(id) { return document.getElementById(id); }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initAuth();
+            await loadMasterData();
+            await loadPairs();
+        });
+
+        async function loadMasterData() {
+            try {
+                allWilayah = await wilayahApi.getKelompok();
+                var filterWilayah = $('filterWilayah');
+                var inputWilayah = $('inputWilayah');
+
+                allWilayah.forEach(function(w) {
+                    filterWilayah.innerHTML += '<option value="' + w.id + '">' + w.nama + '</option>';
+                    inputWilayah.innerHTML += '<option value="' + w.id + '">' + w.nama + '</option>';
+                });
+            } catch (error) {
+                console.error('Error load master:', error);
+            }
+        }
+
+        async function loadPairs() {
+            try {
+                var wilayahId = $('filterWilayah').value;
+                var status = $('filterStatus').value;
+
+                var query = db.from('kakak_asuh')
+                    .select('*, kakak:kakak_id(id, nama, jenis_kelamin), adik:adik_id(id, nama, jenis_kelamin), wilayah:wilayah_id(nama)')
+                    .order('created_at', { ascending: false });
+
+                if (wilayahId) query = query.eq('wilayah_id', parseInt(wilayahId));
+                if (status) query = query.eq('status', status);
+
+                var { data, error } = await query;
+                if (error) throw error;
+
+                allPairs = data || [];
+                filterPairs();
+
+            } catch (error) {
+                console.error('Error load pairs:', error);
+                showToast('Gagal memuat data', 'error');
+            }
+        }
+
+        function filterPairs() {
+            var search = $('searchNama').value.toLowerCase();
+
+            filteredPairs = allPairs.filter(function(p) {
+                if (!search) return true;
+                var kakakNama = (p.kakak?.nama || '').toLowerCase();
+                var adikNama = (p.adik?.nama || '').toLowerCase();
+                return kakakNama.includes(search) || adikNama.includes(search);
+            });
+
+            renderPairs();
+            updateStats();
+        }
+
+        function renderPairs() {
+            var container = $('pairList');
+
+            if (filteredPairs.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🤗</div><p>Belum ada data kakak asuh</p></div>';
+                return;
+            }
+
+            var html = '';
+            filteredPairs.forEach(function(p) {
+                var inactiveClass = p.status === 'aktif' ? '' : ' inactive';
+
+                html += '<div class="pair-card' + inactiveClass + '">';
+                html += '<div class="pair-header">';
+                html += '<span style="font-size:0.8rem; color:#6b7280;">' + (p.wilayah?.nama || '-') + '</span>';
+                html += '<span class="pair-status ' + p.status + '">' + p.status + '</span>';
+                html += '</div>';
+
+                html += '<div class="pair-content">';
+
+                // Kakak
+                html += '<div class="person-card kakak">';
+                html += '<div class="person-label kakak">Kakak Asuh</div>';
+                html += '<div class="person-avatar ' + (p.kakak?.jenis_kelamin || '') + '">' + (p.kakak?.jenis_kelamin || '?') + '</div>';
+                html += '<div class="person-name">' + (p.kakak?.nama || '-') + '</div>';
+                html += '</div>';
+
+                // Arrow
+                html += '<div class="arrow-icon">→</div>';
+
+                // Adik
+                html += '<div class="person-card adik">';
+                html += '<div class="person-label adik">Adik Asuh</div>';
+                html += '<div class="person-avatar ' + (p.adik?.jenis_kelamin || '') + '">' + (p.adik?.jenis_kelamin || '?') + '</div>';
+                html += '<div class="person-name">' + (p.adik?.nama || '-') + '</div>';
+                html += '</div>';
+
+                html += '</div>';
+
+                html += '<div class="pair-meta">';
+                html += '<span>Mulai: ' + (p.tanggal_mulai || '-') + '</span>';
+                if (p.tanggal_selesai) html += '<span>Selesai: ' + p.tanggal_selesai + '</span>';
+                html += '</div>';
+
+                html += '<div class="pair-actions">';
+                if (p.status === 'aktif') {
+                    html += '<button class="btn btn-sm btn-outline" onclick="selesaikanPair(' + p.id + ')">✅ Selesaikan</button>';
+                }
+                html += '<button class="btn btn-sm btn-outline" onclick="deletePair(' + p.id + ')">🗑️ Hapus</button>';
+                html += '</div>';
+
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateStats() {
+            $('statTotal').textContent = allPairs.length;
+            $('statAktif').textContent = allPairs.filter(function(p) { return p.status === 'aktif'; }).length;
+            $('statSelesai').textContent = allPairs.filter(function(p) { return p.status === 'selesai'; }).length;
+        }
+
+        function showAddModal() {
+            $('inputWilayah').value = '';
+            $('searchKakak').value = '';
+            $('searchAdik').value = '';
+            $('selectedKakakId').value = '';
+            $('selectedAdikId').value = '';
+            $('selectedKakak').innerHTML = '';
+            $('selectedAdik').innerHTML = '';
+            $('kakakSearchResult').innerHTML = '';
+            $('adikSearchResult').innerHTML = '';
+            $('inputTanggalMulai').value = new Date().toISOString().split('T')[0];
+            $('inputCatatan').value = '';
+            $('addModal').classList.add('show');
+        }
+
+        function closeAddModal() {
+            $('addModal').classList.remove('show');
+        }
+
+        var kakakTimeout, adikTimeout;
+
+        async function searchKakak() {
+            var query = $('searchKakak').value.trim();
+            var container = $('kakakSearchResult');
+
+            if (query.length < 2) {
+                container.innerHTML = '';
+                return;
+            }
+
+            clearTimeout(kakakTimeout);
+            kakakTimeout = setTimeout(async function() {
+                try {
+                    var results = await jamaahApi.search(query, 10);
+                    renderSearchResult(results, 'kakak');
+                } catch (error) {
+                    console.error('Error search:', error);
+                }
+            }, 300);
+        }
+
+        async function searchAdik() {
+            var query = $('searchAdik').value.trim();
+            var container = $('adikSearchResult');
+
+            if (query.length < 2) {
+                container.innerHTML = '';
+                return;
+            }
+
+            clearTimeout(adikTimeout);
+            adikTimeout = setTimeout(async function() {
+                try {
+                    var results = await jamaahApi.search(query, 10);
+                    renderSearchResult(results, 'adik');
+                } catch (error) {
+                    console.error('Error search:', error);
+                }
+            }, 300);
+        }
+
+        function renderSearchResult(results, type) {
+            var container = $(type + 'SearchResult');
+
+            if (results.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center" style="font-size:0.8rem;">Tidak ditemukan</p>';
+                return;
+            }
+
+            var html = '';
+            results.forEach(function(r) {
+                var bgColor = r.jenis_kelamin === 'L' ? '#dbeafe' : '#fce7f3';
+                var textColor = r.jenis_kelamin === 'L' ? '#1e40af' : '#be185d';
+
+                html += '<div class="search-result-item">';
+                html += '<div class="search-result-info">';
+                html += '<div class="search-result-avatar" style="background:' + bgColor + ';color:' + textColor + ';">' + r.jenis_kelamin + '</div>';
+                html += '<div><div style="font-size:0.85rem; font-weight:500;">' + r.nama + '</div>';
+                html += '<div style="font-size:0.7rem; color:#6b7280;">' + (r.jenjang_nama || '-') + '</div></div>';
+                html += '</div>';
+                html += '<button class="btn btn-xs btn-primary" onclick="select' + (type === 'kakak' ? 'Kakak' : 'Adik') + '(' + r.id + ', \'' + r.nama.replace(/'/g, "\\'") + '\', \'' + r.jenis_kelamin + '\')">Pilih</button>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function selectKakak(id, nama, jk) {
+            $('selectedKakakId').value = id;
+            $('searchKakak').value = '';
+            $('kakakSearchResult').innerHTML = '';
+
+            var bgColor = jk === 'L' ? '#dbeafe' : '#fce7f3';
+            $('selectedKakak').innerHTML = '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem;background:' + bgColor + ';border-radius:0.5rem;"><span style="font-weight:600;">' + nama + '</span><button type="button" class="btn btn-xs btn-outline" onclick="clearKakak()">×</button></div>';
+        }
+
+        function selectAdik(id, nama, jk) {
+            $('selectedAdikId').value = id;
+            $('searchAdik').value = '';
+            $('adikSearchResult').innerHTML = '';
+
+            var bgColor = jk === 'L' ? '#dbeafe' : '#fce7f3';
+            $('selectedAdik').innerHTML = '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem;background:' + bgColor + ';border-radius:0.5rem;"><span style="font-weight:600;">' + nama + '</span><button type="button" class="btn btn-xs btn-outline" onclick="clearAdik()">×</button></div>';
+        }
+
+        function clearKakak() {
+            $('selectedKakakId').value = '';
+            $('selectedKakak').innerHTML = '';
+        }
+
+        function clearAdik() {
+            $('selectedAdikId').value = '';
+            $('selectedAdik').innerHTML = '';
+        }
+
+        async function savePair() {
+            var kakakId = $('selectedKakakId').value;
+            var adikId = $('selectedAdikId').value;
+            var wilayahId = $('inputWilayah').value;
+            var tanggalMulai = $('inputTanggalMulai').value;
+            var catatan = $('inputCatatan').value.trim();
+
+            if (!kakakId) {
+                showToast('Pilih kakak asuh', 'error');
+                return;
+            }
+            if (!adikId) {
+                showToast('Pilih adik asuh', 'error');
+                return;
+            }
+            if (kakakId === adikId) {
+                showToast('Kakak dan adik tidak boleh sama', 'error');
+                return;
+            }
+
+            try {
+                var { error } = await db.from('kakak_asuh').insert({
+                    kakak_id: parseInt(kakakId),
+                    adik_id: parseInt(adikId),
+                    wilayah_id: wilayahId ? parseInt(wilayahId) : null,
+                    tanggal_mulai: tanggalMulai || new Date().toISOString().split('T')[0],
+                    catatan: catatan || null,
+                    status: 'aktif',
+                    created_by: currentUserData?.id || null
+                });
+
+                if (error) throw error;
+
+                showToast('Pasangan kakak-adik berhasil disimpan', 'success');
+                closeAddModal();
+                await loadPairs();
+
+            } catch (error) {
+                console.error('Error save:', error);
+                showToast('Gagal menyimpan: ' + (error.message || error), 'error');
+            }
+        }
+
+        async function selesaikanPair(id) {
+            if (!confirm('Selesaikan hubungan kakak-adik asuh ini?')) return;
+
+            try {
+                var { error } = await db.from('kakak_asuh')
+                    .update({ status: 'selesai', tanggal_selesai: new Date().toISOString().split('T')[0] })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showToast('Status berhasil diubah', 'success');
+                await loadPairs();
+
+            } catch (error) {
+                console.error('Error update:', error);
+                showToast('Gagal mengubah status', 'error');
+            }
+        }
+
+        async function deletePair(id) {
+            if (!confirm('Yakin ingin menghapus data ini?')) return;
+
+            try {
+                var { error } = await db.from('kakak_asuh').delete().eq('id', id);
+                if (error) throw error;
+
+                showToast('Data berhasil dihapus', 'success');
+                await loadPairs();
+
+            } catch (error) {
+                console.error('Error delete:', error);
+                showToast('Gagal menghapus', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

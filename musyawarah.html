@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Musyawarah - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .musyawarah-card { background: white; border-radius: 0.75rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+        .musyawarah-header { padding: 1rem; border-bottom: 1px solid #e5e7eb; }
+        .musyawarah-title { font-weight: 600; font-size: 1rem; color: #1f2937; margin-bottom: 0.25rem; }
+        .musyawarah-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.75rem; color: #6b7280; }
+        .musyawarah-meta-item { display: flex; align-items: center; gap: 0.25rem; }
+        .musyawarah-body { padding: 1rem; }
+        .hasil-list { margin-top: 0.5rem; }
+        .hasil-item { display: flex; gap: 0.5rem; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem; margin-bottom: 0.5rem; }
+        .hasil-item:last-child { margin-bottom: 0; }
+        .hasil-number { width: 24px; height: 24px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; flex-shrink: 0; }
+        .hasil-content { flex: 1; }
+        .hasil-text { font-size: 0.85rem; margin-bottom: 0.25rem; }
+        .hasil-pj { font-size: 0.7rem; color: #6b7280; }
+        .hasil-status { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 0.25rem; }
+        .hasil-status.pending { background: #fef3c7; color: #92400e; }
+        .hasil-status.progress { background: #dbeafe; color: #1e40af; }
+        .hasil-status.done { background: #dcfce7; color: #166534; }
+        .musyawarah-footer { padding: 0.75rem 1rem; background: #f8fafc; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .peserta-list { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.5rem; }
+        .peserta-badge { background: #e5e7eb; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.7rem; }
+        .filter-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .filter-row .form-control { flex: 1; min-width: 120px; }
+        .stats-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .stat-card { flex: 1; background: white; border-radius: 0.75rem; padding: 0.75rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 1.25rem; font-weight: 700; color: #059669; }
+        .stat-label { font-size: 0.7rem; color: #6b7280; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #6b7280; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .hasil-input-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: flex-start; }
+        .hasil-input-row .form-control { flex: 1; }
+        .hasil-input-row .btn { flex-shrink: 0; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="kelas.html" class="nav-item"><span class="nav-icon">🏫</span><span class="nav-text">Kelas Pengajian</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="penilaian-akhlaq.html" class="nav-item"><span class="nav-icon">⭐</span><span class="nav-text">Penilaian Akhlaq</span></a>
+                <div class="nav-section">ORGANISASI</div>
+                <a href="musyawarah.html" class="nav-item active"><span class="nav-icon">🤝</span><span class="nav-text">Musyawarah</span></a>
+                <a href="kegiatan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Kegiatan</span></a>
+                <a href="lima-unsur.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Lima Unsur</span></a>
+                <a href="kakak-asuh.html" class="nav-item"><span class="nav-icon">🤗</span><span class="nav-text">Kakak Asuh</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="header" id="desktopHeader">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Musyawarah</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="showAddModal()">+ Tambah Musyawarah</button>
+                </div>
+            </header>
+
+            <div class="pwa-page-header" id="mobileHeader" style="display:none;">
+                <button class="pwa-back-btn" onclick="location.href='dashboard.html'">←</button>
+                <h1 class="pwa-page-title">🤝 Musyawarah</h1>
+                <button class="pwa-page-action" onclick="showAddModal()">➕</button>
+            </div>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statBulanIni">0</div>
+                        <div class="stat-label">Bulan Ini</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statHasil">0</div>
+                        <div class="stat-label">Keputusan</div>
+                    </div>
+                </div>
+
+                <!-- Filter -->
+                <div class="card mb-sm">
+                    <div class="card-body">
+                        <div class="filter-row">
+                            <select class="form-control" id="filterWilayah" onchange="loadMusyawarah()">
+                                <option value="">Semua Wilayah</option>
+                            </select>
+                            <input type="month" class="form-control" id="filterBulan" onchange="loadMusyawarah()">
+                            <select class="form-control" id="filterJenis" onchange="loadMusyawarah()">
+                                <option value="">Semua Jenis</option>
+                                <option value="rutin">Rutin</option>
+                                <option value="khusus">Khusus</option>
+                                <option value="darurat">Darurat</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List -->
+                <div id="musyawarahList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🤝</div>
+                        <p>Memuat data...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Tambah/Edit -->
+    <div class="modal" id="musyawarahModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Tambah Musyawarah</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="musyawarahId">
+
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Judul/Topik *</label>
+                        <input type="text" class="form-control" id="inputJudul" placeholder="Judul musyawarah">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Wilayah *</label>
+                        <select class="form-control" id="inputWilayah">
+                            <option value="">Pilih Wilayah</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Jenis</label>
+                        <select class="form-control" id="inputJenis">
+                            <option value="rutin">Rutin</option>
+                            <option value="khusus">Khusus</option>
+                            <option value="darurat">Darurat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Tanggal *</label>
+                        <input type="date" class="form-control" id="inputTanggal">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Waktu</label>
+                        <input type="time" class="form-control" id="inputWaktu">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tempat</label>
+                    <input type="text" class="form-control" id="inputTempat" placeholder="Lokasi musyawarah">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Agenda</label>
+                    <textarea class="form-control" id="inputAgenda" rows="2" placeholder="Agenda pembahasan"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Notulen/Catatan</label>
+                    <textarea class="form-control" id="inputNotulen" rows="3" placeholder="Catatan hasil musyawarah"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Hasil Keputusan</label>
+                    <div id="hasilContainer"></div>
+                    <div class="hasil-input-row">
+                        <input type="text" class="form-control" id="inputHasilBaru" placeholder="Tambah keputusan...">
+                        <input type="text" class="form-control" id="inputPJBaru" placeholder="PJ" style="max-width:100px;">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="addHasil()">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+                <button class="btn btn-primary" onclick="saveMusyawarah()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detail -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="detailTitle">Detail Musyawarah</h3>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="detailContent">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeDetailModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/pwa-mobile.js"></script>
+    <script>
+        var allMusyawarah = [];
+        var allWilayah = [];
+        var hasilList = [];
+
+        function $(id) { return document.getElementById(id); }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initAuth();
+
+            // Default bulan ini
+            var now = new Date();
+            $('filterBulan').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+            await loadMasterData();
+            await loadMusyawarah();
+        });
+
+        async function loadMasterData() {
+            try {
+                allWilayah = await wilayahApi.getAll({ is_aktif: true });
+                var filterWilayah = $('filterWilayah');
+                var inputWilayah = $('inputWilayah');
+
+                allWilayah.forEach(function(w) {
+                    var prefix = w.tingkat === 'daerah' ? '📍 ' : (w.tingkat === 'desa' ? '  🏘️ ' : '    📌 ');
+                    filterWilayah.innerHTML += '<option value="' + w.id + '">' + prefix + w.nama + '</option>';
+                    inputWilayah.innerHTML += '<option value="' + w.id + '">' + prefix + w.nama + '</option>';
+                });
+            } catch (error) {
+                console.error('Error load master:', error);
+            }
+        }
+
+        async function loadMusyawarah() {
+            try {
+                var wilayahId = $('filterWilayah').value;
+                var bulan = $('filterBulan').value;
+                var jenis = $('filterJenis').value;
+
+                var query = db.from('musyawarah')
+                    .select('*, wilayah:wilayah_id(nama, tingkat)')
+                    .order('tanggal', { ascending: false });
+
+                if (wilayahId) query = query.eq('wilayah_id', parseInt(wilayahId));
+                if (jenis) query = query.eq('jenis', jenis);
+
+                if (bulan) {
+                    var [tahun, bln] = bulan.split('-');
+                    var startDate = tahun + '-' + bln + '-01';
+                    var lastDay = new Date(parseInt(tahun), parseInt(bln), 0).getDate();
+                    var endDate = tahun + '-' + bln + '-' + String(lastDay).padStart(2, '0');
+                    query = query.gte('tanggal', startDate).lte('tanggal', endDate);
+                }
+
+                var { data, error } = await query;
+                if (error) throw error;
+
+                allMusyawarah = data || [];
+
+                // Load hasil untuk setiap musyawarah
+                for (var i = 0; i < allMusyawarah.length; i++) {
+                    var { data: hasil } = await db.from('musyawarah_hasil')
+                        .select('*')
+                        .eq('musyawarah_id', allMusyawarah[i].id)
+                        .order('urutan');
+                    allMusyawarah[i].hasil = hasil || [];
+                }
+
+                renderMusyawarah();
+                updateStats();
+
+            } catch (error) {
+                console.error('Error load musyawarah:', error);
+                showToast('Gagal memuat data', 'error');
+            }
+        }
+
+        function renderMusyawarah() {
+            var container = $('musyawarahList');
+
+            if (allMusyawarah.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🤝</div><p>Belum ada data musyawarah</p></div>';
+                return;
+            }
+
+            var html = '';
+            allMusyawarah.forEach(function(m) {
+                var tanggal = new Date(m.tanggal);
+                var tanggalStr = tanggal.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+                html += '<div class="musyawarah-card">';
+                html += '<div class="musyawarah-header">';
+                html += '<div class="musyawarah-title">' + m.judul + '</div>';
+                html += '<div class="musyawarah-meta">';
+                html += '<span class="musyawarah-meta-item">📅 ' + tanggalStr + '</span>';
+                if (m.waktu) html += '<span class="musyawarah-meta-item">🕐 ' + m.waktu + '</span>';
+                html += '<span class="musyawarah-meta-item">📍 ' + (m.wilayah?.nama || '-') + '</span>';
+                html += '<span class="badge badge-' + (m.jenis === 'rutin' ? 'success' : (m.jenis === 'darurat' ? 'danger' : 'primary')) + '">' + m.jenis + '</span>';
+                html += '</div>';
+                html += '</div>';
+
+                if (m.hasil && m.hasil.length > 0) {
+                    html += '<div class="musyawarah-body">';
+                    html += '<strong style="font-size:0.8rem;">Hasil Keputusan:</strong>';
+                    html += '<div class="hasil-list">';
+                    m.hasil.slice(0, 3).forEach(function(h, idx) {
+                        html += '<div class="hasil-item">';
+                        html += '<div class="hasil-number">' + (idx + 1) + '</div>';
+                        html += '<div class="hasil-content">';
+                        html += '<div class="hasil-text">' + h.keputusan + '</div>';
+                        if (h.penanggung_jawab) html += '<div class="hasil-pj">PJ: ' + h.penanggung_jawab + '</div>';
+                        html += '</div>';
+                        html += '<span class="hasil-status ' + (h.status || 'pending') + '">' + (h.status || 'Pending') + '</span>';
+                        html += '</div>';
+                    });
+                    if (m.hasil.length > 3) {
+                        html += '<div style="text-align:center; padding:0.5rem; font-size:0.75rem; color:#6b7280;">+ ' + (m.hasil.length - 3) + ' keputusan lainnya</div>';
+                    }
+                    html += '</div>';
+                    html += '</div>';
+                }
+
+                html += '<div class="musyawarah-footer">';
+                html += '<button class="btn btn-sm btn-outline" onclick="showDetail(' + m.id + ')">👁️ Detail</button>';
+                html += '<button class="btn btn-sm btn-outline" onclick="editMusyawarah(' + m.id + ')">✏️ Edit</button>';
+                html += '<button class="btn btn-sm btn-outline" onclick="deleteMusyawarah(' + m.id + ')">🗑️ Hapus</button>';
+                html += '</div>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateStats() {
+            $('statTotal').textContent = allMusyawarah.length;
+
+            var now = new Date();
+            var bulanIni = allMusyawarah.filter(function(m) {
+                var d = new Date(m.tanggal);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+            }).length;
+            $('statBulanIni').textContent = bulanIni;
+
+            var totalHasil = 0;
+            allMusyawarah.forEach(function(m) { totalHasil += (m.hasil?.length || 0); });
+            $('statHasil').textContent = totalHasil;
+        }
+
+        function showAddModal() {
+            $('modalTitle').textContent = 'Tambah Musyawarah';
+            $('musyawarahId').value = '';
+            $('inputJudul').value = '';
+            $('inputWilayah').value = '';
+            $('inputJenis').value = 'rutin';
+            $('inputTanggal').value = new Date().toISOString().split('T')[0];
+            $('inputWaktu').value = '';
+            $('inputTempat').value = '';
+            $('inputAgenda').value = '';
+            $('inputNotulen').value = '';
+            hasilList = [];
+            renderHasilInput();
+            $('musyawarahModal').classList.add('show');
+        }
+
+        async function editMusyawarah(id) {
+            var m = allMusyawarah.find(function(x) { return x.id === id; });
+            if (!m) return;
+
+            $('modalTitle').textContent = 'Edit Musyawarah';
+            $('musyawarahId').value = m.id;
+            $('inputJudul').value = m.judul || '';
+            $('inputWilayah').value = m.wilayah_id || '';
+            $('inputJenis').value = m.jenis || 'rutin';
+            $('inputTanggal').value = m.tanggal || '';
+            $('inputWaktu').value = m.waktu || '';
+            $('inputTempat').value = m.tempat || '';
+            $('inputAgenda').value = m.agenda || '';
+            $('inputNotulen').value = m.notulen || '';
+
+            hasilList = (m.hasil || []).map(function(h) {
+                return { keputusan: h.keputusan, pj: h.penanggung_jawab, status: h.status };
+            });
+            renderHasilInput();
+
+            $('musyawarahModal').classList.add('show');
+        }
+
+        function closeModal() {
+            $('musyawarahModal').classList.remove('show');
+        }
+
+        function addHasil() {
+            var keputusan = $('inputHasilBaru').value.trim();
+            var pj = $('inputPJBaru').value.trim();
+
+            if (!keputusan) return;
+
+            hasilList.push({ keputusan: keputusan, pj: pj, status: 'pending' });
+            $('inputHasilBaru').value = '';
+            $('inputPJBaru').value = '';
+            renderHasilInput();
+        }
+
+        function removeHasil(idx) {
+            hasilList.splice(idx, 1);
+            renderHasilInput();
+        }
+
+        function renderHasilInput() {
+            var container = $('hasilContainer');
+            if (hasilList.length === 0) {
+                container.innerHTML = '<p style="color:#6b7280; font-size:0.8rem; margin-bottom:0.5rem;">Belum ada keputusan</p>';
+                return;
+            }
+
+            var html = '';
+            hasilList.forEach(function(h, idx) {
+                html += '<div class="hasil-item">';
+                html += '<div class="hasil-number">' + (idx + 1) + '</div>';
+                html += '<div class="hasil-content">';
+                html += '<div class="hasil-text">' + h.keputusan + '</div>';
+                if (h.pj) html += '<div class="hasil-pj">PJ: ' + h.pj + '</div>';
+                html += '</div>';
+                html += '<button type="button" class="btn btn-xs btn-outline" onclick="removeHasil(' + idx + ')">×</button>';
+                html += '</div>';
+            });
+            container.innerHTML = html;
+        }
+
+        async function saveMusyawarah() {
+            var id = $('musyawarahId').value;
+            var judul = $('inputJudul').value.trim();
+            var wilayahId = $('inputWilayah').value;
+            var jenis = $('inputJenis').value;
+            var tanggal = $('inputTanggal').value;
+            var waktu = $('inputWaktu').value;
+            var tempat = $('inputTempat').value.trim();
+            var agenda = $('inputAgenda').value.trim();
+            var notulen = $('inputNotulen').value.trim();
+
+            if (!judul) {
+                showToast('Judul wajib diisi', 'error');
+                return;
+            }
+            if (!wilayahId) {
+                showToast('Wilayah wajib dipilih', 'error');
+                return;
+            }
+            if (!tanggal) {
+                showToast('Tanggal wajib diisi', 'error');
+                return;
+            }
+
+            try {
+                var data = {
+                    judul: judul,
+                    wilayah_id: parseInt(wilayahId),
+                    jenis: jenis,
+                    tanggal: tanggal,
+                    waktu: waktu || null,
+                    tempat: tempat || null,
+                    agenda: agenda || null,
+                    notulen: notulen || null,
+                    created_by: currentUserData?.id || null
+                };
+
+                var musyawarahId;
+
+                if (id) {
+                    var { error } = await db.from('musyawarah').update(data).eq('id', parseInt(id));
+                    if (error) throw error;
+                    musyawarahId = parseInt(id);
+                } else {
+                    var { data: newData, error } = await db.from('musyawarah').insert(data).select('id').single();
+                    if (error) throw error;
+                    musyawarahId = newData.id;
+                }
+
+                // Save hasil
+                await db.from('musyawarah_hasil').delete().eq('musyawarah_id', musyawarahId);
+
+                if (hasilList.length > 0) {
+                    var hasilData = hasilList.map(function(h, idx) {
+                        return {
+                            musyawarah_id: musyawarahId,
+                            keputusan: h.keputusan,
+                            penanggung_jawab: h.pj || null,
+                            status: h.status || 'pending',
+                            urutan: idx + 1
+                        };
+                    });
+                    await db.from('musyawarah_hasil').insert(hasilData);
+                }
+
+                showToast('Musyawarah berhasil disimpan', 'success');
+                closeModal();
+                await loadMusyawarah();
+
+            } catch (error) {
+                console.error('Error save:', error);
+                showToast('Gagal menyimpan: ' + (error.message || error), 'error');
+            }
+        }
+
+        async function deleteMusyawarah(id) {
+            if (!confirm('Yakin ingin menghapus musyawarah ini?')) return;
+
+            try {
+                await db.from('musyawarah_hasil').delete().eq('musyawarah_id', id);
+                await db.from('musyawarah_peserta').delete().eq('musyawarah_id', id);
+                var { error } = await db.from('musyawarah').delete().eq('id', id);
+                if (error) throw error;
+
+                showToast('Musyawarah berhasil dihapus', 'success');
+                await loadMusyawarah();
+            } catch (error) {
+                console.error('Error delete:', error);
+                showToast('Gagal menghapus', 'error');
+            }
+        }
+
+        function showDetail(id) {
+            var m = allMusyawarah.find(function(x) { return x.id === id; });
+            if (!m) return;
+
+            var tanggal = new Date(m.tanggal);
+            var tanggalStr = tanggal.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+            var html = '<div style="margin-bottom:1rem;">';
+            html += '<h4 style="margin-bottom:0.5rem;">' + m.judul + '</h4>';
+            html += '<p style="font-size:0.85rem; color:#6b7280;">';
+            html += '📅 ' + tanggalStr;
+            if (m.waktu) html += ' | 🕐 ' + m.waktu;
+            html += '<br>📍 ' + (m.wilayah?.nama || '-');
+            if (m.tempat) html += ' - ' + m.tempat;
+            html += '</p>';
+            html += '</div>';
+
+            if (m.agenda) {
+                html += '<div style="margin-bottom:1rem;"><strong>Agenda:</strong><p style="font-size:0.85rem; white-space:pre-wrap;">' + m.agenda + '</p></div>';
+            }
+
+            if (m.notulen) {
+                html += '<div style="margin-bottom:1rem;"><strong>Notulen:</strong><p style="font-size:0.85rem; white-space:pre-wrap;">' + m.notulen + '</p></div>';
+            }
+
+            if (m.hasil && m.hasil.length > 0) {
+                html += '<div><strong>Hasil Keputusan:</strong><div class="hasil-list" style="margin-top:0.5rem;">';
+                m.hasil.forEach(function(h, idx) {
+                    html += '<div class="hasil-item">';
+                    html += '<div class="hasil-number">' + (idx + 1) + '</div>';
+                    html += '<div class="hasil-content">';
+                    html += '<div class="hasil-text">' + h.keputusan + '</div>';
+                    if (h.penanggung_jawab) html += '<div class="hasil-pj">PJ: ' + h.penanggung_jawab + '</div>';
+                    html += '</div>';
+                    html += '<span class="hasil-status ' + (h.status || 'pending') + '">' + (h.status || 'Pending') + '</span>';
+                    html += '</div>';
+                });
+                html += '</div></div>';
+            }
+
+            $('detailTitle').textContent = 'Detail Musyawarah';
+            $('detailContent').innerHTML = html;
+            $('detailModal').classList.add('show');
+        }
+
+        function closeDetailModal() {
+            $('detailModal').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

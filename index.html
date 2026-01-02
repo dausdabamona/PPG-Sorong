@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PPG Sorong">
+    <meta name="description" content="Sistem Manajemen Pengajian dan Pembinaan Generasi Penerus Sorong">
+    <title>Login - PPG Sorong</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192x192.png">
+    <link rel="icon" type="image/png" href="images/icon-72x72.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div style="width:60px;height:60px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:white;font-size:1.5rem;font-weight:bold;">
+                    PPG
+                </div>
+                <h1>PPG Sorong</h1>
+                <p>Pembinaan Generasi Penerus</p>
+            </div>
+            
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           placeholder="Masukkan email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" 
+                           placeholder="Masukkan password" required>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnLogin">
+                        Masuk
+                    </button>
+                </div>
+                
+                <div id="errorMessage" class="text-danger text-center" style="display:none;"></div>
+            </form>
+            
+            <div class="text-center mt-lg">
+                <p class="text-muted text-sm">
+                    Belum punya akun? <a href="register.html">Daftar di sini</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        // Register Service Worker untuk PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registered:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+        
+        // Cek jika sudah login, redirect ke dashboard
+        (async function() {
+            var isLoggedIn = await checkSession();
+            if (isLoggedIn) {
+                window.location.href = 'dashboard.html';
+            }
+        })();
+        
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            var emailEl = $('email');
+            var passwordEl = $('password');
+            var btnLogin = $('btnLogin');
+            var errorMessage = $('errorMessage');
+            
+            var email = emailEl ? emailEl.value.trim() : '';
+            var password = passwordEl ? passwordEl.value : '';
+            
+            // Reset error
+            if (errorMessage) errorMessage.style.display = 'none';
+            
+            // Disable button
+            if (btnLogin) {
+                btnLogin.disabled = true;
+                btnLogin.innerHTML = 'Memproses...';
+            }
+            
+            try {
+                var result = await login(email, password);
+                
+                if (result.success) {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    if (errorMessage) {
+                        errorMessage.textContent = result.error || 'Email atau password salah';
+                        errorMessage.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                if (errorMessage) {
+                    errorMessage.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
+                    errorMessage.style.display = 'block';
+                }
+            } finally {
+                if (btnLogin) {
+                    btnLogin.disabled = false;
+                    btnLogin.innerHTML = 'Masuk';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
