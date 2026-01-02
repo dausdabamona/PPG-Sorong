@@ -1,0 +1,701 @@
+/* ============================================================================
+   MOBILE GRID CSS - PPG SORONG PWA
+   Grid/Matrix layout untuk tampilan mobile yang modern
+   ============================================================================ */
+
+/* ============================================================================
+   BASE MOBILE STYLES
+   ============================================================================ */
+
+/* Pastikan smooth scrolling */
+html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Body mobile optimization */
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+        -webkit-text-size-adjust: 100%;
+    }
+    
+    .main-content {
+        padding-bottom: 1rem !important; /* No more bottom nav */
+    }
+    
+    .page-content {
+        padding: 0.75rem !important;
+    }
+    
+    .page-header {
+        margin-bottom: 1rem !important;
+    }
+    
+    .page-title {
+        font-size: 1.25rem !important;
+    }
+    
+    /* Hide bottom nav */
+    .bottom-nav {
+        display: none !important;
+    }
+}
+
+/* ============================================================================
+   MOBILE GRID SYSTEM
+   ============================================================================ */
+
+/* Grid Container - untuk konten utama */
+.mobile-grid {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0;
+}
+
+/* 2 columns grid */
+.mobile-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* 3 columns grid */
+.mobile-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* 4 columns grid */
+.mobile-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Auto-fit responsive grid */
+.mobile-grid-auto {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+/* ============================================================================
+   MOBILE CARD STYLES
+   ============================================================================ */
+
+/* Card dasar untuk grid */
+.mobile-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 100px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.mobile-card:hover, .mobile-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #059669;
+}
+
+/* Card dengan icon besar */
+.mobile-card-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+}
+
+/* Card title */
+.mobile-card-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+}
+
+/* Card subtitle/value */
+.mobile-card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #059669;
+}
+
+.mobile-card-subtitle {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Card dengan warna background */
+.mobile-card.primary { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-color: #10b981; }
+.mobile-card.info { background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); border-color: #0ea5e9; }
+.mobile-card.warning { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: #f59e0b; }
+.mobile-card.danger { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-color: #ef4444; }
+.mobile-card.purple { background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); border-color: #a855f7; }
+
+/* ============================================================================
+   MOBILE STAT CARDS (untuk dashboard)
+   ============================================================================ */
+
+.mobile-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.mobile-stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.mobile-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.mobile-stat-icon.primary { background: #ecfdf5; }
+.mobile-stat-icon.info { background: #e0f2fe; }
+.mobile-stat-icon.warning { background: #fef3c7; }
+.mobile-stat-icon.purple { background: #f3e8ff; }
+.mobile-stat-icon.danger { background: #fee2e2; }
+
+.mobile-stat-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.mobile-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+}
+
+.mobile-stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* ============================================================================
+   MOBILE MENU GRID (untuk navigasi/aksi cepat)
+   ============================================================================ */
+
+.mobile-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: #f9fafb;
+    border-radius: 16px;
+    margin-bottom: 1rem;
+}
+
+.mobile-menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+    background: white;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #374151;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.mobile-menu-item:hover, .mobile-menu-item:active {
+    background: #059669;
+    color: white;
+    transform: scale(0.95);
+}
+
+.mobile-menu-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.mobile-menu-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* ============================================================================
+   MOBILE DATA LIST (untuk daftar jamaah, dll)
+   ============================================================================ */
+
+.mobile-data-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.mobile-data-item {
+    background: white;
+    border-radius: 12px;
+    padding: 0.875rem;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.mobile-data-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.mobile-data-avatar.female {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+}
+
+.mobile-data-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.mobile-data-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mobile-data-subtitle {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.125rem;
+}
+
+.mobile-data-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.mobile-data-badge.primary { background: #ecfdf5; color: #059669; }
+.mobile-data-badge.info { background: #e0f2fe; color: #0284c7; }
+.mobile-data-badge.warning { background: #fef3c7; color: #d97706; }
+
+/* ============================================================================
+   MOBILE TABLE GRID (tabel sebagai grid untuk mobile)
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    /* Sembunyikan tabel header di mobile */
+    .mobile-table-grid thead {
+        display: none;
+    }
+    
+    .mobile-table-grid tbody {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .mobile-table-grid tr {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        background: white;
+        border-radius: 12px;
+        padding: 0.875rem;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .mobile-table-grid td {
+        padding: 0.25rem 0;
+        border: none !important;
+    }
+    
+    .mobile-table-grid td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.65rem;
+        color: #6b7280;
+        margin-bottom: 0.125rem;
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+    
+    /* Full width untuk kolom tertentu */
+    .mobile-table-grid td.full-width {
+        grid-column: 1 / -1;
+    }
+}
+
+/* ============================================================================
+   MOBILE SECTION HEADER
+   ============================================================================ */
+
+.mobile-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0 0.25rem;
+}
+
+.mobile-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mobile-section-action {
+    font-size: 0.75rem;
+    color: #059669;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* ============================================================================
+   MOBILE FILTER BAR
+   ============================================================================ */
+
+.mobile-filter-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mobile-filter-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.mobile-filter-chip {
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mobile-filter-chip.active, .mobile-filter-chip:hover {
+    background: #059669;
+    color: white;
+    border-color: #059669;
+}
+
+/* ============================================================================
+   MOBILE SEARCH BAR
+   ============================================================================ */
+
+.mobile-search-bar {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.mobile-search-bar input {
+    width: 100%;
+    padding: 0.875rem 1rem 0.875rem 2.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    background: white;
+    transition: all 0.2s;
+}
+
+.mobile-search-bar input:focus {
+    outline: none;
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+.mobile-search-bar::before {
+    content: '🔍';
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+}
+
+/* ============================================================================
+   MOBILE FLOATING ACTION BUTTON (FAB)
+   ============================================================================ */
+
+.mobile-fab {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(5, 150, 105, 0.4);
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.2s;
+}
+
+.mobile-fab:hover, .mobile-fab:active {
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba(5, 150, 105, 0.5);
+}
+
+/* ============================================================================
+   MOBILE BOTTOM SHEET
+   ============================================================================ */
+
+.mobile-bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 20px 20px 0 0;
+    padding: 1.5rem;
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    z-index: 1000;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.mobile-bottom-sheet.show {
+    transform: translateY(0);
+}
+
+.mobile-bottom-sheet-handle {
+    width: 40px;
+    height: 4px;
+    background: #d1d5db;
+    border-radius: 2px;
+    margin: 0 auto 1rem;
+}
+
+.mobile-bottom-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.mobile-bottom-sheet-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ============================================================================
+   MOBILE ACCORDION/COLLAPSIBLE
+   ============================================================================ */
+
+.mobile-accordion {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.mobile-accordion-header {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.mobile-accordion-header:hover {
+    background: #f9fafb;
+}
+
+.mobile-accordion-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mobile-accordion-arrow {
+    transition: transform 0.3s;
+}
+
+.mobile-accordion.open .mobile-accordion-arrow {
+    transform: rotate(180deg);
+}
+
+.mobile-accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.mobile-accordion.open .mobile-accordion-body {
+    max-height: 500px;
+}
+
+.mobile-accordion-content {
+    padding: 0 1rem 1rem;
+}
+
+/* ============================================================================
+   MOBILE EMPTY STATE
+   ============================================================================ */
+
+.mobile-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.mobile-empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.mobile-empty-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.mobile-empty-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* ============================================================================
+   MOBILE SKELETON LOADING
+   ============================================================================ */
+
+.mobile-skeleton {
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.mobile-skeleton-card {
+    height: 100px;
+    border-radius: 12px;
+}
+
+.mobile-skeleton-text {
+    height: 14px;
+    margin-bottom: 0.5rem;
+}
+
+.mobile-skeleton-text.short {
+    width: 60%;
+}
+
+/* ============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================ */
+
+@media (max-width: 400px) {
+    .mobile-grid-4 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .mobile-menu-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .mobile-stat-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 769px) {
+    /* Untuk tablet/desktop, grid lebih besar */
+    .mobile-grid-2 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .mobile-stat-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .mobile-menu-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+.gap-sm { gap: 0.5rem !important; }
+.gap-md { gap: 0.75rem !important; }
+.gap-lg { gap: 1rem !important; }
+
+.p-sm { padding: 0.5rem !important; }
+.p-md { padding: 0.75rem !important; }
+.p-lg { padding: 1rem !important; }
+
+.mb-sm { margin-bottom: 0.5rem !important; }
+.mb-md { margin-bottom: 0.75rem !important; }
+.mb-lg { margin-bottom: 1rem !important; }
+
+.text-center { text-align: center !important; }
+.text-left { text-align: left !important; }
+.text-right { text-align: right !important; }
+
+.hide-mobile { display: none !important; }
+
+@media (min-width: 769px) {
+    .hide-desktop { display: none !important; }
+    .hide-mobile { display: block !important; }
+}

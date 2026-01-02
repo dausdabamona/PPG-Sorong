@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>Manajemen User - PPG Sorong</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="users.html" class="nav-item active admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+                <a href="pengaturan-akses.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🔐</span><span class="nav-text">Pengaturan Akses</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Manajemen User</h1>
+                </div>
+                </header>
+            
+            <div class="page-content">
+                <div class="card" id="accessDenied" style="display:none;">
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔒</div>
+                            <div class="empty-state-title">Akses Ditolak</div>
+                            <p class="text-muted">Halaman ini hanya dapat diakses oleh Admin</p>
+                            <a href="dashboard.html" class="btn btn-primary mt-md">Kembali ke Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="adminContent" style="display:none;">
+                    <div class="page-header">
+                        <div>
+                            <div class="breadcrumb"><a href="dashboard.html">Dashboard</a><span>/</span><span>Manajemen User</span></div>
+                            <h2 class="page-title">Kelola Pengguna</h2>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-grid mb-lg">
+                        <div class="stat-card">
+                            <div class="stat-icon primary">👤</div>
+                            <div class="stat-content"><div class="stat-value" id="totalUsers">0</div><div class="stat-label">Total User</div></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon success">✅</div>
+                            <div class="stat-content"><div class="stat-value" id="activeUsers">0</div><div class="stat-label">User Aktif</div></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon warning">🎭</div>
+                            <div class="stat-content"><div class="stat-value" id="totalRoles">0</div><div class="stat-label">Total Role</div></div>
+                        </div>
+                    </div>
+                    
+                    <div class="tabs">
+                        <div class="tab-item active" onclick="switchTab('users', this)">👤 Daftar User</div>
+                        <div class="tab-item" onclick="switchTab('roles', this)">🎭 Role</div>
+                        <div class="tab-item" onclick="switchTab('assignments', this)">🔗 Penugasan Role</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="tabUsers">
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title">Daftar Pengguna</h3></div>
+                            <div class="card-body">
+                                <div class="table-container">
+                                    <table class="table" id="usersTable">
+                                        <thead><tr><th>No</th><th>Nama</th><th>Email</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="tabRoles">
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title">Daftar Role</h3></div>
+                            <div class="card-body">
+                                <div class="table-container">
+                                    <table class="table" id="rolesTable">
+                                        <thead><tr><th>No</th><th>Kode</th><th>Nama</th><th>Level</th><th>Deskripsi</th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="tabAssignments">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Penugasan Role ke User</h3>
+                                <button class="btn btn-primary" onclick="showAssignModal()">➕ Tambah Penugasan</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-container">
+                                    <table class="table" id="assignmentsTable">
+                                        <thead><tr><th>No</th><th>User</th><th>Role</th><th>Wilayah</th><th>Status</th><th>Aksi</th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Edit User</h3><button class="modal-close" onclick="hideModal('userModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" name="id" id="userId">
+                    <div class="form-group"><label class="form-label">Nama</label><input type="text" class="form-control" name="nama" required></div>
+                    <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-control" name="email" readonly></div>
+                    <div class="form-group"><label class="form-label">No. HP</label><input type="tel" class="form-control" name="phone"></div>
+                    <div class="form-group"><label class="form-label">Status</label><select class="form-control" name="status"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="hideModal('userModal')">Batal</button><button class="btn btn-primary" onclick="saveUser()">Simpan</button></div>
+        </div>
+    </div>
+    
+    <div class="modal" id="assignModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Tambah Penugasan Role</h3><button class="modal-close" onclick="hideModal('assignModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="assignForm">
+                    <div class="form-group"><label class="form-label required">User</label><select class="form-control" name="user_id" id="assignUser" required><option value="">-- Pilih User --</option></select></div>
+                    <div class="form-group"><label class="form-label required">Role</label><select class="form-control" name="role_id" id="assignRole" required><option value="">-- Pilih Role --</option></select></div>
+                    <div class="form-group"><label class="form-label">Wilayah (Opsional)</label><select class="form-control" name="wilayah_id" id="assignWilayah"><option value="">-- Semua Wilayah --</option></select><small class="form-text">Kosongkan untuk akses semua wilayah</small></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="hideModal('assignModal')">Batal</button><button class="btn btn-primary" onclick="saveAssignment()">Simpan</button></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    
+    <script>
+        let allUsers = [], allRoles = [], allWilayah = [], allAssignments = [];
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
+            updateSidebarUserInfo();
+            initSidebar();
+            
+            var accessDeniedEl = $('accessDenied');
+            var adminContentEl = $('adminContent');
+            
+            if (!isAdmin()) {
+                if (accessDeniedEl) accessDeniedEl.style.display = 'block';
+                if (adminContentEl) adminContentEl.style.display = 'none';
+                return;
+            }
+            
+            if (accessDeniedEl) accessDeniedEl.style.display = 'none';
+            if (adminContentEl) adminContentEl.style.display = 'block';
+            await loadAllData();
+        });
+        
+        function toggleSidebar() {
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
+        }
+        
+        async function loadAllData() {
+            await Promise.all([loadUsers(), loadRoles(), loadWilayah(), loadAssignments()]);
+            var totalUsersEl = $('totalUsers');
+            var activeUsersEl = $('activeUsers');
+            var totalRolesEl = $('totalRoles');
+            if (totalUsersEl) totalUsersEl.textContent = allUsers.length;
+            if (activeUsersEl) activeUsersEl.textContent = allUsers.length;
+            if (totalRolesEl) totalRolesEl.textContent = allRoles.length;
+        }
+        
+        function switchTab(tab, el) {
+            $$$('.tab-item').forEach(function(t) { t.classList.remove('active'); });
+            $$$('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+            el.classList.add('active');
+            var tabEl = $('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+            if (tabEl) tabEl.classList.add('active');
+        }
+        
+        async function loadUsers() {
+            var result = await db.from('users').select('*').order('nama');
+            allUsers = result.data || [];
+            var urResult = await db.from('user_role').select('user_id, role:role_id(nama)').eq('is_aktif', true);
+            var ur = urResult.data;
+            var map = {};
+            if (ur) {
+                ur.forEach(function(r) { 
+                    if (!map[r.user_id]) map[r.user_id] = []; 
+                    if (r.role && r.role.nama) map[r.user_id].push(r.role.nama); 
+                });
+            }
+            
+            var tbody = $$('#usersTable tbody');
+            if (tbody) {
+                tbody.innerHTML = allUsers.map(function(u, i) {
+                    var roles = (map[u.id] || []).map(function(r) {
+                        return '<span class="badge badge-primary">' + escapeHtml(r) + '</span>';
+                    }).join(' ') || '-';
+                    return '<tr>' +
+                        '<td>' + (i+1) + '</td>' +
+                        '<td><strong>' + escapeHtml(u.nama || '-') + '</strong></td>' +
+                        '<td>' + escapeHtml(u.email || '') + '</td>' +
+                        '<td>' + roles + '</td>' +
+                        '<td>' + escapeHtml(u.phone || '-') + '</td>' +
+                        '<td><button class="btn btn-sm btn-outline" onclick="editUser(' + u.id + ')">✏️</button></td>' +
+                        '</tr>';
+                }).join('') || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
+            }
+        }
+        
+        async function editUser(id) {
+            const user = allUsers.find(u => u.id === id);
+            if (!user) return;
+            $('userId').value = user.id;
+            setFormData('userForm', user);
+            showModal('userModal');
+        }
+        
+        async function saveUser() {
+            const fd = getFormData('userForm');
+            try {
+                await db.from('users').update({ nama: fd.nama, phone: fd.phone }).eq('id', fd.id);
+                showToast('User berhasil diupdate', 'success');
+                hideModal('userModal');
+                await loadUsers();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+        }
+        
+        async function loadRoles() {
+            const { data } = await db.from('role').select('*').order('level');
+            allRoles = data || [];
+            $$('#rolesTable tbody').innerHTML = allRoles.map((r, i) => `
+                <tr><td>${i+1}</td><td><code>${r.kode}</code></td><td><strong>${r.nama}</strong></td><td><span class="badge badge-info">${r.level}</span></td><td>${r.deskripsi || '-'}</td></tr>
+            `).join('') || '<tr><td colspan="5" class="text-center text-muted">Tidak ada data</td></tr>';
+        }
+        
+        async function loadWilayah() {
+            const { data } = await db.from('wilayah').select('*').order('nama');
+            allWilayah = data || [];
+        }
+        
+        async function loadAssignments() {
+            const { data } = await db.from('user_role').select('*, user:user_id(nama, email), role:role_id(nama), wilayah:wilayah_id(nama)').order('user_id');
+            allAssignments = data || [];
+            $$('#assignmentsTable tbody').innerHTML = allAssignments.map((a, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td><strong>${a.user?.nama || '-'}</strong><br><small class="text-muted">${a.user?.email || ''}</small></td>
+                    <td><span class="badge badge-primary">${a.role?.nama || '-'}</span></td>
+                    <td>${a.wilayah?.nama || '<span class="text-muted">Semua</span>'}</td>
+                    <td><span class="badge ${a.is_aktif ? 'badge-success' : 'badge-secondary'}">${a.is_aktif ? 'Aktif' : 'Nonaktif'}</span></td>
+                    <td><div class="btn-group"><button class="btn btn-sm btn-outline" onclick="toggleAssign(${a.id}, ${!a.is_aktif})">${a.is_aktif ? '❌' : '✅'}</button><button class="btn btn-sm btn-danger" onclick="deleteAssign(${a.id})">🗑️</button></div></td>
+                </tr>
+            `).join('') || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>';
+        }
+        
+        function showAssignModal() {
+            $('assignForm').reset();
+            $('assignUser').innerHTML = '<option value="">-- Pilih User --</option>' + allUsers.map(u => `<option value="${u.id}">${u.nama || u.email}</option>`).join('');
+            $('assignRole').innerHTML = '<option value="">-- Pilih Role --</option>' + allRoles.map(r => `<option value="${r.id}">${r.nama}</option>`).join('');
+            $('assignWilayah').innerHTML = '<option value="">-- Semua Wilayah --</option>' + allWilayah.map(w => `<option value="${w.id}">${w.nama} (${w.tingkat})</option>`).join('');
+            showModal('assignModal');
+        }
+        
+        async function saveAssignment() {
+            const fd = getFormData('assignForm');
+            if (!fd.user_id || !fd.role_id) { showToast('User dan Role wajib dipilih', 'error'); return; }
+            try {
+                await db.from('user_role').insert({ user_id: parseInt(fd.user_id), role_id: parseInt(fd.role_id), wilayah_id: fd.wilayah_id ? parseInt(fd.wilayah_id) : null, is_aktif: true });
+                showToast('Penugasan berhasil', 'success');
+                hideModal('assignModal');
+                await loadAssignments();
+                await loadUsers();
+            } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+        }
+        
+        async function toggleAssign(id, status) {
+            await db.from('user_role').update({ is_aktif: status }).eq('id', id);
+            showToast('Status diubah', 'success');
+            await loadAssignments();
+            await loadUsers();
+        }
+        
+        async function deleteAssign(id) {
+            if (!await confirmDialog('Yakin hapus penugasan ini?')) return;
+            await db.from('user_role').delete().eq('id', id);
+            showToast('Penugasan dihapus', 'success');
+            await loadAssignments();
+            await loadUsers();
+        }
+    </script>
+
+
+    <!-- Bottom Navigation for Mobile -->
+        <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
+</body>
+</html>

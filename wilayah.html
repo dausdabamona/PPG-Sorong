@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>Kelola Wilayah - PPG Sorong</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .tree-view { padding-left: 0; }
+        .tree-item { list-style: none; margin-bottom: 0.5rem; }
+        .tree-item-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+        }
+        .tree-item-content:hover { border-color: var(--primary); background: var(--gray-50); }
+        .tree-children { padding-left: 1.5rem; margin-top: 0.5rem; border-left: 2px solid var(--gray-200); }
+        .tree-icon { font-size: 1.25rem; }
+        .tree-name { flex: 1; font-weight: 500; }
+        .tree-badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
+        .tingkat-daerah { background: var(--primary-light); color: var(--primary); }
+        .tingkat-desa { background: var(--success-light); color: var(--success); }
+        .tingkat-kelompok { background: var(--warning-light); color: #92400e; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+                <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item active"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+                <a href="pengaturan-akses.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🔐</span><span class="nav-text">Pengaturan Akses</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left"><h1 class="header-title">Kelola Wilayah</h1></div>
+                </header>
+            
+            <div class="page-content">
+                <div class="page-header">
+                    <div>
+                        <div class="breadcrumb"><a href="dashboard.html">Dashboard</a><span>/</span><span>Wilayah</span></div>
+                        <h2 class="page-title">Struktur Wilayah</h2>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddModal()">➕ Tambah Wilayah</button>
+                </div>
+                
+                <!-- Stats -->
+                <div class="stats-grid mb-lg">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">🏛️</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalDaerah">0</div>
+                            <div class="stat-label">Daerah</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon success">🏘️</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalDesa">0</div>
+                            <div class="stat-label">Desa</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">🏠</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalKelompok">0</div>
+                            <div class="stat-label">Kelompok</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tree View -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Hierarki Wilayah</h3>
+                        <button class="btn btn-sm btn-outline" onclick="loadWilayah()">🔄 Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <ul class="tree-view" id="wilayahTree">
+                            <li class="text-center text-muted py-4">Memuat data...</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Table View -->
+                <div class="card mt-lg">
+                    <div class="card-header">
+                        <h3 class="card-title">Daftar Semua Wilayah</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table" id="wilayahTable">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Kode</th>
+                                        <th>Nama</th>
+                                        <th>Tingkat</th>
+                                        <th>Parent</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal Form -->
+    <div class="modal" id="wilayahModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Tambah Wilayah</h3>
+                <button class="modal-close" onclick="hideModal('wilayahModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="wilayahForm">
+                    <input type="hidden" name="id" id="wilayahId">
+                    
+                    <div class="form-group">
+                        <label class="form-label required">Tingkat Wilayah</label>
+                        <select class="form-control" name="tingkat" id="selectTingkat" required onchange="onTingkatChange()">
+                            <option value="">-- Pilih Tingkat --</option>
+                            <option value="daerah">Daerah</option>
+                            <option value="desa">Desa</option>
+                            <option value="kelompok">Kelompok</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="parentGroup" style="display:none;">
+                        <label class="form-label required">Parent (Induk)</label>
+                        <select class="form-control" name="parent_id" id="selectParent">
+                            <option value="">-- Pilih Parent --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label required">Kode Wilayah</label>
+                        <input type="text" class="form-control" name="kode" id="inputKode" 
+                               placeholder="Contoh: kel_klasaman" required>
+                        <small class="form-text">Gunakan huruf kecil, tanpa spasi, gunakan underscore (_)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label required">Nama Wilayah</label>
+                        <input type="text" class="form-control" name="nama" id="inputNama" 
+                               placeholder="Contoh: Kelompok Klasaman" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" name="is_aktif">
+                            <option value="true">Aktif</option>
+                            <option value="false">Nonaktif</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('wilayahModal')">Batal</button>
+                <button class="btn btn-primary" onclick="saveWilayah()" id="btnSave">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    
+    <script>
+        let allWilayah = [];
+        let editMode = false;
+        
+        
+        function toggleSidebar() {
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
+            updateSidebarUserInfo();
+            initSidebar();
+            updateUserUI();
+            await loadWilayah();
+        });
+        
+        function updateUserUI() {
+            if (!currentUserData) return;
+            
+            var userNameEl = $('userName');
+            var userAvatarEl = $('userAvatar');
+            var userRoleEl = $('userRole');
+            
+            if (userNameEl) userNameEl.textContent = currentUserData.nama || currentUserData.email || 'User';
+            if (userAvatarEl) userAvatarEl.textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
+            if (userRoleEl && userRoles && userRoles.length > 0) {
+                userRoleEl.textContent = userRoles[0].role?.nama || '-';
+            }
+        }
+        
+        async function loadWilayah() {
+            try {
+                // Gunakan api.js
+                allWilayah = await wilayahApi.getAll() || [];
+                
+                // Update stats
+                var totalDaerahEl = $('totalDaerah');
+                var totalDesaEl = $('totalDesa');
+                var totalKelompokEl = $('totalKelompok');
+                
+                if (totalDaerahEl) totalDaerahEl.textContent = allWilayah.filter(function(w) { return w.tingkat === 'daerah'; }).length;
+                if (totalDesaEl) totalDesaEl.textContent = allWilayah.filter(function(w) { return w.tingkat === 'desa'; }).length;
+                if (totalKelompokEl) totalKelompokEl.textContent = allWilayah.filter(function(w) { return w.tingkat === 'kelompok'; }).length;
+                
+                renderTreeView();
+                renderTableView();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal memuat data wilayah', 'error');
+            }
+        }
+        
+        function renderTreeView() {
+            const tree = $('wilayahTree');
+            
+            // Build tree structure
+            const daerahList = allWilayah.filter(w => w.tingkat === 'daerah');
+            
+            if (daerahList.length === 0) {
+                tree.innerHTML = '<li class="text-center text-muted py-4">Belum ada data wilayah</li>';
+                return;
+            }
+            
+            let html = '';
+            daerahList.forEach(daerah => {
+                html += renderTreeItem(daerah);
+            });
+            
+            tree.innerHTML = html;
+        }
+        
+        function renderTreeItem(wilayah) {
+            const icon = wilayah.tingkat === 'daerah' ? '🏛️' : wilayah.tingkat === 'desa' ? '🏘️' : '🏠';
+            const children = allWilayah.filter(w => w.parent_id === wilayah.id);
+            
+            let html = `
+                <li class="tree-item">
+                    <div class="tree-item-content">
+                        <span class="tree-icon">${icon}</span>
+                        <span class="tree-name">${wilayah.nama}</span>
+                        <span class="badge tree-badge tingkat-${wilayah.tingkat}">${wilayah.tingkat}</span>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline" onclick="editWilayah(${wilayah.id})" title="Edit">✏️</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteWilayah(${wilayah.id})" title="Hapus">🗑️</button>
+                        </div>
+                    </div>
+            `;
+            
+            if (children.length > 0) {
+                html += '<ul class="tree-children">';
+                children.forEach(child => {
+                    html += renderTreeItem(child);
+                });
+                html += '</ul>';
+            }
+            
+            html += '</li>';
+            return html;
+        }
+        
+        function renderTableView() {
+            const tbody = $$('#wilayahTable tbody');
+            
+            if (allWilayah.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Tidak ada data</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = allWilayah.map((w, i) => {
+                const parent = allWilayah.find(p => p.id === w.parent_id);
+                return `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><code>${w.kode}</code></td>
+                    <td><strong>${w.nama}</strong></td>
+                    <td><span class="badge tingkat-${w.tingkat}">${w.tingkat}</span></td>
+                    <td>${parent?.nama || '-'}</td>
+                    <td><span class="badge ${w.is_aktif ? 'badge-success' : 'badge-secondary'}">${w.is_aktif ? 'Aktif' : 'Nonaktif'}</span></td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline" onclick="editWilayah(${w.id})">✏️</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteWilayah(${w.id})">🗑️</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+        
+        function showAddModal() {
+            editMode = false;
+            $('modalTitle').textContent = 'Tambah Wilayah';
+            $('wilayahForm').reset();
+            $('wilayahId').value = '';
+            $('parentGroup').style.display = 'none';
+            showModal('wilayahModal');
+        }
+        
+        async function editWilayah(id) {
+            const wilayah = allWilayah.find(w => w.id === id);
+            if (!wilayah) return;
+            
+            editMode = true;
+            $('modalTitle').textContent = 'Edit Wilayah';
+            $('wilayahId').value = wilayah.id;
+            $('selectTingkat').value = wilayah.tingkat;
+            $('inputKode').value = wilayah.kode;
+            $('inputNama').value = wilayah.nama;
+            $('wilayahForm').querySelector('[name="is_aktif"]').value = wilayah.is_aktif ? 'true' : 'false';
+            
+            // Load parent options
+            await onTingkatChange();
+            
+            if (wilayah.parent_id) {
+                $('selectParent').value = wilayah.parent_id;
+            }
+            
+            showModal('wilayahModal');
+        }
+        
+        async function onTingkatChange() {
+            const tingkat = $('selectTingkat').value;
+            const parentGroup = $('parentGroup');
+            const selectParent = $('selectParent');
+            
+            if (tingkat === 'daerah') {
+                parentGroup.style.display = 'none';
+                selectParent.removeAttribute('required');
+            } else if (tingkat === 'desa') {
+                parentGroup.style.display = 'block';
+                selectParent.setAttribute('required', 'required');
+                // Load daerah options
+                const daerahList = allWilayah.filter(w => w.tingkat === 'daerah');
+                selectParent.innerHTML = '<option value="">-- Pilih Daerah --</option>' + 
+                    daerahList.map(d => `<option value="${d.id}">${d.nama}</option>`).join('');
+            } else if (tingkat === 'kelompok') {
+                parentGroup.style.display = 'block';
+                selectParent.setAttribute('required', 'required');
+                // Load desa options
+                const desaList = allWilayah.filter(w => w.tingkat === 'desa');
+                selectParent.innerHTML = '<option value="">-- Pilih Desa --</option>' + 
+                    desaList.map(d => `<option value="${d.id}">${d.nama}</option>`).join('');
+            } else {
+                parentGroup.style.display = 'none';
+            }
+        }
+        
+        async function saveWilayah() {
+            const form = $('wilayahForm');
+            if (!form.checkValidity()) { form.reportValidity(); return; }
+            
+            const btn = $('btnSave');
+            btn.disabled = true;
+            btn.textContent = 'Menyimpan...';
+            
+            try {
+                const formData = getFormData('wilayahForm');
+                
+                const wilayahData = {
+                    kode: formData.kode.toLowerCase().replace(/\s+/g, '_'),
+                    nama: formData.nama,
+                    tingkat: formData.tingkat,
+                    parent_id: formData.parent_id ? parseInt(formData.parent_id) : null,
+                    is_aktif: formData.is_aktif === 'true'
+                };
+                
+                if (editMode && formData.id) {
+                    const { error } = await db.from('wilayah').update(wilayahData).eq('id', formData.id);
+                    if (error) throw error;
+                } else {
+                    const { error } = await db.from('wilayah').insert(wilayahData);
+                    if (error) throw error;
+                }
+                
+                showToast('Wilayah berhasil disimpan', 'success');
+                hideModal('wilayahModal');
+                await loadWilayah();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal menyimpan: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Simpan';
+            }
+        }
+        
+        async function deleteWilayah(id) {
+            const wilayah = allWilayah.find(w => w.id === id);
+            if (!wilayah) return;
+            
+            // Check if has children
+            const children = allWilayah.filter(w => w.parent_id === id);
+            if (children.length > 0) {
+                showToast('Tidak bisa menghapus! Wilayah ini masih memiliki ' + children.length + ' wilayah di bawahnya.', 'error');
+                return;
+            }
+            
+            if (!await confirmDialog(`Yakin ingin menghapus "${wilayah.nama}"?`)) return;
+            
+            try {
+                // Check for related data
+                const { count: enrollmentCount } = await db.from('enrollment')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('wilayah_id', id);
+                
+                const { count: pengajianCount } = await db.from('pengajian')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('wilayah_id', id);
+                
+                if ((enrollmentCount || 0) > 0 || (pengajianCount || 0) > 0) {
+                    const confirm2 = await confirmDialog(
+                        `Wilayah ini memiliki ${enrollmentCount || 0} enrollment dan ${pengajianCount || 0} pengajian. ` +
+                        `Semua data terkait akan ikut terhapus. Lanjutkan?`
+                    );
+                    if (!confirm2) return;
+                    
+                    // Delete related data
+                    await db.from('lima_unsur').delete().eq('wilayah_id', id);
+                    await db.from('user_role').delete().eq('wilayah_id', id);
+                    
+                    // Delete keaktifan from pengajian in this wilayah
+                    const { data: pengajianIds } = await db.from('pengajian').select('id').eq('wilayah_id', id);
+                    if (pengajianIds?.length > 0) {
+                        const ids = pengajianIds.map(p => p.id);
+                        await db.from('keaktifan_pengajian').delete().in('pengajian_id', ids);
+                    }
+                    
+                    await db.from('pengajian').delete().eq('wilayah_id', id);
+                    await db.from('enrollment').delete().eq('wilayah_id', id);
+                }
+                
+                // Delete wilayah
+                const { error } = await db.from('wilayah').delete().eq('id', id);
+                if (error) throw error;
+                
+                showToast('Wilayah berhasil dihapus', 'success');
+                await loadWilayah();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal menghapus: ' + error.message, 'error');
+            }
+        }
+    </script>
+
+
+    <!-- Bottom Navigation for Mobile -->
+        <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
+</body>
+</html>

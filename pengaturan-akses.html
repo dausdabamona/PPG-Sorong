@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>Pengaturan Akses - PPG Sorong</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .permission-matrix {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        .permission-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        .permission-table th,
+        .permission-table td {
+            padding: 0.5rem;
+            border: 1px solid var(--gray-200);
+            text-align: center;
+            vertical-align: middle;
+        }
+        .permission-table th {
+            background: var(--gray-100);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .permission-table th.resource-col {
+            text-align: left;
+            min-width: 150px;
+        }
+        .permission-table th.role-header {
+            min-width: 100px;
+        }
+        .permission-table td.resource-cell {
+            text-align: left;
+            font-weight: 500;
+        }
+        .permission-table tr:hover {
+            background: var(--gray-50);
+        }
+        .perm-group {
+            display: flex;
+            gap: 0.25rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .perm-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .perm-btn.active {
+            color: white;
+        }
+        .perm-btn.view { background: #e5e7eb; color: #6b7280; }
+        .perm-btn.view.active { background: #3b82f6; }
+        .perm-btn.create { background: #e5e7eb; color: #6b7280; }
+        .perm-btn.create.active { background: #10b981; }
+        .perm-btn.edit { background: #e5e7eb; color: #6b7280; }
+        .perm-btn.edit.active { background: #f59e0b; }
+        .perm-btn.delete { background: #e5e7eb; color: #6b7280; }
+        .perm-btn.delete.active { background: #ef4444; }
+        .perm-btn:hover {
+            transform: scale(1.1);
+        }
+        .perm-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            padding: 0.75rem;
+            background: var(--gray-50);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .legend-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+        .role-select-wrapper {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .role-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .role-tab {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.5rem;
+            background: white;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        .role-tab:hover {
+            background: var(--gray-50);
+        }
+        .role-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .role-tab .level-badge {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        .resource-category {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .btn-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .save-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #d1fae5;
+            color: #059669;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .save-indicator.show {
+            display: flex;
+        }
+        @media (max-width: 768px) {
+            .permission-table {
+                font-size: 0.75rem;
+            }
+            .perm-btn {
+                width: 24px;
+                height: 24px;
+                font-size: 0.65rem;
+            }
+            .role-tabs {
+                width: 100%;
+            }
+            .role-tab {
+                flex: 1;
+                text-align: center;
+                padding: 0.4rem 0.5rem;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">&#10005;</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">&#128202;</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">&#128118;</span><span class="nav-text">Data Generus</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">&#128221;</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">&#128214;</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">&#9989;</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">&#128200;</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">&#128203;</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">&#128197;</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">&#128506;</span><span class="nav-text">Wilayah</span></a>
+                <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">&#128214;</span><span class="nav-text">Materi Hafalan</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">&#128218;</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">&#128101;</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">&#128100;</span><span class="nav-text">Manajemen User</span></a>
+                <a href="pengaturan-akses.html" class="nav-item active admin-only" style="display:none;"><span class="nav-icon">&#128274;</span><span class="nav-text">Pengaturan Akses</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">&#128682; Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">&#9776;</span></button>
+                    <h1 class="header-title">Pengaturan Akses</h1>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Access Denied -->
+                <div class="card" id="accessDenied" style="display:none;">
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">&#128274;</div>
+                            <div class="empty-state-title">Akses Ditolak</div>
+                            <p class="text-muted">Halaman ini hanya dapat diakses oleh Admin</p>
+                            <a href="dashboard.html" class="btn btn-primary mt-md">Kembali ke Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Content -->
+                <div id="adminContent" style="display:none;">
+                    <div class="page-header">
+                        <div>
+                            <div class="breadcrumb">
+                                <a href="dashboard.html">Dashboard</a>
+                                <span>/</span>
+                                <span>Pengaturan Akses</span>
+                            </div>
+                            <h2 class="page-title">Kelola Hak Akses Role</h2>
+                            <p class="text-muted">Atur permission untuk setiap role dalam sistem</p>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-icon" style="background:#3b82f6;">V</div>
+                            <span>View (Lihat)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon" style="background:#10b981;">C</div>
+                            <span>Create (Tambah)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon" style="background:#f59e0b;">E</div>
+                            <span>Edit (Ubah)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon" style="background:#ef4444;">D</div>
+                            <span>Delete (Hapus)</span>
+                        </div>
+                    </div>
+
+                    <!-- Role Selector -->
+                    <div class="card mb-lg">
+                        <div class="card-header">
+                            <h3 class="card-title">Pilih Role</h3>
+                            <div class="save-indicator" id="saveIndicator">
+                                &#10003; Tersimpan otomatis
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="role-tabs" id="roleTabs">
+                                <!-- Role tabs will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permission Matrix -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                Permission untuk: <span id="selectedRoleName" class="text-primary">-</span>
+                            </h3>
+                            <div class="btn-actions">
+                                <button class="btn btn-sm btn-outline" onclick="selectAll(true)" title="Aktifkan Semua">
+                                    &#9989; Semua
+                                </button>
+                                <button class="btn btn-sm btn-outline" onclick="selectAll(false)" title="Nonaktifkan Semua">
+                                    &#10060; Kosongkan
+                                </button>
+                                <button class="btn btn-sm btn-outline" onclick="showCopyModal()" title="Copy dari Role Lain">
+                                    &#128203; Copy dari Role
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="permission-matrix" id="permissionMatrix">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">&#128274;</div>
+                                    <p class="text-muted">Pilih role untuk melihat dan mengatur permission</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info Card -->
+                    <div class="card mt-lg">
+                        <div class="card-body">
+                            <h4>&#128161; Catatan Penting:</h4>
+                            <ul class="text-muted" style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li>Perubahan permission akan langsung tersimpan secara otomatis</li>
+                                <li>Role <strong>Admin</strong> selalu memiliki akses penuh ke semua fitur</li>
+                                <li>Pastikan setiap role memiliki permission yang sesuai dengan tanggung jawabnya</li>
+                                <li>User dengan multiple role akan mendapat gabungan permission dari semua role-nya</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Copy Permission Modal -->
+    <div class="modal" id="copyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Copy Permission dari Role Lain</h3>
+                <button class="modal-close" onclick="hideModal('copyModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Pilih Role Sumber</label>
+                    <select class="form-control" id="sourceRole">
+                        <option value="">-- Pilih Role --</option>
+                    </select>
+                    <small class="form-text text-muted">Permission dari role ini akan dicopy ke role yang sedang dipilih</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('copyModal')">Batal</button>
+                <button class="btn btn-primary" onclick="copyPermissions()">Copy Permission</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+
+    <script>
+        let allRoles = [];
+        let allResources = [];
+        let permissionMatrix = {};
+        let selectedRoleId = null;
+        let saveTimeout = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
+            updateSidebarUserInfo();
+            initSidebar();
+
+            const accessDeniedEl = $('accessDenied');
+            const adminContentEl = $('adminContent');
+
+            if (!isAdmin()) {
+                if (accessDeniedEl) accessDeniedEl.style.display = 'block';
+                if (adminContentEl) adminContentEl.style.display = 'none';
+                return;
+            }
+
+            if (accessDeniedEl) accessDeniedEl.style.display = 'none';
+            if (adminContentEl) adminContentEl.style.display = 'block';
+
+            await loadData();
+        });
+
+        function toggleSidebar() {
+            const sidebar = $('sidebar');
+            const overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
+        }
+
+        async function loadData() {
+            showLoading();
+            try {
+                const data = await rolePermissionApi.getMatrix();
+                allRoles = data.roles;
+                allResources = data.resources;
+                permissionMatrix = data.matrix;
+
+                renderRoleTabs();
+
+                // Select first non-admin role
+                if (allRoles.length > 0) {
+                    const firstRole = allRoles.find(r => r.kode !== 'admin') || allRoles[0];
+                    selectRole(firstRole.id);
+                }
+            } catch (error) {
+                console.error('Load data error:', error);
+                showToast('Gagal memuat data permission', 'error');
+            }
+            hideLoading();
+        }
+
+        function renderRoleTabs() {
+            const container = $('roleTabs');
+            if (!container) return;
+
+            container.innerHTML = allRoles.map(role => `
+                <div class="role-tab ${role.id === selectedRoleId ? 'active' : ''}"
+                     onclick="selectRole(${role.id})"
+                     data-role-id="${role.id}">
+                    <div>${escapeHtml(role.nama)}</div>
+                    <div class="level-badge">Level ${role.level}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectRole(roleId) {
+            selectedRoleId = roleId;
+            const role = allRoles.find(r => r.id === roleId);
+
+            // Update selected role name
+            const nameEl = $('selectedRoleName');
+            if (nameEl && role) {
+                nameEl.textContent = role.nama;
+            }
+
+            // Update tab active state
+            $$$('.role-tab').forEach(tab => {
+                const tabRoleId = parseInt(tab.dataset.roleId);
+                tab.classList.toggle('active', tabRoleId === roleId);
+            });
+
+            renderPermissionTable();
+        }
+
+        function renderPermissionTable() {
+            const container = $('permissionMatrix');
+            if (!container) return;
+
+            const role = allRoles.find(r => r.id === selectedRoleId);
+            const isAdminRole = role && role.kode === 'admin';
+
+            // Group resources by category
+            const grouped = {};
+            allResources.forEach(res => {
+                const cat = res.kategori || 'lainnya';
+                if (!grouped[cat]) grouped[cat] = [];
+                grouped[cat].push(res);
+            });
+
+            let html = `
+                <table class="permission-table">
+                    <thead>
+                        <tr>
+                            <th class="resource-col">Resource / Modul</th>
+                            <th>View</th>
+                            <th>Create</th>
+                            <th>Edit</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            Object.keys(grouped).forEach(category => {
+                const resources = grouped[category];
+                const categoryLabel = getCategoryLabel(category);
+
+                // Category header row
+                html += `
+                    <tr style="background: var(--gray-100);">
+                        <td colspan="5" class="resource-category">${categoryLabel}</td>
+                    </tr>
+                `;
+
+                // Resource rows
+                resources.forEach(res => {
+                    const key = `${selectedRoleId}_${res.id}`;
+                    const perm = permissionMatrix[key] || {};
+
+                    html += `
+                        <tr data-resource-id="${res.id}">
+                            <td class="resource-cell">
+                                ${escapeHtml(res.nama)}
+                                <div class="text-muted" style="font-size:0.75rem;">${escapeHtml(res.deskripsi || '')}</div>
+                            </td>
+                            <td>
+                                <button class="perm-btn view ${perm.can_view ? 'active' : ''}"
+                                        onclick="togglePerm(${res.id}, 'view')"
+                                        ${isAdminRole ? 'disabled' : ''}
+                                        title="View">V</button>
+                            </td>
+                            <td>
+                                <button class="perm-btn create ${perm.can_create ? 'active' : ''}"
+                                        onclick="togglePerm(${res.id}, 'create')"
+                                        ${isAdminRole ? 'disabled' : ''}
+                                        title="Create">C</button>
+                            </td>
+                            <td>
+                                <button class="perm-btn edit ${perm.can_edit ? 'active' : ''}"
+                                        onclick="togglePerm(${res.id}, 'edit')"
+                                        ${isAdminRole ? 'disabled' : ''}
+                                        title="Edit">E</button>
+                            </td>
+                            <td>
+                                <button class="perm-btn delete ${perm.can_delete ? 'active' : ''}"
+                                        onclick="togglePerm(${res.id}, 'delete')"
+                                        ${isAdminRole ? 'disabled' : ''}
+                                        title="Delete">D</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+
+            html += '</tbody></table>';
+
+            if (isAdminRole) {
+                html += `
+                    <div class="alert alert-info mt-md">
+                        <strong>Info:</strong> Role Admin selalu memiliki akses penuh ke semua fitur dan tidak dapat diubah.
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function getCategoryLabel(category) {
+            const labels = {
+                'menu': 'Menu Utama',
+                'fitur': 'Fitur',
+                'data': 'Data',
+                'lainnya': 'Lainnya'
+            };
+            return labels[category] || category;
+        }
+
+        async function togglePerm(resourceId, action) {
+            const key = `${selectedRoleId}_${resourceId}`;
+            const perm = permissionMatrix[key] || {
+                can_view: false,
+                can_create: false,
+                can_edit: false,
+                can_delete: false
+            };
+
+            // Toggle the action
+            const actionKey = 'can_' + action;
+            perm[actionKey] = !perm[actionKey];
+
+            // If enabling create/edit/delete, auto-enable view
+            if (perm[actionKey] && action !== 'view') {
+                perm.can_view = true;
+            }
+
+            // If disabling view, disable all other permissions
+            if (!perm.can_view) {
+                perm.can_create = false;
+                perm.can_edit = false;
+                perm.can_delete = false;
+            }
+
+            // Update local matrix
+            permissionMatrix[key] = perm;
+
+            // Re-render the table row
+            updatePermButtons(resourceId, perm);
+
+            // Save to database (debounced)
+            scheduleSave(resourceId, perm);
+        }
+
+        function updatePermButtons(resourceId, perm) {
+            const row = document.querySelector(`tr[data-resource-id="${resourceId}"]`);
+            if (!row) return;
+
+            const viewBtn = row.querySelector('.perm-btn.view');
+            const createBtn = row.querySelector('.perm-btn.create');
+            const editBtn = row.querySelector('.perm-btn.edit');
+            const deleteBtn = row.querySelector('.perm-btn.delete');
+
+            if (viewBtn) viewBtn.classList.toggle('active', perm.can_view);
+            if (createBtn) createBtn.classList.toggle('active', perm.can_create);
+            if (editBtn) editBtn.classList.toggle('active', perm.can_edit);
+            if (deleteBtn) deleteBtn.classList.toggle('active', perm.can_delete);
+        }
+
+        function scheduleSave(resourceId, perm) {
+            // Clear previous timeout
+            if (saveTimeout) clearTimeout(saveTimeout);
+
+            // Schedule save after 500ms of no activity
+            saveTimeout = setTimeout(async () => {
+                const success = await rolePermissionApi.upsert(selectedRoleId, resourceId, perm);
+                if (success) {
+                    showSaveIndicator();
+                }
+            }, 500);
+        }
+
+        function showSaveIndicator() {
+            const indicator = $('saveIndicator');
+            if (indicator) {
+                indicator.classList.add('show');
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                }, 2000);
+            }
+        }
+
+        async function selectAll(enable) {
+            const role = allRoles.find(r => r.id === selectedRoleId);
+            if (role && role.kode === 'admin') {
+                showToast('Tidak dapat mengubah permission Admin', 'warning');
+                return;
+            }
+
+            if (!await confirmDialog(enable ?
+                'Aktifkan semua permission untuk role ini?' :
+                'Nonaktifkan semua permission untuk role ini?')) {
+                return;
+            }
+
+            showLoading();
+
+            const permissions = allResources.map(res => ({
+                resource_id: res.id,
+                can_view: enable,
+                can_create: enable,
+                can_edit: enable,
+                can_delete: enable
+            }));
+
+            const success = await rolePermissionApi.bulkUpdate(selectedRoleId, permissions);
+
+            if (success) {
+                // Update local matrix
+                allResources.forEach(res => {
+                    const key = `${selectedRoleId}_${res.id}`;
+                    permissionMatrix[key] = {
+                        can_view: enable,
+                        can_create: enable,
+                        can_edit: enable,
+                        can_delete: enable
+                    };
+                });
+
+                renderPermissionTable();
+                showToast('Permission berhasil diupdate', 'success');
+            }
+
+            hideLoading();
+        }
+
+        function showCopyModal() {
+            const role = allRoles.find(r => r.id === selectedRoleId);
+            if (role && role.kode === 'admin') {
+                showToast('Tidak dapat mengubah permission Admin', 'warning');
+                return;
+            }
+
+            const select = $('sourceRole');
+            if (select) {
+                select.innerHTML = '<option value="">-- Pilih Role --</option>' +
+                    allRoles
+                        .filter(r => r.id !== selectedRoleId)
+                        .map(r => `<option value="${r.id}">${escapeHtml(r.nama)} (Level ${r.level})</option>`)
+                        .join('');
+            }
+
+            showModal('copyModal');
+        }
+
+        async function copyPermissions() {
+            const sourceRoleId = parseInt($('sourceRole').value);
+            if (!sourceRoleId) {
+                showToast('Pilih role sumber terlebih dahulu', 'warning');
+                return;
+            }
+
+            if (!await confirmDialog('Copy semua permission dari role yang dipilih?')) {
+                return;
+            }
+
+            showLoading();
+
+            const success = await rolePermissionApi.copyFromRole(sourceRoleId, selectedRoleId);
+
+            if (success) {
+                // Reload data
+                await loadData();
+                selectRole(selectedRoleId);
+                hideModal('copyModal');
+                showToast('Permission berhasil dicopy', 'success');
+            }
+
+            hideLoading();
+        }
+
+        function showLoading() {
+            // Simple loading state
+            const matrix = $('permissionMatrix');
+            if (matrix && !matrix.querySelector('.loading-overlay')) {
+                const overlay = document.createElement('div');
+                overlay.className = 'loading-overlay';
+                overlay.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:center;z-index:10;';
+                overlay.innerHTML = '<div class="loading-spinner"></div>';
+                matrix.style.position = 'relative';
+                matrix.appendChild(overlay);
+            }
+        }
+
+        function hideLoading() {
+            const overlay = document.querySelector('.loading-overlay');
+            if (overlay) overlay.remove();
+        }
+    </script>
+
+    <button class="fab-menu" onclick="toggleSidebar()" title="Menu">&#9776;</button>
+</body>
+</html>

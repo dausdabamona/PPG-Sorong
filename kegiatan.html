@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Kegiatan - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .kegiatan-card { background: white; border-radius: 0.75rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+        .kegiatan-card.direncanakan { border-left: 4px solid #f59e0b; }
+        .kegiatan-card.berlangsung { border-left: 4px solid #3b82f6; }
+        .kegiatan-card.selesai { border-left: 4px solid #059669; }
+        .kegiatan-card.dibatalkan { border-left: 4px solid #ef4444; opacity: 0.7; }
+        .kegiatan-header { padding: 1rem; }
+        .kegiatan-title { font-weight: 600; font-size: 1rem; color: #1f2937; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: flex-start; }
+        .kegiatan-date { background: #f0fdf4; padding: 0.5rem; border-radius: 0.5rem; text-align: center; min-width: 60px; }
+        .kegiatan-date-day { font-size: 1.25rem; font-weight: 700; color: #059669; }
+        .kegiatan-date-month { font-size: 0.65rem; color: #6b7280; text-transform: uppercase; }
+        .kegiatan-info { flex: 1; margin-left: 0.75rem; }
+        .kegiatan-name { font-weight: 600; font-size: 0.95rem; }
+        .kegiatan-desc { font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
+        .kegiatan-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+        .kegiatan-meta-item { font-size: 0.7rem; color: #6b7280; display: flex; align-items: center; gap: 0.25rem; }
+        .kegiatan-footer { padding: 0.75rem 1rem; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; }
+        .peserta-count { font-size: 0.8rem; color: #6b7280; }
+        .kegiatan-actions { display: flex; gap: 0.5rem; }
+        .status-badge { padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.7rem; font-weight: 500; }
+        .status-direncanakan { background: #fef3c7; color: #92400e; }
+        .status-berlangsung { background: #dbeafe; color: #1e40af; }
+        .status-selesai { background: #dcfce7; color: #166534; }
+        .status-dibatalkan { background: #fee2e2; color: #dc2626; }
+        .filter-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .filter-row .form-control { flex: 1; min-width: 100px; }
+        .stats-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .stat-card { flex: 1; background: white; border-radius: 0.75rem; padding: 0.75rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 1.25rem; font-weight: 700; color: #059669; }
+        .stat-label { font-size: 0.7rem; color: #6b7280; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #6b7280; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .peserta-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #f1f5f9; }
+        .peserta-item:last-child { border-bottom: none; }
+        .peserta-info { display: flex; align-items: center; gap: 0.5rem; }
+        .peserta-avatar { width: 32px; height: 32px; border-radius: 50%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; }
+        .calendar-view { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 1rem; }
+        .calendar-day { background: white; padding: 0.5rem; min-height: 60px; border-radius: 0.25rem; }
+        .calendar-day.other-month { background: #f8fafc; opacity: 0.5; }
+        .calendar-day.today { border: 2px solid #059669; }
+        .calendar-day-number { font-size: 0.75rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .calendar-event { font-size: 0.6rem; padding: 0.15rem 0.25rem; border-radius: 0.25rem; margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+        .calendar-event.direncanakan { background: #fef3c7; color: #92400e; }
+        .calendar-event.berlangsung { background: #dbeafe; color: #1e40af; }
+        .calendar-event.selesai { background: #dcfce7; color: #166534; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="kelas.html" class="nav-item"><span class="nav-icon">🏫</span><span class="nav-text">Kelas Pengajian</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="penilaian-akhlaq.html" class="nav-item"><span class="nav-icon">⭐</span><span class="nav-text">Penilaian Akhlaq</span></a>
+                <div class="nav-section">ORGANISASI</div>
+                <a href="musyawarah.html" class="nav-item"><span class="nav-icon">🤝</span><span class="nav-text">Musyawarah</span></a>
+                <a href="kegiatan.html" class="nav-item active"><span class="nav-icon">📅</span><span class="nav-text">Kegiatan</span></a>
+                <a href="lima-unsur.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Lima Unsur</span></a>
+                <a href="kakak-asuh.html" class="nav-item"><span class="nav-icon">🤗</span><span class="nav-text">Kakak Asuh</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="header" id="desktopHeader">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Kegiatan</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="showAddModal()">+ Tambah Kegiatan</button>
+                </div>
+            </header>
+
+            <div class="pwa-page-header" id="mobileHeader" style="display:none;">
+                <button class="pwa-back-btn" onclick="location.href='dashboard.html'">←</button>
+                <h1 class="pwa-page-title">📅 Kegiatan</h1>
+                <button class="pwa-page-action" onclick="showAddModal()">➕</button>
+            </div>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statDirencanakan">0</div>
+                        <div class="stat-label">Direncanakan</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statSelesai">0</div>
+                        <div class="stat-label">Selesai</div>
+                    </div>
+                </div>
+
+                <!-- Filter -->
+                <div class="card mb-sm">
+                    <div class="card-body">
+                        <div class="filter-row">
+                            <select class="form-control" id="filterWilayah" onchange="loadKegiatan()">
+                                <option value="">Semua Wilayah</option>
+                            </select>
+                            <input type="month" class="form-control" id="filterBulan" onchange="loadKegiatan()">
+                            <select class="form-control" id="filterStatus" onchange="loadKegiatan()">
+                                <option value="">Semua Status</option>
+                                <option value="direncanakan">Direncanakan</option>
+                                <option value="berlangsung">Berlangsung</option>
+                                <option value="selesai">Selesai</option>
+                                <option value="dibatalkan">Dibatalkan</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List -->
+                <div id="kegiatanList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📅</div>
+                        <p>Memuat data...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Tambah/Edit -->
+    <div class="modal" id="kegiatanModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Tambah Kegiatan</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="kegiatanId">
+
+                <div class="form-group">
+                    <label class="form-label">Nama Kegiatan *</label>
+                    <input type="text" class="form-control" id="inputNama" placeholder="Nama kegiatan">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Jenis</label>
+                        <select class="form-control" id="inputJenis">
+                            <option value="rapat">Rapat</option>
+                            <option value="acara">Acara</option>
+                            <option value="pelatihan">Pelatihan</option>
+                            <option value="baksos">Bakti Sosial</option>
+                            <option value="wisata">Wisata/Outing</option>
+                            <option value="lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Wilayah *</label>
+                        <select class="form-control" id="inputWilayah">
+                            <option value="">Pilih Wilayah</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Tanggal Mulai *</label>
+                        <input type="date" class="form-control" id="inputTanggalMulai">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Tanggal Selesai</label>
+                        <input type="date" class="form-control" id="inputTanggalSelesai">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Waktu</label>
+                        <input type="time" class="form-control" id="inputWaktu">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" id="inputStatus">
+                            <option value="direncanakan">Direncanakan</option>
+                            <option value="berlangsung">Berlangsung</option>
+                            <option value="selesai">Selesai</option>
+                            <option value="dibatalkan">Dibatalkan</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tempat</label>
+                    <input type="text" class="form-control" id="inputTempat" placeholder="Lokasi kegiatan">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Deskripsi</label>
+                    <textarea class="form-control" id="inputDeskripsi" rows="2" placeholder="Deskripsi kegiatan"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Penanggung Jawab</label>
+                    <input type="text" class="form-control" id="inputPJ" placeholder="Nama penanggung jawab">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Anggaran (Rp)</label>
+                    <input type="number" class="form-control" id="inputAnggaran" placeholder="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+                <button class="btn btn-primary" onclick="saveKegiatan()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Peserta -->
+    <div class="modal" id="pesertaModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Peserta: <span id="pesertaKegiatanNama"></span></h3>
+                <button class="modal-close" onclick="closePesertaModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <span id="pesertaCount" style="font-size:0.85rem; color:#6b7280;">0 peserta</span>
+                    <button class="btn btn-primary btn-sm" onclick="showTambahPesertaModal()">+ Tambah Peserta</button>
+                </div>
+                <div id="pesertaList">
+                    <p class="text-center text-muted">Memuat...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closePesertaModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Peserta -->
+    <div class="modal" id="tambahPesertaModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Peserta</h3>
+                <button class="modal-close" onclick="closeTambahPesertaModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Cari Nama</label>
+                    <input type="text" class="form-control" id="searchPeserta" placeholder="Ketik nama..." oninput="searchPesertaForKegiatan()">
+                </div>
+                <div id="pesertaSearchResult" style="max-height: 300px; overflow-y: auto;">
+                    <p class="text-muted text-center">Ketik minimal 2 huruf</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeTambahPesertaModal()">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/pwa-mobile.js"></script>
+    <script>
+        var allKegiatan = [];
+        var allWilayah = [];
+        var currentKegiatanId = null;
+        var currentPeserta = [];
+
+        function $(id) { return document.getElementById(id); }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initAuth();
+
+            var now = new Date();
+            $('filterBulan').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+            await loadMasterData();
+            await loadKegiatan();
+        });
+
+        async function loadMasterData() {
+            try {
+                allWilayah = await wilayahApi.getAll({ is_aktif: true });
+                var filterWilayah = $('filterWilayah');
+                var inputWilayah = $('inputWilayah');
+
+                allWilayah.forEach(function(w) {
+                    var prefix = w.tingkat === 'daerah' ? '📍 ' : (w.tingkat === 'desa' ? '  🏘️ ' : '    📌 ');
+                    filterWilayah.innerHTML += '<option value="' + w.id + '">' + prefix + w.nama + '</option>';
+                    inputWilayah.innerHTML += '<option value="' + w.id + '">' + prefix + w.nama + '</option>';
+                });
+            } catch (error) {
+                console.error('Error load master:', error);
+            }
+        }
+
+        async function loadKegiatan() {
+            try {
+                var wilayahId = $('filterWilayah').value;
+                var bulan = $('filterBulan').value;
+                var status = $('filterStatus').value;
+
+                var query = db.from('kegiatan')
+                    .select('*, wilayah:wilayah_id(nama)')
+                    .order('tanggal_mulai', { ascending: false });
+
+                if (wilayahId) query = query.eq('wilayah_id', parseInt(wilayahId));
+                if (status) query = query.eq('status', status);
+
+                if (bulan) {
+                    var [tahun, bln] = bulan.split('-');
+                    var startDate = tahun + '-' + bln + '-01';
+                    var lastDay = new Date(parseInt(tahun), parseInt(bln), 0).getDate();
+                    var endDate = tahun + '-' + bln + '-' + String(lastDay).padStart(2, '0');
+                    query = query.gte('tanggal_mulai', startDate).lte('tanggal_mulai', endDate);
+                }
+
+                var { data, error } = await query;
+                if (error) throw error;
+
+                allKegiatan = data || [];
+
+                // Get peserta count
+                for (var i = 0; i < allKegiatan.length; i++) {
+                    var { count } = await db.from('peserta_kegiatan')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('kegiatan_id', allKegiatan[i].id);
+                    allKegiatan[i].peserta_count = count || 0;
+                }
+
+                renderKegiatan();
+                updateStats();
+
+            } catch (error) {
+                console.error('Error load kegiatan:', error);
+                showToast('Gagal memuat data', 'error');
+            }
+        }
+
+        function renderKegiatan() {
+            var container = $('kegiatanList');
+
+            if (allKegiatan.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><p>Belum ada kegiatan</p></div>';
+                return;
+            }
+
+            var html = '';
+            allKegiatan.forEach(function(k) {
+                var tanggal = new Date(k.tanggal_mulai);
+                var day = tanggal.getDate();
+                var month = tanggal.toLocaleDateString('id-ID', { month: 'short' });
+
+                html += '<div class="kegiatan-card ' + k.status + '">';
+                html += '<div class="kegiatan-header" style="display:flex; align-items:flex-start;">';
+                html += '<div class="kegiatan-date"><div class="kegiatan-date-day">' + day + '</div><div class="kegiatan-date-month">' + month + '</div></div>';
+                html += '<div class="kegiatan-info">';
+                html += '<div class="kegiatan-name">' + k.nama + '</div>';
+                if (k.deskripsi) html += '<div class="kegiatan-desc">' + k.deskripsi.substring(0, 80) + (k.deskripsi.length > 80 ? '...' : '') + '</div>';
+                html += '<div class="kegiatan-meta">';
+                html += '<span class="kegiatan-meta-item">📍 ' + (k.wilayah?.nama || '-') + '</span>';
+                if (k.tempat) html += '<span class="kegiatan-meta-item">🏠 ' + k.tempat + '</span>';
+                if (k.waktu) html += '<span class="kegiatan-meta-item">🕐 ' + k.waktu + '</span>';
+                html += '<span class="status-badge status-' + k.status + '">' + k.status + '</span>';
+                html += '</div>';
+                html += '</div>';
+                html += '</div>';
+
+                html += '<div class="kegiatan-footer">';
+                html += '<span class="peserta-count">👥 ' + k.peserta_count + ' peserta</span>';
+                html += '<div class="kegiatan-actions">';
+                html += '<button class="btn btn-sm btn-outline" onclick="showPeserta(' + k.id + ', \'' + k.nama.replace(/'/g, "\\'") + '\')">👥</button>';
+                html += '<button class="btn btn-sm btn-outline" onclick="editKegiatan(' + k.id + ')">✏️</button>';
+                html += '<button class="btn btn-sm btn-outline" onclick="deleteKegiatan(' + k.id + ')">🗑️</button>';
+                html += '</div>';
+                html += '</div>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateStats() {
+            $('statTotal').textContent = allKegiatan.length;
+            $('statDirencanakan').textContent = allKegiatan.filter(function(k) { return k.status === 'direncanakan'; }).length;
+            $('statSelesai').textContent = allKegiatan.filter(function(k) { return k.status === 'selesai'; }).length;
+        }
+
+        function showAddModal() {
+            $('modalTitle').textContent = 'Tambah Kegiatan';
+            $('kegiatanId').value = '';
+            $('inputNama').value = '';
+            $('inputJenis').value = 'acara';
+            $('inputWilayah').value = '';
+            $('inputTanggalMulai').value = new Date().toISOString().split('T')[0];
+            $('inputTanggalSelesai').value = '';
+            $('inputWaktu').value = '';
+            $('inputStatus').value = 'direncanakan';
+            $('inputTempat').value = '';
+            $('inputDeskripsi').value = '';
+            $('inputPJ').value = '';
+            $('inputAnggaran').value = '';
+            $('kegiatanModal').classList.add('show');
+        }
+
+        function editKegiatan(id) {
+            var k = allKegiatan.find(function(x) { return x.id === id; });
+            if (!k) return;
+
+            $('modalTitle').textContent = 'Edit Kegiatan';
+            $('kegiatanId').value = k.id;
+            $('inputNama').value = k.nama || '';
+            $('inputJenis').value = k.jenis || 'acara';
+            $('inputWilayah').value = k.wilayah_id || '';
+            $('inputTanggalMulai').value = k.tanggal_mulai || '';
+            $('inputTanggalSelesai').value = k.tanggal_selesai || '';
+            $('inputWaktu').value = k.waktu || '';
+            $('inputStatus').value = k.status || 'direncanakan';
+            $('inputTempat').value = k.tempat || '';
+            $('inputDeskripsi').value = k.deskripsi || '';
+            $('inputPJ').value = k.penanggung_jawab || '';
+            $('inputAnggaran').value = k.anggaran || '';
+            $('kegiatanModal').classList.add('show');
+        }
+
+        function closeModal() {
+            $('kegiatanModal').classList.remove('show');
+        }
+
+        async function saveKegiatan() {
+            var id = $('kegiatanId').value;
+            var nama = $('inputNama').value.trim();
+            var jenis = $('inputJenis').value;
+            var wilayahId = $('inputWilayah').value;
+            var tanggalMulai = $('inputTanggalMulai').value;
+            var tanggalSelesai = $('inputTanggalSelesai').value;
+            var waktu = $('inputWaktu').value;
+            var status = $('inputStatus').value;
+            var tempat = $('inputTempat').value.trim();
+            var deskripsi = $('inputDeskripsi').value.trim();
+            var pj = $('inputPJ').value.trim();
+            var anggaran = $('inputAnggaran').value;
+
+            if (!nama) {
+                showToast('Nama kegiatan wajib diisi', 'error');
+                return;
+            }
+            if (!wilayahId) {
+                showToast('Wilayah wajib dipilih', 'error');
+                return;
+            }
+            if (!tanggalMulai) {
+                showToast('Tanggal mulai wajib diisi', 'error');
+                return;
+            }
+
+            try {
+                var data = {
+                    nama: nama,
+                    jenis: jenis,
+                    wilayah_id: parseInt(wilayahId),
+                    tanggal_mulai: tanggalMulai,
+                    tanggal_selesai: tanggalSelesai || null,
+                    waktu: waktu || null,
+                    status: status,
+                    tempat: tempat || null,
+                    deskripsi: deskripsi || null,
+                    penanggung_jawab: pj || null,
+                    anggaran: anggaran ? parseInt(anggaran) : null,
+                    created_by: currentUserData?.id || null
+                };
+
+                if (id) {
+                    var { error } = await db.from('kegiatan').update(data).eq('id', parseInt(id));
+                    if (error) throw error;
+                } else {
+                    var { error } = await db.from('kegiatan').insert(data);
+                    if (error) throw error;
+                }
+
+                showToast('Kegiatan berhasil disimpan', 'success');
+                closeModal();
+                await loadKegiatan();
+
+            } catch (error) {
+                console.error('Error save:', error);
+                showToast('Gagal menyimpan: ' + (error.message || error), 'error');
+            }
+        }
+
+        async function deleteKegiatan(id) {
+            if (!confirm('Yakin ingin menghapus kegiatan ini?')) return;
+
+            try {
+                await db.from('peserta_kegiatan').delete().eq('kegiatan_id', id);
+                var { error } = await db.from('kegiatan').delete().eq('id', id);
+                if (error) throw error;
+
+                showToast('Kegiatan berhasil dihapus', 'success');
+                await loadKegiatan();
+            } catch (error) {
+                console.error('Error delete:', error);
+                showToast('Gagal menghapus', 'error');
+            }
+        }
+
+        async function showPeserta(kegiatanId, nama) {
+            currentKegiatanId = kegiatanId;
+            $('pesertaKegiatanNama').textContent = nama;
+
+            try {
+                var { data, error } = await db.from('peserta_kegiatan')
+                    .select('*, jamaah:jamaah_id(id, nama, jenis_kelamin)')
+                    .eq('kegiatan_id', kegiatanId);
+
+                if (error) throw error;
+
+                currentPeserta = data || [];
+                renderPeserta();
+                $('pesertaModal').classList.add('show');
+
+            } catch (error) {
+                console.error('Error load peserta:', error);
+                showToast('Gagal memuat peserta', 'error');
+            }
+        }
+
+        function renderPeserta() {
+            var container = $('pesertaList');
+            $('pesertaCount').textContent = currentPeserta.length + ' peserta';
+
+            if (currentPeserta.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Belum ada peserta</p>';
+                return;
+            }
+
+            var html = '';
+            currentPeserta.forEach(function(p) {
+                var jk = p.jamaah?.jenis_kelamin || '?';
+                html += '<div class="peserta-item">';
+                html += '<div class="peserta-info">';
+                html += '<div class="peserta-avatar" style="background:' + (jk === 'L' ? '#dbeafe' : '#fce7f3') + ';color:' + (jk === 'L' ? '#1e40af' : '#be185d') + ';">' + jk + '</div>';
+                html += '<span>' + (p.jamaah?.nama || '-') + '</span>';
+                html += '</div>';
+                html += '<button class="btn btn-xs btn-outline" onclick="removePeserta(' + p.id + ')">×</button>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function closePesertaModal() {
+            $('pesertaModal').classList.remove('show');
+        }
+
+        function showTambahPesertaModal() {
+            $('searchPeserta').value = '';
+            $('pesertaSearchResult').innerHTML = '<p class="text-muted text-center">Ketik minimal 2 huruf</p>';
+            $('tambahPesertaModal').classList.add('show');
+        }
+
+        function closeTambahPesertaModal() {
+            $('tambahPesertaModal').classList.remove('show');
+        }
+
+        var searchTimeout;
+        async function searchPesertaForKegiatan() {
+            var query = $('searchPeserta').value.trim();
+            var container = $('pesertaSearchResult');
+
+            if (query.length < 2) {
+                container.innerHTML = '<p class="text-muted text-center">Ketik minimal 2 huruf</p>';
+                return;
+            }
+
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async function() {
+                try {
+                    var results = await jamaahApi.search(query, 20);
+
+                    var existingIds = currentPeserta.map(function(p) { return p.jamaah_id; });
+                    results = results.filter(function(r) { return !existingIds.includes(r.id); });
+
+                    if (results.length === 0) {
+                        container.innerHTML = '<p class="text-muted text-center">Tidak ditemukan atau sudah terdaftar</p>';
+                        return;
+                    }
+
+                    var html = '';
+                    results.forEach(function(r) {
+                        html += '<div class="peserta-item">';
+                        html += '<div class="peserta-info">';
+                        html += '<div class="peserta-avatar" style="background:' + (r.jenis_kelamin === 'L' ? '#dbeafe' : '#fce7f3') + ';">' + r.jenis_kelamin + '</div>';
+                        html += '<span>' + r.nama + '</span>';
+                        html += '</div>';
+                        html += '<button class="btn btn-sm btn-primary" onclick="tambahPeserta(' + r.id + ')">+</button>';
+                        html += '</div>';
+                    });
+
+                    container.innerHTML = html;
+
+                } catch (error) {
+                    console.error('Error search:', error);
+                }
+            }, 300);
+        }
+
+        async function tambahPeserta(jamaahId) {
+            try {
+                var { error } = await db.from('peserta_kegiatan').insert({
+                    kegiatan_id: currentKegiatanId,
+                    jamaah_id: jamaahId,
+                    status: 'terdaftar'
+                });
+
+                if (error) throw error;
+
+                showToast('Peserta ditambahkan', 'success');
+                closeTambahPesertaModal();
+
+                var kegiatan = allKegiatan.find(function(k) { return k.id === currentKegiatanId; });
+                await showPeserta(currentKegiatanId, kegiatan?.nama || '');
+                await loadKegiatan();
+
+            } catch (error) {
+                console.error('Error tambah:', error);
+                showToast('Gagal menambah peserta', 'error');
+            }
+        }
+
+        async function removePeserta(pesertaId) {
+            if (!confirm('Hapus peserta ini?')) return;
+
+            try {
+                var { error } = await db.from('peserta_kegiatan').delete().eq('id', pesertaId);
+                if (error) throw error;
+
+                showToast('Peserta dihapus', 'success');
+                var kegiatan = allKegiatan.find(function(k) { return k.id === currentKegiatanId; });
+                await showPeserta(currentKegiatanId, kegiatan?.nama || '');
+                await loadKegiatan();
+
+            } catch (error) {
+                console.error('Error remove:', error);
+                showToast('Gagal menghapus', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

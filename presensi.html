@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192x192.svg">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>Presensi - PPG Sorong</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        /* Mobile responsive table styling */
+        @media (max-width: 768px) {
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            #presensiTable {
+                min-width: 100%;
+                font-size: 0.75rem;
+            }
+
+            #presensiTable th,
+            #presensiTable td {
+                padding: 0.4rem 0.3rem;
+                white-space: nowrap;
+            }
+
+            #presensiTable th:first-child,
+            #presensiTable td:first-child {
+                position: sticky;
+                left: 0;
+                background: white;
+                z-index: 10;
+                min-width: 30px;
+            }
+
+            #presensiTable th:nth-child(2),
+            #presensiTable td:nth-child(2) {
+                position: sticky;
+                left: 30px;
+                background: white;
+                z-index: 10;
+                max-width: 120px;
+                white-space: normal;
+                word-wrap: break-word;
+            }
+
+            #presensiTable thead th {
+                background: var(--primary-color, #059669);
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 11;
+            }
+
+            #presensiTable thead th:first-child,
+            #presensiTable thead th:nth-child(2) {
+                z-index: 12;
+            }
+
+            /* Radio buttons spacing */
+            #presensiTable input[type="radio"] {
+                margin: 0;
+                transform: scale(1.2);
+            }
+
+            /* Keterangan input smaller on mobile */
+            #presensiTable input[type="text"] {
+                min-width: 100px;
+                font-size: 0.7rem;
+                padding: 0.3rem;
+            }
+
+            /* Gender header styling */
+            .gender-header td {
+                position: sticky;
+                left: 0;
+                background: inherit !important;
+                z-index: 10;
+            }
+
+            /* Filter section responsive */
+            .card-body > div[style*="display:flex"] {
+                flex-direction: column !important;
+            }
+
+            .card-body > div[style*="display:flex"] > div {
+                width: 100% !important;
+                min-width: 100% !important;
+            }
+
+            /* Pengajian info responsive */
+            #pengajianInfo > div > div {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+                <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item active"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="cleanup-duplikat.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🧹</span><span class="nav-text">Cleanup Duplikat</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+                <a href="pengaturan-akses.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🔐</span><span class="nav-text">Pengaturan Akses</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left"><h1 class="header-title">Input Presensi</h1></div>
+                </header>
+            
+            <div class="page-content">
+                <div class="page-header">
+                    <div>
+                        <div class="breadcrumb"><a href="dashboard.html">Dashboard</a><span>/</span><span>Presensi</span></div>
+                        <h2 class="page-title">Input Presensi Pengajian</h2>
+                    </div>
+                </div>
+                
+                <!-- Select Pengajian -->
+                <div class="card mb-lg">
+                    <div class="card-header"><h3 class="card-title">Pilih Pengajian</h3></div>
+                    <div class="card-body">
+                        <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;">
+                            <div style="flex:1;min-width:250px;">
+                                <label class="form-label">Pengajian</label>
+                                <select class="form-control" id="selectPengajian" onchange="loadPresensi()">
+                                    <option value="">-- Pilih Pengajian --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <a href="pengajian.html?action=add" class="btn btn-outline">➕ Buat Pengajian Baru</a>
+                            </div>
+                        </div>
+                        
+                        <div id="pengajianInfo" class="mt-lg" style="display:none;">
+                            <div style="background:var(--gray-100);padding:1rem;border-radius:var(--radius-md);">
+                                <div style="display:flex;flex-wrap:wrap;gap:1.5rem;">
+                                    <div><strong>Tanggal:</strong> <span id="infoTanggal">-</span></div>
+                                    <div><strong>Jenjang:</strong> <span id="infoJenis">-</span></div>
+                                    <div><strong>Kelompok:</strong> <span id="infoKelompok">-</span></div>
+                                    <div><strong>Mubaligh:</strong> <span id="infoMubaligh">-</span></div>
+                                    <div><strong>Jumlah Santri:</strong> <span id="infoJumlah">-</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Presensi Form -->
+                <div class="card" id="presensiCard" style="display:none;">
+                    <div class="card-header">
+                        <h3 class="card-title">Daftar Hadir</h3>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-success" onclick="setAllStatus('hadir')">✅ Semua Hadir</button>
+                            <button class="btn btn-sm btn-secondary" onclick="setAllStatus('alpa')">❌ Semua Alpa</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table" id="presensiTable">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Santri</th>
+                                        <th>Jenjang</th>
+                                        <th style="text-align:center;">Hadir</th>
+                                        <th style="text-align:center;">Izin</th>
+                                        <th style="text-align:center;">Sakit</th>
+                                        <th style="text-align:center;">Alpa</th>
+                                        <th>Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-primary btn-lg" onclick="savePresensi()" id="btnSave">💾 Simpan Presensi</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    
+    <script>
+        let currentPengajian = null;
+        let jamaahList = [];
+        let existingPresensi = {};
+        
+        
+        function toggleSidebar() {
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
+        }
+
+        var allWilayah = [];
+        var accessibleWilayahIds = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
+            updateSidebarUserInfo();
+            initSidebar();
+            updateUserUI();
+
+            // Load wilayah for role-based filtering
+            await loadWilayahData();
+
+            await loadPengajianList();
+
+            // Check URL param
+            const pengajianId = getUrlParam('pengajian_id');
+            if (pengajianId) {
+                $('selectPengajian').value = pengajianId;
+                loadPresensi();
+            }
+        });
+
+        async function loadWilayahData() {
+            try {
+                var result = await db.from('wilayah').select('*').order('nama');
+                allWilayah = result.data || [];
+                accessibleWilayahIds = getAccessibleWilayahIds(allWilayah);
+            } catch (e) {
+                console.error('Error load wilayah:', e);
+            }
+        }
+        
+        function updateUserUI() {
+            if (!currentUserData) return;
+            
+            var userNameEl = $('userName');
+            var userAvatarEl = $('userAvatar');
+            var userRoleEl = $('userRole');
+            
+            if (userNameEl) userNameEl.textContent = currentUserData.nama || currentUserData.email || 'User';
+            if (userAvatarEl) userAvatarEl.textContent = (currentUserData.nama || 'U').charAt(0).toUpperCase();
+            if (userRoleEl && userRoles && userRoles.length > 0) {
+                userRoleEl.textContent = userRoles[0].role?.nama || '-';
+            }
+        }
+        
+        async function loadPengajianList() {
+            try {
+                // Load pengajian from last 30 days
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+                let query = db.from('pengajian')
+                    .select('id, tanggal, materi, jenis_kelamin, wilayah_id, wilayah:wilayah_id(nama)')
+                    .gte('tanggal', thirtyDaysAgo.toISOString().split('T')[0])
+                    .order('tanggal', { ascending: false });
+
+                // Filter by accessible wilayah if not admin
+                if (!isAdmin() && accessibleWilayahIds.length > 0) {
+                    query = query.in('wilayah_id', accessibleWilayahIds);
+                }
+
+                const { data, error } = await query;
+
+                if (error) throw error;
+
+                const select = $('selectPengajian');
+                data?.forEach(p => {
+                    // Tambahkan info jenis kelamin
+                    var genderInfo = '';
+                    if (p.jenis_kelamin === 'L') genderInfo = ' [♂]';
+                    else if (p.jenis_kelamin === 'P') genderInfo = ' [♀]';
+
+                    select.innerHTML += `<option value="${p.id}">${formatTanggalSingkat(p.tanggal)} - ${p.materi || 'Pengajian'}${genderInfo} - ${p.wilayah?.nama || '-'}</option>`;
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        async function loadPresensi() {
+            const pengajianId = $('selectPengajian').value;
+            if (!pengajianId) {
+                $('pengajianInfo').style.display = 'none';
+                $('presensiCard').style.display = 'none';
+                return;
+            }
+            
+            try {
+                // Get pengajian detail (termasuk jenis_kelamin dan jenjang_ids untuk filter)
+                const { data: pengajian } = await db.from('pengajian')
+                    .select('*, jenis_kelamin, jenjang_ids, wilayah:wilayah_id(id, nama), creator:created_by(nama)')
+                    .eq('id', pengajianId)
+                    .single();
+
+                if (!pengajian) return;
+                currentPengajian = pengajian;
+
+                // Parse jenjang_ids (handle berbagai format: array, string JSON, atau double-encoded)
+                var jenjangIds = [];
+                var rawJenjangIds = pengajian.jenjang_ids;
+                console.log('Raw jenjang_ids:', rawJenjangIds, 'type:', typeof rawJenjangIds);
+
+                if (rawJenjangIds) {
+                    try {
+                        if (Array.isArray(rawJenjangIds)) {
+                            // Sudah array langsung
+                            jenjangIds = rawJenjangIds;
+                        } else if (typeof rawJenjangIds === 'string') {
+                            // Parse string JSON
+                            var parsed = JSON.parse(rawJenjangIds);
+                            // Cek jika masih string (double-encoded)
+                            if (typeof parsed === 'string') {
+                                parsed = JSON.parse(parsed);
+                            }
+                            jenjangIds = Array.isArray(parsed) ? parsed : [];
+                        } else if (typeof rawJenjangIds === 'object') {
+                            // Object tapi bukan array (mungkin dari JSONB)
+                            jenjangIds = Object.values(rawJenjangIds);
+                        }
+                    } catch(e) {
+                        console.error('Error parsing jenjang_ids:', e);
+                        jenjangIds = [];
+                    }
+                }
+
+                // Pastikan semua item adalah number
+                jenjangIds = jenjangIds.map(function(id) { return parseInt(id); }).filter(function(id) { return !isNaN(id); });
+
+                console.log('Parsed jenjang_ids:', jenjangIds);
+
+                // Show info
+                $('pengajianInfo').style.display = 'block';
+                $('infoTanggal').textContent = formatTanggal(pengajian.tanggal);
+
+                // Tampilkan info jenjang yang dipilih
+                var jenjangInfo = 'Semua Jenjang';
+                if (jenjangIds && jenjangIds.length > 0) {
+                    // Fetch jenjang names
+                    var { data: jenjangData } = await db.from('jenjang').select('id, nama').in('id', jenjangIds);
+                    if (jenjangData && jenjangData.length > 0) {
+                        jenjangInfo = jenjangData.map(function(j) { return j.nama; }).join(', ');
+                    } else {
+                        jenjangInfo = 'ID: ' + jenjangIds.join(', ');
+                    }
+                }
+                $('infoJenis').textContent = jenjangInfo;
+
+                // Tampilkan info peserta berdasarkan jenis kelamin di keterangan
+                var pesertaInfo = '';
+                if (pengajian.jenis_kelamin === 'L') {
+                    pesertaInfo = '♂ Ikhwan saja';
+                } else if (pengajian.jenis_kelamin === 'P') {
+                    pesertaInfo = '♀ Akhwat saja';
+                }
+                if (pengajian.keterangan) {
+                    pesertaInfo += (pesertaInfo ? ' - ' : '') + pengajian.keterangan;
+                }
+                if (pesertaInfo) {
+                    $('infoJenis').textContent += ' (' + pesertaInfo + ')';
+                }
+                $('infoKelompok').textContent = pengajian.wilayah?.nama || '-';
+                $('infoMubaligh').textContent = pengajian.creator?.nama || '-';
+
+                // Get jamaah in this wilayah with jenjang filter
+                var query = db.from('enrollment')
+                    .select('jamaah:jamaah_id(id, nama, jenis_kelamin), jenjang:jenjang_id(id, nama)')
+                    .eq('wilayah_id', pengajian.wilayah.id)
+                    .eq('status', 'aktif');
+
+                // Filter by jenjang_ids jika ada
+                if (jenjangIds && jenjangIds.length > 0) {
+                    console.log('Filtering by jenjang_ids:', jenjangIds);
+                    query = query.in('jenjang_id', jenjangIds);
+                } else {
+                    console.log('No jenjang filter - showing all jenjang');
+                }
+
+                const { data: enrollments, error: enrollError } = await query;
+                if (enrollError) {
+                    console.error('Error fetching enrollments:', enrollError);
+                }
+                console.log('Enrollments fetched:', enrollments?.length, 'records');
+
+                jamaahList = enrollments?.map(e => ({
+                    id: e.jamaah.id,
+                    nama: e.jamaah.nama,
+                    jenis_kelamin: e.jamaah.jenis_kelamin,
+                    jenjang: e.jenjang?.nama,
+                    jenjang_id: e.jenjang?.id
+                })).sort((a, b) => a.nama.localeCompare(b.nama)) || [];
+
+                // Filter berdasarkan jenis_kelamin pengajian jika diset
+                if (pengajian.jenis_kelamin === 'L') {
+                    jamaahList = jamaahList.filter(j => j.jenis_kelamin === 'L');
+                } else if (pengajian.jenis_kelamin === 'P') {
+                    jamaahList = jamaahList.filter(j => j.jenis_kelamin === 'P');
+                }
+
+                // Update info jumlah santri dengan breakdown gender
+                var lakiCount = jamaahList.filter(j => j.jenis_kelamin === 'L').length;
+                var perempuanCount = jamaahList.filter(j => j.jenis_kelamin === 'P').length;
+                var jumlahText = jamaahList.length + ' orang';
+                if (!pengajian.jenis_kelamin) {
+                    jumlahText += ' (L: ' + lakiCount + ', P: ' + perempuanCount + ')';
+                }
+                $('infoJumlah').textContent = jumlahText;
+                
+                // Get existing presensi
+                const { data: presensi } = await db.from('keaktifan_pengajian')
+                    .select('*')
+                    .eq('pengajian_id', pengajianId);
+                
+                existingPresensi = {};
+                presensi?.forEach(p => {
+                    existingPresensi[p.jamaah_id] = p;
+                });
+                
+                renderPresensiTable();
+                $('presensiCard').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal memuat data', 'error');
+            }
+        }
+        
+        function renderPresensiTable() {
+            const tbody = $$('#presensiTable tbody');
+
+            if (jamaahList.length === 0) {
+                var wilayahNama = currentPengajian?.wilayah?.nama || 'kelompok ini';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Tidak ada santri di ' + wilayahNama + '</td></tr>';
+                return;
+            }
+
+            // Pisahkan berdasarkan jenis kelamin
+            var lakiLaki = jamaahList.filter(j => j.jenis_kelamin === 'L');
+            var perempuan = jamaahList.filter(j => j.jenis_kelamin === 'P');
+
+            var html = '';
+            var nomor = 1;
+
+            // Render Laki-laki
+            if (lakiLaki.length > 0) {
+                html += '<tr class="gender-header"><td colspan="8" style="background:#e0f2fe;font-weight:600;color:#0369a1;">👨 Laki-laki (' + lakiLaki.length + ' orang)</td></tr>';
+                lakiLaki.forEach(j => {
+                    html += renderPresensiRow(j, nomor++);
+                });
+            }
+
+            // Render Perempuan
+            if (perempuan.length > 0) {
+                html += '<tr class="gender-header"><td colspan="8" style="background:#fce7f3;font-weight:600;color:#be185d;">👩 Perempuan (' + perempuan.length + ' orang)</td></tr>';
+                perempuan.forEach(j => {
+                    html += renderPresensiRow(j, nomor++);
+                });
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        function renderPresensiRow(j, nomor) {
+            const existing = existingPresensi[j.id];
+            const status = existing?.status || 'hadir';
+            const keterangan = existing?.keterangan || '';
+
+            return `
+            <tr>
+                <td>${nomor}</td>
+                <td><strong>${j.nama}</strong></td>
+                <td>${j.jenjang || '-'}</td>
+                <td style="text-align:center;">
+                    <input type="radio" name="status_${j.id}" value="hadir" ${status === 'hadir' ? 'checked' : ''}>
+                </td>
+                <td style="text-align:center;">
+                    <input type="radio" name="status_${j.id}" value="izin" ${status === 'izin' ? 'checked' : ''}>
+                </td>
+                <td style="text-align:center;">
+                    <input type="radio" name="status_${j.id}" value="sakit" ${status === 'sakit' ? 'checked' : ''}>
+                </td>
+                <td style="text-align:center;">
+                    <input type="radio" name="status_${j.id}" value="alpa" ${status === 'alpa' ? 'checked' : ''}>
+                </td>
+                <td>
+                    <input type="text" class="form-control" name="keterangan_${j.id}" value="${keterangan}" placeholder="Opsional" style="width:150px;">
+                </td>
+            </tr>`;
+        }
+        
+        function setAllStatus(status) {
+            jamaahList.forEach(j => {
+                const radio = document.querySelector(`input[name="status_${j.id}"][value="${status}"]`);
+                if (radio) radio.checked = true;
+            });
+        }
+        
+        async function savePresensi() {
+            if (!currentPengajian) {
+                showToast('Pilih pengajian terlebih dahulu', 'error');
+                return;
+            }
+            
+            var btn = $('btnSave');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Menyimpan...';
+            }
+            
+            try {
+                var presensiData = jamaahList.map(function(j) {
+                    var statusRadio = document.querySelector('input[name="status_' + j.id + '"]:checked');
+                    var keteranganInput = document.querySelector('input[name="keterangan_' + j.id + '"]');
+                    
+                    return {
+                        jamaah_id: j.id,
+                        status: statusRadio?.value || 'hadir',
+                        keterangan: keteranganInput?.value || null
+                    };
+                });
+                
+                // Gunakan api.js - presensiApi.save
+                var success = await presensiApi.save(currentPengajian.id, presensiData);
+                
+                if (success) {
+                    showToast('Presensi berhasil disimpan', 'success');
+                    await loadPresensi();
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal menyimpan: ' + (error.message || error), 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '💾 Simpan Presensi';
+                }
+            }
+        }
+    </script>
+
+    <!-- Bottom Navigation for Mobile -->
+        <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
+</body>
+</html>

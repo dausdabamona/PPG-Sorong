@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Pengajian - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .tab-nav { display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 1rem; }
+        .tab-btn { padding: 0.75rem 1.25rem; border: none; background: none; cursor: pointer; font-weight: 500; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -2px; font-size: 0.9rem; }
+        .tab-btn:hover { color: #059669; }
+        .tab-btn.active { color: #059669; border-bottom-color: #059669; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .group-card { margin-bottom: 1rem; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .group-header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 0.75rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .group-header.desa { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+        .group-header.daerah { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+        .group-header h4 { margin: 0; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+        .group-badge { background: rgba(255,255,255,0.25); padding: 0.2rem 0.6rem; border-radius: 1rem; font-size: 0.7rem; }
+        .group-content { background: white; }
+        .group-content.collapsed { display: none; }
+        .jenjang-header { background: #f0fdf4; padding: 0.5rem 1rem; font-weight: 600; font-size: 0.75rem; color: #065f46; border-bottom: 1px solid #d1fae5; display: flex; justify-content: space-between; }
+        .jenjang-badge { background: #059669; color: white; padding: 0.1rem 0.4rem; border-radius: 0.5rem; font-size: 0.65rem; }
+        .pengajian-item { display: flex; align-items: center; padding: 0.6rem 1rem; border-bottom: 1px solid #f1f5f9; gap: 0.6rem; }
+        .pengajian-item:last-child { border-bottom: none; }
+        .pengajian-date { min-width: 45px; text-align: center; background: #f8fafc; padding: 0.4rem; border-radius: 0.5rem; }
+        .pengajian-date .day { font-size: 1.1rem; font-weight: 700; color: #1f2937; line-height: 1; }
+        .pengajian-date .month { font-size: 0.55rem; color: #6b7280; text-transform: uppercase; }
+        .pengajian-info { flex: 1; min-width: 0; }
+        .pengajian-title { font-weight: 500; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pengajian-meta { font-size: 0.7rem; color: #6b7280; }
+        .pengajian-actions { flex-shrink: 0; display: flex; gap: 0.25rem; }
+        .stats-mini { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .stat-mini { flex: 1; background: white; border-radius: 0.75rem; padding: 0.6rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-mini-value { font-size: 1.1rem; font-weight: 700; color: #1f2937; }
+        .stat-mini-label { font-size: 0.6rem; color: #6b7280; }
+        .rutin-item { background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; margin-bottom: 0.75rem; }
+        .rutin-item.inactive { opacity: 0.6; background: #f9fafb; }
+        .rutin-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+        .rutin-title { font-weight: 600; font-size: 0.95rem; color: #1f2937; }
+        .rutin-meta { font-size: 0.75rem; color: #6b7280; margin-bottom: 0.5rem; }
+        .rutin-schedule { background: #f0fdf4; padding: 0.5rem; border-radius: 0.5rem; font-size: 0.75rem; color: #065f46; }
+        .rutin-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+        .hari-selector { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .hari-check { display: flex; align-items: center; gap: 0.25rem; background: #f1f5f9; padding: 0.4rem 0.6rem; border-radius: 0.5rem; font-size: 0.8rem; cursor: pointer; }
+        .hari-check input { margin: 0; }
+        .bulan-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+        .bulan-check { display: flex; align-items: center; justify-content: center; gap: 0.25rem; background: #f1f5f9; padding: 0.4rem; border-radius: 0.5rem; font-size: 0.75rem; cursor: pointer; }
+        .bulan-check input { margin: 0; }
+        .jenjang-check { display: flex; align-items: center; gap: 0.25rem; background: #f0fdf4; padding: 0.4rem 0.6rem; border-radius: 0.5rem; font-size: 0.8rem; cursor: pointer; border: 1px solid #d1fae5; }
+        .jenjang-check:hover { background: #dcfce7; }
+        .jenjang-check input:checked + span { font-weight: 600; color: #059669; }
+        .libur-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f1f5f9; }
+        .libur-item:last-child { border-bottom: none; }
+        .badge-done { background: #dcfce7; color: #166534; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-generated { background: #dbeafe; color: #1e40af; }
+        .week-section { margin-bottom: 1.5rem; }
+        .week-header { background: linear-gradient(135deg, #0ea5e9, #38bdf8); color: white; padding: 0.75rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 0.5rem 0.5rem 0 0; box-shadow: 0 2px 4px rgba(14,165,233,0.3); }
+        .week-header h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+        .week-badge { background: rgba(255,255,255,0.3); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 500; }
+        .week-content { padding: 0.5rem; background: #f0f9ff; border-radius: 0 0 0.5rem 0.5rem; border: 1px solid #bae6fd; border-top: none; }
+        .week-content.collapsed { display: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="pengajian.html" class="nav-item active"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="cleanup-duplikat.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🧹</span><span class="nav-text">Cleanup Duplikat</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+                <a href="pengaturan-akses.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🔐</span><span class="nav-text">Pengaturan Akses</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <main class="main-content">
+            <header class="header" id="desktopHeader">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Pengajian</h1>
+                </div>
+            </header>
+            
+            <div class="pwa-page-header" id="mobileHeader" style="display:none;">
+                <button class="pwa-back-btn" onclick="location.href='dashboard.html'">←</button>
+                <h1 class="pwa-page-title">📖 Pengajian</h1>
+                <button class="pwa-page-action" onclick="showAddPengajianModal()">➕</button>
+            </div>
+            
+            <div class="page-content">
+                <div class="tab-nav">
+                    <button class="tab-btn active" onclick="switchMainTab('jadwal', this)">📅 Jadwal</button>
+                    <button class="tab-btn" onclick="switchMainTab('rutin', this)">⚙️ Atur Rutin</button>
+                    <button class="tab-btn" onclick="switchMainTab('libur', this)">🚫 Libur</button>
+                </div>
+                
+                <!-- TAB 1: JADWAL -->
+                <div class="tab-content active" id="tabJadwal">
+                    <div class="stats-mini">
+                        <div class="stat-mini"><div class="stat-mini-value" id="statTotal">0</div><div class="stat-mini-label">Total</div></div>
+                        <div class="stat-mini"><div class="stat-mini-value" id="statSelesai">0</div><div class="stat-mini-label">Presensi</div></div>
+                        <div class="stat-mini"><div class="stat-mini-value" id="statPending">0</div><div class="stat-mini-label">Belum</div></div>
+                    </div>
+                    <div class="card mb-sm">
+                        <div class="card-body">
+                            <div class="filter-grid">
+                                <div><label class="form-label" style="font-size:0.7rem;">Bulan</label><input type="month" class="form-control" id="filterBulan" onchange="loadPengajian()"></div>
+                                <div><label class="form-label" style="font-size:0.7rem;">Tingkat</label><select class="form-control" id="filterTingkat" onchange="onFilterTingkatChange()"><option value="">Semua</option><option value="kelompok">Kelompok</option><option value="desa">Desa</option><option value="daerah">Daerah</option></select></div>
+                            </div>
+                            <div class="filter-grid" style="margin-top:0.5rem;">
+                                <div><label class="form-label" style="font-size:0.7rem;">Wilayah</label><select class="form-control" id="filterWilayah" onchange="loadPengajian()"><option value="">Semua</option></select></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+                        <button class="btn btn-primary btn-sm" onclick="showAddPengajianModal()">➕ Buat Pengajian</button>
+                        <button class="btn btn-outline btn-sm" onclick="generateBulanIni()">🔄 Generate Bulan Ini</button>
+                    </div>
+                    <div id="pengajianContainer"><div class="text-center py-4 text-muted">Memuat data...</div></div>
+                </div>
+                
+                <!-- TAB 2: RUTIN -->
+                <div class="tab-content" id="tabRutin">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                        <h3 style="font-size:1rem;margin:0;">Template Jadwal Rutin</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddRutinModal()">➕ Tambah</button>
+                    </div>
+                    <div id="rutinContainer"><div class="text-center py-4 text-muted">Memuat data...</div></div>
+                </div>
+                
+                <!-- TAB 3: LIBUR -->
+                <div class="tab-content" id="tabLibur">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                        <h3 style="font-size:1rem;margin:0;">Tanggal Libur / Skip</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddLiburModal()">➕ Tambah</button>
+                    </div>
+                    <div class="card"><div class="card-body">
+                        <div style="margin-bottom:1rem;"><select class="form-control" id="filterTahunLibur" onchange="loadLibur()" style="width:auto;"><option value="2025">2025</option><option value="2024">2024</option></select></div>
+                        <div id="liburContainer"><div class="text-center py-4 text-muted">Memuat data...</div></div>
+                    </div></div>
+                </div>
+            </div>
+            
+            <nav class="pwa-bottom-nav" id="mobileBottomNav" style="display:none;">
+                <a href="dashboard.html" class="pwa-nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
+                <a href="generus.html" class="pwa-nav-item"><span class="nav-icon">👶</span><span class="nav-label">Generus</span></a>
+                <a href="pengajian.html" class="pwa-nav-item active"><span class="nav-icon">📖</span><span class="nav-label">Pengajian</span></a>
+                <a href="presensi.html" class="pwa-nav-item"><span class="nav-icon">✅</span><span class="nav-label">Presensi</span></a>
+                <a href="jamaah.html" class="pwa-nav-item"><span class="nav-icon">⚙️</span><span class="nav-label">Lainnya</span></a>
+            </nav>
+        </main>
+    </div>
+    
+    <!-- Modal Pengajian -->
+    <div class="modal" id="pengajianModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3 id="pengajianModalTitle">Buat Pengajian</h3><button class="modal-close" onclick="hideModal('pengajianModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="pengajianForm" onsubmit="savePengajian(event)">
+                    <input type="hidden" id="pengajianId">
+                    <input type="hidden" id="formWilayah">
+                    <!-- Tingkat & Wilayah - only for admin -->
+                    <div class="form-group" id="formTingkatGroup" style="display:none;">
+                        <label class="form-label">Tingkat *</label>
+                        <select class="form-control" id="formTingkat" onchange="onFormTingkatChange()">
+                            <option value="">-- Pilih --</option>
+                            <option value="kelompok">Kelompok</option>
+                            <option value="desa">Desa</option>
+                            <option value="daerah">Daerah</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="formWilayahGroup" style="display:none;">
+                        <label class="form-label">Wilayah *</label>
+                        <select class="form-control" id="formWilayahSelect" onchange="$('formWilayah').value=this.value"></select>
+                    </div>
+                    <!-- Wilayah info for non-admin -->
+                    <div class="form-group" id="formWilayahInfo" style="display:none;">
+                        <label class="form-label">Wilayah</label>
+                        <div style="padding:0.75rem;background:var(--primary-light);border-radius:var(--radius-md);font-weight:500;" id="formWilayahDisplay">-</div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Tanggal *</label><input type="date" class="form-control" id="formTanggal" required></div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Waktu Mulai</label><input type="time" class="form-control" id="formWaktuMulai"></div>
+                        <div class="form-group"><label class="form-label">Waktu Selesai</label><input type="time" class="form-control" id="formWaktuSelesai"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Materi</label><input type="text" class="form-control" id="formMateri" placeholder="Topik pengajian"></div>
+                    <div class="form-group">
+                        <label class="form-label">Jenjang * <small class="text-muted">(pilih satu atau lebih)</small></label>
+                        <div id="formJenjangList" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Peserta</label>
+                        <select class="form-control" id="formJenisKelamin">
+                            <option value="">Semua (Laki-laki & Perempuan)</option>
+                            <option value="L">Laki-laki saja (Ikhwan)</option>
+                            <option value="P">Perempuan saja (Akhwat)</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label class="form-label">Keterangan</label><input type="text" class="form-control" id="formKeterangan" placeholder="Contoh: Kuliah Umum, Pengajian Gabungan, dll"></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Rutin -->
+    <div class="modal" id="rutinModal">
+        <div class="modal-content" style="max-height:90vh;">
+            <div class="modal-header"><h3 id="rutinModalTitle">Tambah Jadwal Rutin</h3><button class="modal-close" onclick="hideModal('rutinModal')">&times;</button></div>
+            <div class="modal-body" style="overflow-y:auto;">
+                <form id="rutinForm" onsubmit="saveRutin(event)">
+                    <input type="hidden" id="rutinId">
+                    <div class="form-group"><label class="form-label">Nama Jadwal *</label><input type="text" class="form-control" id="rutinNama" required></div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Tingkat *</label><select class="form-control" id="rutinTingkat" onchange="onRutinTingkatChange()" required><option value="">-- Pilih --</option><option value="kelompok">Kelompok</option><option value="desa">Desa</option><option value="daerah">Daerah</option></select></div>
+                        <div class="form-group"><label class="form-label">Wilayah *</label><select class="form-control" id="rutinWilayah" required></select></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Jenjang * <small class="text-muted">(bisa pilih lebih dari satu)</small></label>
+                        <div class="jenjang-selector" id="rutinJenjangList" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div>
+                    </div>
+                    <hr style="margin:1rem 0;">
+                    <div class="form-group"><label class="form-label">Tipe Jadwal *</label>
+                        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                            <label class="hari-check"><input type="radio" name="rutinTipe" value="harian" onchange="onRutinTipeChange()"> Harian</label>
+                            <label class="hari-check"><input type="radio" name="rutinTipe" value="mingguan" onchange="onRutinTipeChange()"> Mingguan</label>
+                            <label class="hari-check"><input type="radio" name="rutinTipe" value="bulanan" onchange="onRutinTipeChange()"> Bulanan</label>
+                        </div>
+                    </div>
+                    <div id="settingHarian" style="display:none;">
+                        <div class="form-group"><label class="form-label">Pilih Hari:</label>
+                            <div class="hari-selector">
+                                <label class="hari-check"><input type="checkbox" id="hariMinggu"> Min</label>
+                                <label class="hari-check"><input type="checkbox" id="hariSenin"> Sen</label>
+                                <label class="hari-check"><input type="checkbox" id="hariSelasa"> Sel</label>
+                                <label class="hari-check"><input type="checkbox" id="hariRabu"> Rab</label>
+                                <label class="hari-check"><input type="checkbox" id="hariKamis"> Kam</label>
+                                <label class="hari-check"><input type="checkbox" id="hariJumat"> Jum</label>
+                                <label class="hari-check"><input type="checkbox" id="hariSabtu"> Sab</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="settingMingguan" style="display:none;">
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Minggu ke:</label><select class="form-control" id="mingguKe"><option value="1">Minggu ke-1</option><option value="2">Minggu ke-2</option><option value="3">Minggu ke-3</option><option value="4">Minggu ke-4</option><option value="5">Minggu ke-5</option></select></div>
+                            <div class="form-group"><label class="form-label">Hari:</label><select class="form-control" id="hariMingguan"><option value="0">Minggu</option><option value="1">Senin</option><option value="2">Selasa</option><option value="3">Rabu</option><option value="4">Kamis</option><option value="5">Jumat</option><option value="6">Sabtu</option></select></div>
+                        </div>
+                    </div>
+                    <div id="settingBulanan" style="display:none;">
+                        <div class="form-group"><label class="form-label">Pilih Bulan:</label>
+                            <div class="bulan-selector">
+                                <label class="bulan-check"><input type="checkbox" id="bulanJan"> Jan</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanFeb"> Feb</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanMar"> Mar</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanApr"> Apr</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanMei"> Mei</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanJun"> Jun</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanJul"> Jul</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanAgt"> Agt</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanSep"> Sep</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanOkt"> Okt</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanNov"> Nov</label>
+                                <label class="bulan-check"><input type="checkbox" id="bulanDes"> Des</label>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">Minggu ke:</label><select class="form-control" id="mingguKeBulanan"><option value="1">Minggu ke-1</option><option value="2">Minggu ke-2</option><option value="3">Minggu ke-3</option><option value="4">Minggu ke-4</option></select></div>
+                            <div class="form-group"><label class="form-label">Hari:</label><select class="form-control" id="hariBulanan"><option value="0">Minggu</option><option value="1">Senin</option><option value="2">Selasa</option><option value="3">Rabu</option><option value="4">Kamis</option><option value="5">Jumat</option><option value="6">Sabtu</option></select></div>
+                        </div>
+                    </div>
+                    <hr style="margin:1rem 0;">
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Waktu Mulai</label><input type="time" class="form-control" id="rutinWaktuMulai"></div>
+                        <div class="form-group"><label class="form-label">Waktu Selesai</label><input type="time" class="form-control" id="rutinWaktuSelesai"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Materi Default</label><input type="text" class="form-control" id="rutinMateri"></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Libur -->
+    <div class="modal" id="liburModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Tambah Tanggal Libur</h3><button class="modal-close" onclick="hideModal('liburModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="liburForm" onsubmit="saveLibur(event)">
+                    <div class="form-group"><label class="form-label">Tanggal *</label><input type="date" class="form-control" id="liburTanggal" required></div>
+                    <div class="form-group"><label class="form-label">Keterangan</label><input type="text" class="form-control" id="liburKeterangan"></div>
+                    <button type="submit" class="btn btn-primary w-100">💾 Simpan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script>
+        var allWilayah = [], allJenjang = [], pengajianData = [], rutinData = [];
+        var userWilayahList = []; // Wilayah yang dimiliki user
+        var userTingkat = null; // Tingkat wilayah user (kelompok/desa/daerah)
+        var HARI_NAMA = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        var BULAN_NAMA = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            if (!await requireAuth()) return;
+            setupResponsiveView();
+            window.addEventListener('resize', setupResponsiveView);
+            var now = new Date();
+            $('filterBulan').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            await loadMasterData();
+            await loadPengajian();
+        });
+        
+        function setupResponsiveView() {
+            var isMobile = window.innerWidth <= 768;
+            if ($('desktopHeader')) $('desktopHeader').style.display = isMobile ? 'none' : 'flex';
+            if ($('mobileHeader')) $('mobileHeader').style.display = isMobile ? 'flex' : 'none';
+            if ($('mobileBottomNav')) $('mobileBottomNav').style.display = isMobile ? 'flex' : 'none';
+            document.body.style.paddingBottom = isMobile ? '70px' : '0';
+        }
+        
+        function switchMainTab(tabId, btn) {
+            document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+            btn.classList.add('active');
+            $('tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1)).classList.add('active');
+            if (tabId === 'rutin') loadRutin();
+            if (tabId === 'libur') loadLibur();
+        }
+        
+        async function loadMasterData() {
+            try {
+                allWilayah = await wilayahApi.getAll() || [];
+                allJenjang = await jenjangApi.getAll() || [];
+                var jenjangHtml = '<option value="">Semua</option>';
+                var jenjangHtml2 = '<option value="">-- Pilih --</option>';
+                var jenjangCheckboxHtml = '';
+                var formJenjangCheckboxHtml = '';
+                allJenjang.forEach(function(j) {
+                    jenjangHtml += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>';
+                    jenjangHtml2 += '<option value="' + j.id + '">' + escapeHtml(j.nama) + '</option>';
+                    jenjangCheckboxHtml += '<label class="jenjang-check"><input type="checkbox" name="rutinJenjang" value="' + j.id + '"><span>' + escapeHtml(j.nama) + '</span></label>';
+                    formJenjangCheckboxHtml += '<label class="jenjang-check"><input type="checkbox" name="formJenjang" value="' + j.id + '"><span>' + escapeHtml(j.nama) + '</span></label>';
+                });
+                if ($('filterJenjang')) $('filterJenjang').innerHTML = jenjangHtml;
+                if ($('formJenjang')) $('formJenjang').innerHTML = jenjangHtml2;
+                if ($('rutinJenjangList')) $('rutinJenjangList').innerHTML = jenjangCheckboxHtml;
+                if ($('formJenjangList')) $('formJenjangList').innerHTML = formJenjangCheckboxHtml;
+
+                // Load user wilayah dan tentukan tingkat role
+                if (!isAdmin()) {
+                    userWilayahList = [];
+                    userTingkat = null;
+                    // userRoles sudah di-load di auth.js saat checkSession/loadUserData
+                    var roles = userRoles || [];
+                    if (roles && roles.length > 0) {
+                        for (var i = 0; i < roles.length; i++) {
+                            var r = roles[i];
+                            if (r.wilayah_id) {
+                                var wInfo = allWilayah.find(function(w) { return w.id === r.wilayah_id; });
+                                if (wInfo) {
+                                    userWilayahList.push(wInfo);
+                                    // Tentukan tingkat user (ambil tingkat pertama yang ditemukan)
+                                    if (!userTingkat) {
+                                        userTingkat = wInfo.tingkat;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    console.log('User Wilayah List:', userWilayahList);
+                    console.log('User Tingkat:', userTingkat);
+                }
+            } catch (error) { console.error('Error load master:', error); }
+        }
+        
+        function onFilterTingkatChange() {
+            populateWilayahFilter('filterWilayah', $('filterTingkat').value, true);
+            loadPengajian();
+        }
+        
+        function populateWilayahFilter(selectId, tingkat, addAll) {
+            var select = $(selectId);
+            if (!select) return;
+            var filtered = tingkat ? allWilayah.filter(function(w) { return w.tingkat === tingkat; }) : allWilayah;
+
+            // Untuk role kelompok (bukan admin), batasi hanya wilayah yang dimiliki
+            var isFormSelect = selectId === 'rutinWilayah' || selectId === 'formWilayah';
+            if (isFormSelect && !isAdmin() && userWilayahList && userWilayahList.length > 0) {
+                // Filter hanya wilayah milik user
+                var userWilayahIds = userWilayahList.map(function(w) { return w.id; });
+                filtered = filtered.filter(function(w) {
+                    return userWilayahIds.indexOf(w.id) !== -1;
+                });
+            }
+
+            var html = addAll ? '<option value="">Semua</option>' : '<option value="">-- Pilih --</option>';
+            filtered.forEach(function(w) { html += '<option value="' + w.id + '">' + escapeHtml(w.nama + ' (' + w.tingkat + ')') + '</option>'; });
+            select.innerHTML = html;
+        }
+        
+        function onFormTingkatChange() { populateWilayahFilter('formWilayah', $('formTingkat').value, false); }
+        function onRutinTingkatChange() { populateWilayahFilter('rutinWilayah', $('rutinTingkat').value, false); }
+        
+        function onRutinTipeChange() {
+            var tipe = document.querySelector('input[name="rutinTipe"]:checked')?.value;
+            $('settingHarian').style.display = tipe === 'harian' ? 'block' : 'none';
+            $('settingMingguan').style.display = tipe === 'mingguan' ? 'block' : 'none';
+            $('settingBulanan').style.display = tipe === 'bulanan' ? 'block' : 'none';
+        }
+        
+        async function loadPengajian() {
+            var container = $('pengajianContainer');
+            container.innerHTML = '<div class="text-center py-4 text-muted">Memuat data...</div>';
+            try {
+                var bulan = $('filterBulan').value;
+                var filters = {};
+                if (bulan) { var parts = bulan.split('-'); filters.tahun = parseInt(parts[0]); filters.bulan = parseInt(parts[1]); }
+                if ($('filterWilayah').value) filters.wilayah_id = $('filterWilayah').value;
+                pengajianData = await pengajianApi.getAll(filters);
+                var tingkat = $('filterTingkat').value;
+                if (tingkat) pengajianData = pengajianData.filter(function(p) { return p.wilayah_tingkat === tingkat; });
+                var total = pengajianData.length;
+                var selesai = pengajianData.filter(function(p) { return p.total_hadir > 0; }).length;
+                $('statTotal').textContent = total;
+                $('statSelesai').textContent = selesai;
+                $('statPending').textContent = total - selesai;
+                renderPengajian(pengajianData);
+            } catch (error) { console.error('Error:', error); container.innerHTML = '<div class="text-center py-4 text-danger">Gagal memuat data</div>'; }
+        }
+        
+        // Fungsi untuk menghitung minggu ke-berapa dalam bulan
+        // Aturan: Minggu 1 dimulai dari hari Minggu pertama dalam bulan
+        // Tanggal sebelum hari Minggu pertama = Minggu 0
+        function getWeekOfMonth(dateStr) {
+            var date = new Date(dateStr);
+            var day = date.getDate();
+            var month = date.getMonth();
+            var year = date.getFullYear();
+
+            // Cari hari Minggu pertama dalam bulan
+            var firstDay = new Date(year, month, 1);
+            var firstDayOfWeek = firstDay.getDay(); // 0 = Minggu
+
+            var firstSunday;
+            if (firstDayOfWeek === 0) {
+                // Tanggal 1 adalah hari Minggu
+                firstSunday = 1;
+            } else {
+                // Hari Minggu pertama = 7 - firstDayOfWeek + 1
+                firstSunday = 7 - firstDayOfWeek + 1;
+            }
+
+            if (day < firstSunday) {
+                return 0; // Sebelum minggu pertama
+            }
+
+            // Hitung minggu ke berapa
+            return Math.ceil((day - firstSunday + 1) / 7);
+        }
+
+        function getWeekLabel(weekNum) {
+            if (weekNum === 0) return 'Sebelum Minggu 1';
+            return 'Minggu ' + weekNum;
+        }
+
+        function renderPengajian(data) {
+            var container = $('pengajianContainer');
+            if (!data || !data.length) { container.innerHTML = '<div class="card"><div class="card-body text-center py-4 text-muted">Tidak ada jadwal</div></div>'; return; }
+
+            // Group by week first
+            var weekGroups = {};
+            data.forEach(function(p) {
+                var weekNum = getWeekOfMonth(p.tanggal);
+                if (!weekGroups[weekNum]) weekGroups[weekNum] = [];
+                weekGroups[weekNum].push(p);
+            });
+
+            var html = '';
+            var globalIdx = 0;
+
+            // Determine if we should skip wilayah grouping based on user role
+            var skipWilayahGroup = !isAdmin() && userTingkat;
+
+            // Sort weeks and render
+            Object.keys(weekGroups).sort(function(a, b) { return parseInt(a) - parseInt(b); }).forEach(function(weekNum) {
+                var weekData = weekGroups[weekNum];
+                var weekLabel = getWeekLabel(parseInt(weekNum));
+
+                // Render week header
+                html += '<div class="week-section">';
+                html += '<div class="week-header" onclick="toggleWeek(' + weekNum + ')"><h3>📅 ' + weekLabel + '</h3><span class="week-badge">' + weekData.length + ' jadwal</span></div>';
+                html += '<div class="week-content" id="weekContent' + weekNum + '">';
+
+                if (skipWilayahGroup) {
+                    // For non-admin: Simple list grouped by materi only (no jenjang sub-group)
+                    var materiGroups = {};
+                    weekData.forEach(function(p) {
+                        var materi = p.materi || 'Pengajian';
+                        if (!materiGroups[materi]) materiGroups[materi] = [];
+                        materiGroups[materi].push(p);
+                    });
+
+                    Object.keys(materiGroups).sort().forEach(function(materiName) {
+                        var items = materiGroups[materiName];
+
+                        html += '<div class="group-card"><div class="group-header" onclick="toggleGroup(' + globalIdx + ')"><h4>📖 ' + escapeHtml(materiName) + '</h4><span class="group-badge">' + items.length + '</span></div>';
+                        html += '<div class="group-content" id="groupContent' + globalIdx + '">';
+
+                        // Sort by date and render items directly (no jenjang grouping)
+                        items.sort(function(a, b) { return a.tanggal.localeCompare(b.tanggal); });
+                        items.forEach(function(p) {
+                            html += renderPengajianItem(p);
+                        });
+
+                        html += '</div></div>';
+                        globalIdx++;
+                    });
+                } else {
+                    // Admin view: Group by wilayah only (no jenjang sub-group)
+                    var groups = {};
+                    weekData.forEach(function(p) {
+                        var wilayah = p.wilayah_nama || 'Tanpa Wilayah';
+                        var tingkat = p.wilayah_tingkat || 'kelompok';
+                        var key = tingkat + '|' + wilayah;
+                        if (!groups[key]) groups[key] = { wilayah: wilayah, tingkat: tingkat, items: [] };
+                        groups[key].items.push(p);
+                    });
+
+                    Object.keys(groups).sort().forEach(function(key) {
+                        var group = groups[key];
+                        var icon = group.tingkat === 'daerah' ? '🌍' : (group.tingkat === 'desa' ? '🏘️' : '🏠');
+                        var headerClass = group.tingkat === 'daerah' ? 'daerah' : (group.tingkat === 'desa' ? 'desa' : '');
+
+                        html += '<div class="group-card"><div class="group-header ' + headerClass + '" onclick="toggleGroup(' + globalIdx + ')"><h4>' + icon + ' ' + escapeHtml(group.wilayah) + '</h4><span class="group-badge">' + group.items.length + '</span></div>';
+                        html += '<div class="group-content" id="groupContent' + globalIdx + '">';
+
+                        // Sort by date and render items directly (no jenjang grouping)
+                        group.items.sort(function(a, b) { return a.tanggal.localeCompare(b.tanggal); });
+                        group.items.forEach(function(p) {
+                            html += renderPengajianItem(p);
+                        });
+
+                        html += '</div></div>';
+                        globalIdx++;
+                    });
+                }
+
+                html += '</div></div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderPengajianItem(p) {
+            var tgl = new Date(p.tanggal); var day = tgl.getDate();
+            var dayName = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][tgl.getDay()];
+            var hasPresensi = p.total_hadir > 0;
+            var statusBadge = hasPresensi ? '<span class="badge badge-done">' + p.total_hadir + '/' + p.total_peserta + '</span>' : '<span class="badge badge-pending">Belum</span>';
+
+            // Badge untuk jenis kelamin peserta
+            var pesertaBadge = '';
+            if (p.jenis_kelamin === 'L') {
+                pesertaBadge = ' <span class="badge" style="background:#dbeafe;color:#1e40af;font-size:0.6rem;">♂ Ikhwan</span>';
+            } else if (p.jenis_kelamin === 'P') {
+                pesertaBadge = ' <span class="badge" style="background:#fce7f3;color:#be185d;font-size:0.6rem;">♀ Akhwat</span>';
+            }
+
+            var html = '<div class="pengajian-item"><div class="pengajian-date"><div class="day">' + day + '</div><div class="month">' + dayName + '</div></div>';
+            html += '<div class="pengajian-info"><div class="pengajian-title">' + escapeHtml(p.materi || 'Pengajian');
+            if (p.keterangan) html += ' <span class="badge badge-primary" style="font-size:0.65rem;">' + escapeHtml(p.keterangan) + '</span>';
+            html += pesertaBadge;
+            html += '</div>';
+            html += '<div class="pengajian-meta">';
+            if (p.waktu_mulai) html += '🕐 ' + p.waktu_mulai.substring(0,5);
+            if (p.waktu_selesai) html += '-' + p.waktu_selesai.substring(0,5);
+            html += ' ' + statusBadge;
+            if (p.is_generated) html += ' <span class="badge badge-generated">Auto</span>';
+            html += '</div></div>';
+            html += '<div class="pengajian-actions"><a href="presensi.html?pengajian_id=' + p.id + '" class="btn btn-sm btn-success">✅</a>';
+            html += '<button class="btn btn-sm btn-outline" onclick="editPengajian(' + p.id + ')">✏️</button>';
+            html += '<button class="btn btn-sm btn-danger" onclick="deletePengajian(' + p.id + ')">🗑️</button></div></div>';
+            return html;
+        }
+        
+        function toggleGroup(idx) { var c = $('groupContent' + idx); if (c) c.classList.toggle('collapsed'); }
+        function toggleWeek(weekNum) { var c = $('weekContent' + weekNum); if (c) c.classList.toggle('collapsed'); }
+        
+        function showAddPengajianModal() {
+            $('pengajianModalTitle').textContent = 'Buat Pengajian';
+            $('pengajianId').value = '';
+            $('pengajianForm').reset();
+            $('formTanggal').value = new Date().toISOString().split('T')[0];
+
+            // Reset semua jenjang checkbox
+            document.querySelectorAll('input[name="formJenjang"]').forEach(function(cb) { cb.checked = false; });
+
+            // Untuk non-admin: hide tingkat/wilayah, auto-set dari role
+            if (!isAdmin() && userTingkat && userWilayahList && userWilayahList.length > 0) {
+                $('formTingkatGroup').style.display = 'none';
+                $('formWilayahGroup').style.display = 'none';
+                $('formWilayahInfo').style.display = 'block';
+
+                // Auto-set wilayah (use first one if multiple)
+                var wilayah = userWilayahList[0];
+                $('formWilayah').value = wilayah.id;
+                $('formWilayahDisplay').textContent = wilayah.nama + ' (' + wilayah.tingkat + ')';
+            } else {
+                // Admin: show tingkat/wilayah selection
+                $('formTingkatGroup').style.display = 'block';
+                $('formWilayahGroup').style.display = 'block';
+                $('formWilayahInfo').style.display = 'none';
+                $('formWilayahSelect').innerHTML = '<option value="">-- Pilih Tingkat --</option>';
+            }
+
+            showModal('pengajianModal');
+        }
+
+        function onFormTingkatChange() {
+            var tingkat = $('formTingkat').value;
+            var wilayahSelect = $('formWilayahSelect');
+            if (!wilayahSelect) return;
+
+            wilayahSelect.innerHTML = '<option value="">-- Pilih --</option>';
+            if (!tingkat) return;
+
+            var filtered = allWilayah.filter(function(w) { return w.tingkat === tingkat; });
+            filtered.forEach(function(w) {
+                wilayahSelect.innerHTML += '<option value="' + w.id + '">' + escapeHtml(w.nama) + '</option>';
+            });
+        }
+
+        async function editPengajian(id) {
+            // Ambil data langsung dari tabel pengajian untuk mendapatkan jenjang_ids
+            var { data: p, error } = await db.from('pengajian')
+                .select('*, wilayah:wilayah_id(nama)')
+                .eq('id', id)
+                .single();
+
+            if (error || !p) {
+                console.error('Error fetching pengajian:', error);
+                showToast('Data tidak ditemukan', 'error');
+                return;
+            }
+
+            console.log('Edit pengajian data:', p);
+
+            $('pengajianModalTitle').textContent = 'Edit Pengajian';
+            $('pengajianId').value = p.id;
+
+            // Set wilayah
+            $('formWilayah').value = p.wilayah_id || '';
+
+            // For edit, always show wilayah info (not editable)
+            $('formTingkatGroup').style.display = 'none';
+            $('formWilayahGroup').style.display = 'none';
+            $('formWilayahInfo').style.display = 'block';
+            $('formWilayahDisplay').textContent = p.wilayah?.nama || '-';
+
+            $('formTanggal').value = p.tanggal || '';
+            $('formWaktuMulai').value = p.waktu_mulai || '';
+            $('formWaktuSelesai').value = p.waktu_selesai || '';
+            $('formMateri').value = p.materi || '';
+            $('formJenisKelamin').value = p.jenis_kelamin || '';
+            $('formKeterangan').value = p.keterangan || '';
+
+            // Set jenjang checkboxes - reset dulu semua
+            document.querySelectorAll('input[name="formJenjang"]').forEach(function(cb) { cb.checked = false; });
+
+            // Parse jenjang_ids (bisa array langsung atau string JSON)
+            var jenjangIds = [];
+            if (p.jenjang_ids) {
+                try {
+                    if (Array.isArray(p.jenjang_ids)) {
+                        jenjangIds = p.jenjang_ids;
+                    } else if (typeof p.jenjang_ids === 'string') {
+                        jenjangIds = JSON.parse(p.jenjang_ids);
+                    }
+                } catch(e) {
+                    console.error('Error parsing jenjang_ids:', e);
+                    jenjangIds = [];
+                }
+            }
+
+            console.log('Jenjang IDs to check:', jenjangIds);
+
+            // Centang checkbox yang sesuai
+            jenjangIds.forEach(function(jid) {
+                var cb = document.querySelector('input[name="formJenjang"][value="' + jid + '"]');
+                if (cb) {
+                    cb.checked = true;
+                    console.log('Checked jenjang:', jid);
+                }
+            });
+
+            showModal('pengajianModal');
+        }
+
+        // Fungsi untuk cek apakah dua waktu overlap
+        function isTimeOverlap(start1, end1, start2, end2) {
+            // Jika salah satu waktu tidak diisi, anggap TIDAK overlap (bisa buat pengajian berbeda)
+            if (!start1 || !start2) return false;
+
+            // Convert time string to minutes for comparison
+            function timeToMinutes(t) {
+                if (!t) return 0;
+                var parts = t.split(':');
+                return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            }
+
+            var s1 = timeToMinutes(start1);
+            var e1 = end1 ? timeToMinutes(end1) : s1 + 120; // Default 2 jam jika tidak ada waktu selesai
+            var s2 = timeToMinutes(start2);
+            var e2 = end2 ? timeToMinutes(end2) : s2 + 120;
+
+            // Check overlap: !(end1 <= start2 || end2 <= start1)
+            return !(e1 <= s2 || e2 <= s1);
+        }
+
+        // Fungsi untuk cek duplikasi jadwal
+        async function checkDuplicateSchedule(wilayahId, tanggal, waktuMulai, waktuSelesai, excludeId) {
+            try {
+                // Ambil semua pengajian di wilayah dan tanggal yang sama
+                var result = await db.from('pengajian')
+                    .select('id, waktu_mulai, waktu_selesai, materi')
+                    .eq('wilayah_id', wilayahId)
+                    .eq('tanggal', tanggal);
+
+                if (result.error) throw result.error;
+
+                var existingSchedules = result.data || [];
+
+                // Filter out the current record if editing
+                if (excludeId) {
+                    existingSchedules = existingSchedules.filter(function(p) {
+                        return p.id != excludeId;
+                    });
+                }
+
+                // Check for overlap with any existing schedule
+                for (var i = 0; i < existingSchedules.length; i++) {
+                    var existing = existingSchedules[i];
+                    if (isTimeOverlap(waktuMulai, waktuSelesai, existing.waktu_mulai, existing.waktu_selesai)) {
+                        return {
+                            isDuplicate: true,
+                            existingSchedule: existing
+                        };
+                    }
+                }
+
+                return { isDuplicate: false };
+            } catch (error) {
+                console.error('Error checking duplicate:', error);
+                return { isDuplicate: false }; // Allow save if check fails
+            }
+        }
+
+        async function savePengajian(e) {
+            e.preventDefault();
+            var id = $('pengajianId').value;
+            var wilayahId = $('formWilayah').value;
+            var tanggal = $('formTanggal').value;
+            var waktuMulai = $('formWaktuMulai').value || null;
+            var waktuSelesai = $('formWaktuSelesai').value || null;
+            var jenisKelamin = $('formJenisKelamin').value || null;
+
+            // Get selected jenjang IDs
+            var selectedJenjang = [];
+            document.querySelectorAll('input[name="formJenjang"]:checked').forEach(function(cb) {
+                selectedJenjang.push(parseInt(cb.value));
+            });
+
+            // Validasi minimal satu jenjang dipilih
+            if (selectedJenjang.length === 0) {
+                showToast('Pilih minimal satu jenjang!', 'error');
+                return;
+            }
+
+            // Validasi duplikasi jadwal (overlap waktu)
+            var duplicateCheck = await checkDuplicateSchedule(wilayahId, tanggal, waktuMulai, waktuSelesai, id);
+            if (duplicateCheck.isDuplicate) {
+                var existingInfo = duplicateCheck.existingSchedule;
+                var waktuInfo = existingInfo.waktu_mulai ?
+                    ' (jam ' + existingInfo.waktu_mulai.substring(0,5) + ')' : '';
+                showToast('Jadwal pengajian untuk tanggal ini sudah ada' + waktuInfo + '. Silakan pilih waktu lain.', 'error');
+                return;
+            }
+
+            var data = {
+                wilayah_id: wilayahId,
+                tanggal: tanggal,
+                waktu_mulai: waktuMulai,
+                waktu_selesai: waktuSelesai,
+                materi: $('formMateri').value || null,
+                jenis_kelamin: jenisKelamin,
+                jenjang_ids: selectedJenjang,  // Kirim array langsung, Supabase akan handle JSONB
+                keterangan: $('formKeterangan').value || null
+            };
+
+            console.log('Saving pengajian with data:', data);
+
+            try {
+                if (id) {
+                    var success = await pengajianApi.update(id, data);
+                    if (success) { showToast('Berhasil diupdate!', 'success'); }
+                } else {
+                    var result = await pengajianApi.create(data);
+                    if (result) { showToast('Pengajian dibuat!', 'success'); }
+                }
+                hideModal('pengajianModal');
+                loadPengajian();
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal menyimpan', 'error');
+            }
+        }
+        
+        async function deletePengajian(id) {
+            if (!confirm('Hapus pengajian ini?')) return;
+            try { if (await pengajianApi.delete(id)) { showToast('Dihapus', 'success'); loadPengajian(); } } catch (e) { showToast('Gagal', 'error'); }
+        }
+        
+        async function generateBulanIni() {
+            var bulan = $('filterBulan').value;
+            if (!bulan) { showToast('Pilih bulan', 'error'); return; }
+            if (!confirm('Generate jadwal dari template rutin?')) return;
+            var parts = bulan.split('-');
+            try {
+                var result = await jadwalRutinApi.generateBulanan(parseInt(parts[0]), parseInt(parts[1]));
+                var created = result.filter(function(r) { return r.status === 'created'; }).length;
+                showToast('Dibuat: ' + created + ' jadwal', 'success');
+                loadPengajian();
+            } catch (e) { showToast('Gagal generate', 'error'); }
+        }
+        
+        async function loadRutin() {
+            var container = $('rutinContainer');
+            container.innerHTML = '<div class="text-center py-4 text-muted">Memuat...</div>';
+            try { rutinData = await jadwalRutinApi.getAll(); renderRutin(rutinData); } catch (e) { container.innerHTML = '<div class="text-center py-4 text-danger">Gagal</div>'; }
+        }
+        
+        function renderRutin(data) {
+            var container = $('rutinContainer');
+            if (!data || !data.length) { container.innerHTML = '<div class="text-center py-4 text-muted">Belum ada jadwal rutin</div>'; return; }
+            var html = '';
+            data.forEach(function(r) {
+                var desc = getScheduleDescription(r);
+                var icon = r.tingkat === 'daerah' ? '🌍' : (r.tingkat === 'desa' ? '🏘️' : '🏠');
+                html += '<div class="rutin-item' + (r.is_aktif ? '' : ' inactive') + '">';
+                html += '<div class="rutin-header"><div class="rutin-title">' + escapeHtml(r.nama) + '</div><span class="badge ' + (r.is_aktif ? 'badge-success' : 'badge-secondary') + '">' + (r.is_aktif ? 'Aktif' : 'Off') + '</span></div>';
+                html += '<div class="rutin-meta">' + icon + ' ' + escapeHtml(r.wilayah_nama || '-') + ' • 📚 ' + escapeHtml(r.jenjang_nama || '-') + ' • 👥 ' + (r.jumlah_peserta || 0) + '</div>';
+                html += '<div class="rutin-schedule">' + desc + '</div>';
+                html += '<div class="rutin-actions"><button class="btn btn-sm btn-outline" onclick="editRutin(' + r.id + ')">✏️</button>';
+                html += '<button class="btn btn-sm btn-outline" onclick="toggleRutinAktif(' + r.id + ',' + !r.is_aktif + ')">' + (r.is_aktif ? '⏸️' : '▶️') + '</button>';
+                html += '<button class="btn btn-sm btn-danger" onclick="deleteRutin(' + r.id + ')">🗑️</button></div></div>';
+            });
+            container.innerHTML = html;
+        }
+        
+        function getScheduleDescription(r) {
+            var desc = '';
+            if (r.tipe === 'harian') {
+                var hari = [];
+                if (r.hari_minggu) hari.push('Min'); if (r.hari_senin) hari.push('Sen'); if (r.hari_selasa) hari.push('Sel');
+                if (r.hari_rabu) hari.push('Rab'); if (r.hari_kamis) hari.push('Kam'); if (r.hari_jumat) hari.push('Jum'); if (r.hari_sabtu) hari.push('Sab');
+                desc = '📅 Setiap ' + hari.join(', ');
+            } else if (r.tipe === 'mingguan') {
+                desc = '📅 Minggu ke-' + r.minggu_ke + ', ' + HARI_NAMA[r.hari_dalam_minggu];
+            } else if (r.tipe === 'bulanan') {
+                var bulan = [];
+                if (r.bulan_jan) bulan.push('Jan'); if (r.bulan_feb) bulan.push('Feb'); if (r.bulan_mar) bulan.push('Mar');
+                if (r.bulan_apr) bulan.push('Apr'); if (r.bulan_mei) bulan.push('Mei'); if (r.bulan_jun) bulan.push('Jun');
+                if (r.bulan_jul) bulan.push('Jul'); if (r.bulan_agt) bulan.push('Agt'); if (r.bulan_sep) bulan.push('Sep');
+                if (r.bulan_okt) bulan.push('Okt'); if (r.bulan_nov) bulan.push('Nov'); if (r.bulan_des) bulan.push('Des');
+                desc = '📅 ' + bulan.join(', ') + ', Minggu ke-' + r.minggu_ke_bulanan + ' ' + HARI_NAMA[r.hari_dalam_minggu_bulanan];
+            }
+            if (r.waktu_mulai) desc += ' 🕐 ' + r.waktu_mulai.substring(0, 5) + (r.waktu_selesai ? '-' + r.waktu_selesai.substring(0, 5) : '');
+            return desc;
+        }
+        
+        function showAddRutinModal() {
+            $('rutinModalTitle').textContent = 'Tambah Jadwal Rutin';
+            $('rutinId').value = '';
+            $('rutinForm').reset();
+            $('rutinWilayah').innerHTML = '<option value="">-- Pilih Tingkat --</option>';
+            $('settingHarian').style.display = 'none';
+            $('settingMingguan').style.display = 'none';
+            $('settingBulanan').style.display = 'none';
+            // Reset semua jenjang checkbox
+            document.querySelectorAll('input[name="rutinJenjang"]').forEach(function(cb) { cb.checked = false; });
+
+            // Untuk non-admin: auto-set tingkat sesuai role dan disable
+            if (!isAdmin() && userTingkat && userWilayahList && userWilayahList.length > 0) {
+                // Set tingkat sesuai role user (kelompok/desa/daerah)
+                $('rutinTingkat').value = userTingkat;
+                $('rutinTingkat').disabled = true; // Non-admin tidak bisa pilih tingkat lain
+                onRutinTingkatChange();
+                // Auto-select wilayah pertama jika hanya punya satu
+                if (userWilayahList.length === 1) {
+                    setTimeout(function() {
+                        $('rutinWilayah').value = userWilayahList[0].id;
+                    }, 50);
+                }
+            } else {
+                $('rutinTingkat').disabled = false;
+            }
+
+            showModal('rutinModal');
+        }
+        
+        async function editRutin(id) {
+            // Fetch langsung dari tabel untuk dapat jenjang_ids
+            var { data: r, error } = await db.from('jadwal_rutin')
+                .select('*')
+                .eq('id', id)
+                .single();
+            if (error || !r) { showToast('Tidak ditemukan', 'error'); return; }
+
+            $('rutinModalTitle').textContent = 'Edit Jadwal Rutin';
+            $('rutinId').value = r.id;
+            $('rutinNama').value = r.nama || '';
+            $('rutinTingkat').value = r.tingkat || '';
+            onRutinTingkatChange();
+            // Reset semua jenjang checkbox
+            document.querySelectorAll('input[name="rutinJenjang"]').forEach(function(cb) { cb.checked = false; });
+            setTimeout(function() {
+                $('rutinWilayah').value = r.wilayah_id || '';
+                // Parse jenjang_ids untuk multi-select
+                var jenjangIds = [];
+                if (r.jenjang_ids) {
+                    if (Array.isArray(r.jenjang_ids)) {
+                        jenjangIds = r.jenjang_ids;
+                    } else if (typeof r.jenjang_ids === 'string') {
+                        try { jenjangIds = JSON.parse(r.jenjang_ids); } catch(e) {}
+                    }
+                }
+                // Fallback ke jenjang_id jika jenjang_ids kosong
+                if (jenjangIds.length === 0 && r.jenjang_id) {
+                    jenjangIds = [r.jenjang_id];
+                }
+                // Centang semua jenjang yang dipilih
+                jenjangIds.forEach(function(jid) {
+                    var cb = document.querySelector('input[name="rutinJenjang"][value="' + jid + '"]');
+                    if (cb) cb.checked = true;
+                });
+                var tipeRadio = document.querySelector('input[name="rutinTipe"][value="' + r.tipe + '"]');
+                if (tipeRadio) tipeRadio.checked = true;
+                onRutinTipeChange();
+                $('hariMinggu').checked = r.hari_minggu; $('hariSenin').checked = r.hari_senin; $('hariSelasa').checked = r.hari_selasa;
+                $('hariRabu').checked = r.hari_rabu; $('hariKamis').checked = r.hari_kamis; $('hariJumat').checked = r.hari_jumat; $('hariSabtu').checked = r.hari_sabtu;
+                $('mingguKe').value = r.minggu_ke || 1; $('hariMingguan').value = r.hari_dalam_minggu || 0;
+                $('bulanJan').checked = r.bulan_jan; $('bulanFeb').checked = r.bulan_feb; $('bulanMar').checked = r.bulan_mar;
+                $('bulanApr').checked = r.bulan_apr; $('bulanMei').checked = r.bulan_mei; $('bulanJun').checked = r.bulan_jun;
+                $('bulanJul').checked = r.bulan_jul; $('bulanAgt').checked = r.bulan_agt; $('bulanSep').checked = r.bulan_sep;
+                $('bulanOkt').checked = r.bulan_okt; $('bulanNov').checked = r.bulan_nov; $('bulanDes').checked = r.bulan_des;
+                $('mingguKeBulanan').value = r.minggu_ke_bulanan || 1; $('hariBulanan').value = r.hari_dalam_minggu_bulanan || 0;
+                $('rutinWaktuMulai').value = r.waktu_mulai || ''; $('rutinWaktuSelesai').value = r.waktu_selesai || '';
+                $('rutinMateri').value = r.materi_default || '';
+            }, 100);
+            showModal('rutinModal');
+        }
+        
+        async function saveRutin(e) {
+            e.preventDefault();
+            var id = $('rutinId').value;
+            var tipe = document.querySelector('input[name="rutinTipe"]:checked')?.value;
+            if (!tipe) { showToast('Pilih tipe', 'error'); return; }
+
+            // Get selected jenjang
+            var selectedJenjang = [];
+            document.querySelectorAll('input[name="rutinJenjang"]:checked').forEach(function(cb) {
+                console.log('Checkbox checked:', cb.value, 'type:', typeof cb.value);
+                selectedJenjang.push(cb.value);
+            });
+            console.log('Selected jenjang (raw):', selectedJenjang);
+            if (selectedJenjang.length === 0) { showToast('Pilih minimal satu jenjang', 'error'); return; }
+
+            // Base data tanpa jenjang_id
+            var baseData = { nama: $('rutinNama').value, tingkat: $('rutinTingkat').value, wilayah_id: $('rutinWilayah').value, tipe: tipe, waktu_mulai: $('rutinWaktuMulai').value || null, waktu_selesai: $('rutinWaktuSelesai').value || null, materi_default: $('rutinMateri').value || null };
+            if (tipe === 'harian') {
+                baseData.hari_minggu = $('hariMinggu').checked; baseData.hari_senin = $('hariSenin').checked; baseData.hari_selasa = $('hariSelasa').checked;
+                baseData.hari_rabu = $('hariRabu').checked; baseData.hari_kamis = $('hariKamis').checked; baseData.hari_jumat = $('hariJumat').checked; baseData.hari_sabtu = $('hariSabtu').checked;
+            } else if (tipe === 'mingguan') {
+                baseData.minggu_ke = $('mingguKe').value; baseData.hari_dalam_minggu = $('hariMingguan').value;
+            } else if (tipe === 'bulanan') {
+                baseData.bulan_jan = $('bulanJan').checked; baseData.bulan_feb = $('bulanFeb').checked; baseData.bulan_mar = $('bulanMar').checked;
+                baseData.bulan_apr = $('bulanApr').checked; baseData.bulan_mei = $('bulanMei').checked; baseData.bulan_jun = $('bulanJun').checked;
+                baseData.bulan_jul = $('bulanJul').checked; baseData.bulan_agt = $('bulanAgt').checked; baseData.bulan_sep = $('bulanSep').checked;
+                baseData.bulan_okt = $('bulanOkt').checked; baseData.bulan_nov = $('bulanNov').checked; baseData.bulan_des = $('bulanDes').checked;
+                baseData.minggu_ke_bulanan = $('mingguKeBulanan').value; baseData.hari_dalam_minggu_bulanan = $('hariBulanan').value;
+            }
+            // Kirim jenjang_ids sebagai array (multi-jenjang dalam satu record)
+            baseData.jenjang_ids = selectedJenjang.map(function(j) { return parseInt(j); });
+            // Untuk backward compatibility, set jenjang_id ke yang pertama
+            baseData.jenjang_id = selectedJenjang[0];
+
+            console.log('Saving jadwal rutin with data:', baseData);
+            console.log('jenjang_ids to save:', baseData.jenjang_ids);
+
+            try {
+                if (id) {
+                    var success = await jadwalRutinApi.update(id, baseData);
+                    console.log('Update result:', success);
+                    if (success) { showToast('Berhasil!', 'success'); hideModal('rutinModal'); loadRutin(); }
+                } else {
+                    var result = await jadwalRutinApi.create(baseData);
+                    console.log('Create result:', result);
+                    if (result) {
+                        showToast('Jadwal rutin berhasil dibuat!', 'success');
+                        hideModal('rutinModal');
+                        loadRutin();
+                    }
+                }
+            } catch (e) { console.error(e); showToast('Gagal', 'error'); }
+        }
+        
+        async function toggleRutinAktif(id, isAktif) {
+            try { if (await jadwalRutinApi.toggleAktif(id, isAktif)) { showToast(isAktif ? 'Diaktifkan' : 'Dinonaktifkan', 'success'); loadRutin(); } } catch (e) { showToast('Gagal', 'error'); }
+        }
+        
+        async function deleteRutin(id) {
+            if (!confirm('Hapus jadwal rutin ini?')) return;
+            try { if (await jadwalRutinApi.delete(id)) { showToast('Dihapus', 'success'); loadRutin(); } } catch (e) { showToast('Gagal', 'error'); }
+        }
+        
+        async function loadLibur() {
+            var container = $('liburContainer');
+            container.innerHTML = '<div class="text-center py-4 text-muted">Memuat...</div>';
+            try { var data = await tanggalSkipApi.getAll($('filterTahunLibur').value); renderLibur(data); } catch (e) { container.innerHTML = '<div class="text-center py-4 text-danger">Gagal</div>'; }
+        }
+        
+        function renderLibur(data) {
+            var container = $('liburContainer');
+            if (!data || !data.length) { container.innerHTML = '<div class="text-center py-4 text-muted">Belum ada</div>'; return; }
+            var html = '';
+            data.forEach(function(l) {
+                html += '<div class="libur-item"><div><strong>' + formatTanggal(l.tanggal) + '</strong>';
+                if (l.keterangan) html += '<br><small class="text-muted">' + escapeHtml(l.keterangan) + '</small>';
+                html += '</div><button class="btn btn-sm btn-danger" onclick="deleteLibur(' + l.id + ')">🗑️</button></div>';
+            });
+            container.innerHTML = html;
+        }
+        
+        function showAddLiburModal() { $('liburForm').reset(); showModal('liburModal'); }
+        
+        async function saveLibur(e) {
+            e.preventDefault();
+            try { if (await tanggalSkipApi.add($('liburTanggal').value, $('liburKeterangan').value)) { showToast('Ditambahkan', 'success'); hideModal('liburModal'); loadLibur(); } } catch (e) { showToast('Gagal', 'error'); }
+        }
+        
+        async function deleteLibur(id) {
+            if (!confirm('Hapus?')) return;
+            try { if (await tanggalSkipApi.delete(id)) { showToast('Dihapus', 'success'); loadLibur(); } } catch (e) { showToast('Gagal', 'error'); }
+        }
+        
+        function showModal(id) { $(id).classList.add('show'); }
+        function hideModal(id) { $(id).classList.remove('show'); }
+    </script>
+</body>
+</html>

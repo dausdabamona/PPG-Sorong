@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="images/icon-72x72.svg">
+    <title>Penilaian Hafalan - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .generus-card{display:flex;align-items:center;padding:0.75rem;background:#f0fdf4;border-radius:0.5rem;margin-bottom:0.5rem;cursor:pointer;}
+        .generus-card:hover{background:#dcfce7;}
+        .generus-avatar{width:36px;height:36px;background:#059669;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;margin-right:0.75rem;flex-shrink:0;}
+        .generus-info{flex:1;min-width:0;}
+        .generus-name{font-weight:600;font-size:0.85rem;}
+        .generus-meta{font-size:0.7rem;color:#6b7280;}
+        .materi-item{display:flex;align-items:center;padding:0.75rem;border-bottom:1px solid #f1f5f9;cursor:pointer;}
+        .materi-item:hover{background:#f9fafb;}
+        .materi-item:last-child{border-bottom:none;}
+        .materi-no{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;margin-right:0.75rem;flex-shrink:0;}
+        .materi-no.belum{background:#fee2e2;color:#dc2626;}
+        .materi-no.sedang{background:#fef3c7;color:#d97706;}
+        .materi-no.selesai,.materi-no.lulus{background:#d1fae5;color:#059669;}
+        .materi-info{flex:1;}
+        .materi-name{font-weight:500;font-size:0.85rem;}
+        .materi-detail{font-size:0.7rem;color:#6b7280;}
+        .materi-action{color:#059669;font-size:0.8rem;}
+        .tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:0.75rem;overflow-x:auto;}
+        .tab{padding:0.5rem 1rem;cursor:pointer;font-size:0.8rem;font-weight:500;color:#6b7280;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
+        .tab.active{color:#059669;border-bottom-color:#059669;}
+        .status-btn{padding:0.5rem 1rem;border:2px solid #e5e7eb;border-radius:0.5rem;background:#fff;cursor:pointer;font-size:0.8rem;flex:1;text-align:center;}
+        .status-btn.active{border-color:#059669;background:#f0fdf4;color:#059669;}
+        .status-btn:hover{border-color:#059669;}
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand"><div class="sidebar-title">PPG Sorong</div></div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item active"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="materi-hafalan.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Materi Hafalan</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="jamaah.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Data Jamaah</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+                <a href="pengaturan-akses.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">🔐</span><span class="nav-text">Pengaturan Akses</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn-icon" onclick="toggleSidebar()">☰</button>
+                    <h1 class="header-title">Penilaian Hafalan</h1>
+                </div>
+            </header>
+            
+            <div class="page-content">
+                <!-- Step 1: Pilih Generus -->
+                <div id="step1">
+                    <div class="card mb-sm">
+                        <div class="card-body">
+                            <input type="text" class="form-control" id="searchGenerus" placeholder="🔍 Cari nama generus..." oninput="filterGenerus()">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Pilih Generus</span></div>
+                        <div class="card-body" style="padding:0.5rem;max-height:60vh;overflow-y:auto;">
+                            <div id="generusList"><div class="text-center text-muted py-4">Memuat...</div></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Pilih Materi -->
+                <div id="step2" style="display:none;">
+                    <div class="card mb-sm">
+                        <div class="card-body">
+                            <div style="display:flex;align-items:center;justify-content:space-between;">
+                                <div>
+                                    <strong id="selectedName">-</strong>
+                                    <div class="text-muted" style="font-size:0.75rem;" id="selectedMeta">-</div>
+                                </div>
+                                <button class="btn btn-sm btn-outline" onclick="backToList()">← Ganti</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tabs" id="kategoriTabs">
+                        <div class="tab active" data-kategori="SURAT">📖 Surat</div>
+                        <div class="tab" data-kategori="DOA">🤲 Doa & Asmaul</div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body" style="padding:0;max-height:55vh;overflow-y:auto;">
+                            <div id="materiList"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Input Penilaian -->
+                <div id="step3" style="display:none;">
+                    <div class="card mb-sm">
+                        <div class="card-body">
+                            <div style="display:flex;align-items:center;justify-content:space-between;">
+                                <div>
+                                    <strong id="materiTitle">-</strong>
+                                    <div class="text-muted" style="font-size:0.75rem;" id="materiSub">-</div>
+                                </div>
+                                <button class="btn btn-sm btn-outline" onclick="backToMateri()">← Kembali</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Status Hafalan</span></div>
+                        <div class="card-body">
+                            <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;" id="statusButtons">
+                                <div class="status-btn" data-status="belum">❌ Belum</div>
+                                <div class="status-btn" data-status="sedang">⏳ Sedang</div>
+                                <div class="status-btn" data-status="selesai">✅ Selesai</div>
+                                <div class="status-btn" data-status="lulus">🏆 Lulus</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Nilai (0-100)</label>
+                                <input type="number" class="form-control" id="inputNilai" min="0" max="100" placeholder="Masukkan nilai...">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Catatan</label>
+                                <textarea class="form-control" id="inputCatatan" rows="2" placeholder="Catatan (opsional)..."></textarea>
+                            </div>
+
+                            <button class="btn btn-primary w-100" onclick="saveProgress()">💾 Simpan</button>
+                        </div>
+                    </div>
+
+                    <!-- Detail Isi Hafalan -->
+                    <div class="card mt-sm" id="detailHafalanCard" style="display:none;">
+                        <div class="card-header"><span class="card-title">📖 Isi Hafalan</span></div>
+                        <div class="card-body">
+                            <div id="detailHafalanContent" style="white-space:pre-wrap;font-size:0.9rem;line-height:1.6;background:#f8fafc;padding:1rem;border-radius:0.5rem;max-height:300px;overflow-y:auto;">
+                                -
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <button class="fab-menu" onclick="toggleSidebar()" title="Menu">☰</button>
+    
+    <!-- Toast -->
+    <div id="toast" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:0.75rem 1.5rem;border-radius:0.5rem;z-index:9999;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    
+    <script>
+        let allGenerus = [];
+        let selectedJamaah = null;
+        let materiSurat = [];
+        let materiDoa = [];
+        let progressData = {};
+        let currentKategori = 'SURAT';
+        let selectedMateri = null;
+        let selectedStatus = 'belum';
+
+        // Role-based filtering variables
+        var allWilayah = [];
+        var accessibleWilayahIds = [];
+
+        // $ sudah didefinisikan di utils.js
+
+        function toggleSidebar() {
+            var sidebar = $('sidebar');
+            var overlay = $('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
+        }
+
+        function showToast(msg, duration) {
+            duration = duration || 2000;
+            var toast = $('toast');
+            if (toast) {
+                toast.textContent = msg;
+                toast.style.display = 'block';
+                setTimeout(function() { toast.style.display = 'none'; }, duration);
+            }
+        }
+
+        async function loadWilayahData() {
+            try {
+                var result = await db.from('wilayah').select('*').order('nama');
+                allWilayah = result.data || [];
+                accessibleWilayahIds = getAccessibleWilayahIds(allWilayah);
+            } catch (e) {
+                console.error('Error load wilayah:', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!await requireAuth()) return;
+            await loadWilayahData();
+            await loadGenerus();
+            await loadMateri();
+            
+            // Kategori tab click
+            document.querySelectorAll('#kategoriTabs .tab').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('#kategoriTabs .tab').forEach(function(t) { t.classList.remove('active'); });
+                    tab.classList.add('active');
+                    currentKategori = tab.dataset.kategori;
+                    renderMateri();
+                });
+            });
+            
+            // Status button click
+            document.querySelectorAll('#statusButtons .status-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#statusButtons .status-btn').forEach(function(b) { b.classList.remove('active'); });
+                    btn.classList.add('active');
+                    selectedStatus = btn.dataset.status;
+                });
+            });
+        });
+        
+        async function loadGenerus() {
+            try {
+                // Gunakan getFromView yang mengakses v_generus_aktif view
+                var data = await generusApi.getFromView({});
+                allGenerus = data || [];
+
+                // Filter berdasarkan role wilayah
+                if (!isAdmin() && accessibleWilayahIds.length > 0) {
+                    // Get kelompok IDs only
+                    var kelompokIds = allWilayah.filter(function(w) {
+                        return w.tingkat === 'kelompok' && accessibleWilayahIds.indexOf(w.id) !== -1;
+                    }).map(function(w) { return w.id; });
+
+                    allGenerus = allGenerus.filter(function(g) {
+                        return kelompokIds.indexOf(g.kelompok_id) !== -1;
+                    });
+                }
+
+                renderGenerus(allGenerus);
+            } catch (e) {
+                console.error('Error load generus:', e);
+            }
+        }
+        
+        async function loadMateri() {
+            try {
+                // Load dari view v_materi_hafalan
+                var result = await db
+                    .from('v_materi_hafalan')
+                    .select('*')
+                    .order('kategori_nama')
+                    .order('nomor');
+
+                if (result.error) throw result.error;
+
+                var materiData = result.data || [];
+                console.log('Materi hafalan dari view:', materiData);
+
+                // Filter per kategori berdasarkan nama
+                materiSurat = materiData.filter(function(m) {
+                    var kat = (m.kategori_nama || '').toLowerCase();
+                    return kat.includes('surat');
+                });
+                materiDoa = materiData.filter(function(m) {
+                    var kat = (m.kategori_nama || '').toLowerCase();
+                    return kat.includes('doa') || kat.includes('asmaul');
+                });
+
+                console.log('Materi loaded - Surat:', materiSurat.length, 'Doa:', materiDoa.length);
+            } catch (e) {
+                console.error('Error load materi:', e);
+            }
+        }
+        
+        function filterGenerus() {
+            const q = $('searchGenerus').value.toLowerCase();
+            const filtered = allGenerus.filter(g => 
+                g.nama.toLowerCase().includes(q) || 
+                (g.nama_panggilan && g.nama_panggilan.toLowerCase().includes(q))
+            );
+            renderGenerus(filtered);
+        }
+        
+        function renderGenerus(list) {
+            if (!list.length) {
+                $('generusList').innerHTML = '<div class="text-center text-muted py-4">Tidak ada data</div>';
+                return;
+            }
+            
+            let html = '';
+            list.forEach(g => {
+                html += `
+                    <div class="generus-card" onclick="selectGenerus(${g.jamaah_id})">
+                        <div class="generus-avatar">${g.nama.charAt(0)}</div>
+                        <div class="generus-info">
+                            <div class="generus-name">${g.nama}</div>
+                            <div class="generus-meta">${g.jenjang_nama} • ${g.kelompok_nama}</div>
+                        </div>
+                        <span>→</span>
+                    </div>`;
+            });
+            $('generusList').innerHTML = html;
+        }
+        
+        async function selectGenerus(id) {
+            selectedJamaah = allGenerus.find(g => g.jamaah_id === id);
+            if (!selectedJamaah) return;
+            
+            $('selectedName').textContent = selectedJamaah.nama;
+            $('selectedMeta').textContent = `${selectedJamaah.jenjang_nama} • ${selectedJamaah.kelompok_nama}`;
+            
+            // Load progress
+            try {
+                const { data } = await db
+                    .from('progress_jamaah')
+                    .select('materi_item_id, status, nilai, catatan')
+                    .eq('jamaah_id', id);
+                
+                progressData = {};
+                (data || []).forEach(p => {
+                    progressData[p.materi_item_id] = p;
+                });
+            } catch (e) {
+                console.error('Error load progress:', e);
+            }
+            
+            currentKategori = 'SURAT';
+            document.querySelectorAll('#kategoriTabs .tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+            
+            renderMateri();
+            
+            $('step1').style.display = 'none';
+            $('step2').style.display = 'block';
+        }
+        
+        function backToList() {
+            $('step1').style.display = 'block';
+            $('step2').style.display = 'none';
+            selectedJamaah = null;
+        }
+        
+        function renderMateri() {
+            const data = currentKategori === 'SURAT' ? materiSurat : materiDoa;
+            
+            let html = '';
+            data.forEach(m => {
+                const p = progressData[m.id];
+                const status = p ? p.status : 'belum';
+                
+                let detail = '';
+                try {
+                    const d = typeof m.detail === 'string' ? JSON.parse(m.detail) : m.detail;
+                    if (d) {
+                        if (d.jumlah_ayat) detail = d.jumlah_ayat + ' ayat';
+                        else if (d.arti) detail = d.arti;
+                    }
+                } catch (e) {}
+                
+                html += `
+                    <div class="materi-item" onclick="selectMateri(${m.id})">
+                        <div class="materi-no ${status}">${m.nomor || '-'}</div>
+                        <div class="materi-info">
+                            <div class="materi-name">${m.nama}</div>
+                            ${detail ? `<div class="materi-detail">${detail}</div>` : ''}
+                        </div>
+                        <span class="materi-action">Nilai →</span>
+                    </div>`;
+            });
+            
+            $('materiList').innerHTML = html || '<div class="text-center text-muted py-4">Tidak ada materi</div>';
+        }
+        
+        function selectMateri(id) {
+            const data = currentKategori === 'SURAT' ? materiSurat : materiDoa;
+            selectedMateri = data.find(m => m.id === id);
+            if (!selectedMateri) return;
+
+            const p = progressData[selectedMateri.id];
+
+            $('materiTitle').textContent = selectedMateri.nama;
+            $('materiSub').textContent = selectedJamaah.nama;
+
+            // Set current values
+            selectedStatus = p ? p.status : 'belum';
+            $('inputNilai').value = p?.nilai || '';
+            $('inputCatatan').value = p?.catatan || '';
+
+            // Update status buttons
+            document.querySelectorAll('#statusButtons .status-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.status === selectedStatus);
+            });
+
+            // Tampilkan detail isi hafalan
+            var isiHafalan = selectedMateri.konten || selectedMateri.isi || selectedMateri.deskripsi || selectedMateri.teks || selectedMateri.ayat || '';
+            if (isiHafalan) {
+                $('detailHafalanContent').textContent = isiHafalan;
+                $('detailHafalanCard').style.display = 'block';
+            } else {
+                $('detailHafalanCard').style.display = 'none';
+            }
+
+            $('step2').style.display = 'none';
+            $('step3').style.display = 'block';
+        }
+        
+        function backToMateri() {
+            $('step2').style.display = 'block';
+            $('step3').style.display = 'none';
+            selectedMateri = null;
+        }
+        
+        async function saveProgress() {
+            if (!selectedJamaah || !selectedMateri) return;
+            
+            const nilai = $('inputNilai').value ? parseInt($('inputNilai').value) : null;
+            const catatan = $('inputCatatan').value || null;
+            const now = new Date();
+            
+            const payload = {
+                jamaah_id: selectedJamaah.jamaah_id,
+                materi_item_id: selectedMateri.id,
+                status: selectedStatus,
+                nilai: nilai,
+                catatan: catatan,
+                periode_bulan: now.getMonth() + 1,
+                periode_tahun: now.getFullYear(),
+                updated_at: now.toISOString()
+            };
+            
+            // Set tanggal
+            if (selectedStatus === 'sedang' && !progressData[selectedMateri.id]?.tanggal_mulai) {
+                payload.tanggal_mulai = now.toISOString().split('T')[0];
+            }
+            if (selectedStatus === 'selesai' || selectedStatus === 'lulus') {
+                payload.tanggal_selesai = now.toISOString().split('T')[0];
+            }
+            
+            try {
+                // Check if exists
+                const existing = progressData[selectedMateri.id];
+                
+                if (existing) {
+                    // Update
+                    const { error } = await db
+                        .from('progress_jamaah')
+                        .update(payload)
+                        .eq('jamaah_id', selectedJamaah.jamaah_id)
+                        .eq('materi_item_id', selectedMateri.id);
+                    
+                    if (error) throw error;
+                } else {
+                    // Insert
+                    payload.tanggal_mulai = now.toISOString().split('T')[0];
+                    const { error } = await db
+                        .from('progress_jamaah')
+                        .insert(payload);
+                    
+                    if (error) throw error;
+                }
+                
+                // Update local data
+                progressData[selectedMateri.id] = {
+                    materi_item_id: selectedMateri.id,
+                    status: selectedStatus,
+                    nilai: nilai,
+                    catatan: catatan
+                };
+                
+                showToast('✅ Berhasil disimpan');
+                
+                // Back to materi list
+                setTimeout(() => {
+                    backToMateri();
+                    renderMateri();
+                }, 500);
+                
+            } catch (e) {
+                console.error('Error save:', e);
+                showToast('❌ Gagal menyimpan');
+            }
+        }
+    </script>
+</body>
+</html>

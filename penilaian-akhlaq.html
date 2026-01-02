@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Penilaian Akhlaq - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .santri-card { background: white; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .santri-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        .santri-info { display: flex; align-items: center; gap: 0.75rem; }
+        .santri-avatar { width: 40px; height: 40px; border-radius: 50%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .santri-avatar.L { background: #dbeafe; color: #1e40af; }
+        .santri-avatar.P { background: #fce7f3; color: #be185d; }
+        .santri-name { font-weight: 600; font-size: 0.95rem; }
+        .santri-meta { font-size: 0.75rem; color: #6b7280; }
+        .nilai-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-bottom: 0.75rem; }
+        .nilai-item { text-align: center; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem; }
+        .nilai-item-label { font-size: 0.6rem; color: #6b7280; margin-bottom: 0.25rem; }
+        .nilai-item-value { font-size: 1rem; font-weight: 700; }
+        .nilai-item-value.excellent { color: #059669; }
+        .nilai-item-value.good { color: #3b82f6; }
+        .nilai-item-value.fair { color: #f59e0b; }
+        .nilai-item-value.poor { color: #ef4444; }
+        .predikat-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600; }
+        .predikat-A { background: #dcfce7; color: #166534; }
+        .predikat-B { background: #dbeafe; color: #1e40af; }
+        .predikat-C { background: #fef3c7; color: #92400e; }
+        .predikat-D { background: #fee2e2; color: #dc2626; }
+        .filter-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .filter-row .form-control { flex: 1; min-width: 100px; }
+        .rating-input { display: flex; gap: 0.25rem; }
+        .rating-btn { width: 36px; height: 36px; border: 2px solid #e5e7eb; border-radius: 0.5rem; background: white; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .rating-btn:hover { border-color: #059669; }
+        .rating-btn.selected { background: #059669; color: white; border-color: #059669; }
+        .rating-btn.selected-4 { background: #059669; }
+        .rating-btn.selected-3 { background: #3b82f6; }
+        .rating-btn.selected-2 { background: #f59e0b; }
+        .rating-btn.selected-1 { background: #ef4444; }
+        .penilaian-form { background: #f8fafc; border-radius: 0.5rem; padding: 1rem; }
+        .penilaian-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb; }
+        .penilaian-row:last-child { border-bottom: none; }
+        .penilaian-label { font-weight: 500; font-size: 0.9rem; }
+        .stats-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .stat-card { flex: 1; background: white; border-radius: 0.75rem; padding: 0.75rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 1.25rem; font-weight: 700; color: #059669; }
+        .stat-label { font-size: 0.7rem; color: #6b7280; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #6b7280; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="kelas.html" class="nav-item"><span class="nav-icon">🏫</span><span class="nav-text">Kelas Pengajian</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="penilaian-akhlaq.html" class="nav-item active"><span class="nav-icon">⭐</span><span class="nav-text">Penilaian Akhlaq</span></a>
+                <div class="nav-section">ORGANISASI</div>
+                <a href="musyawarah.html" class="nav-item"><span class="nav-icon">🤝</span><span class="nav-text">Musyawarah</span></a>
+                <a href="kegiatan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Kegiatan</span></a>
+                <a href="lima-unsur.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Lima Unsur</span></a>
+                <a href="kakak-asuh.html" class="nav-item"><span class="nav-icon">🤗</span><span class="nav-text">Kakak Asuh</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="header" id="desktopHeader">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Penilaian Akhlaq</h1>
+                </div>
+            </header>
+
+            <div class="pwa-page-header" id="mobileHeader" style="display:none;">
+                <button class="pwa-back-btn" onclick="location.href='dashboard.html'">←</button>
+                <h1 class="pwa-page-title">⭐ Penilaian Akhlaq</h1>
+                <div style="width:40px;"></div>
+            </div>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-label">Total Santri</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statDinilai">0</div>
+                        <div class="stat-label">Sudah Dinilai</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statBelum">0</div>
+                        <div class="stat-label">Belum Dinilai</div>
+                    </div>
+                </div>
+
+                <!-- Filter -->
+                <div class="card mb-sm">
+                    <div class="card-body">
+                        <div class="filter-row">
+                            <select class="form-control" id="filterWilayah" onchange="loadSantri()">
+                                <option value="">Semua Wilayah</option>
+                            </select>
+                            <select class="form-control" id="filterJenjang" onchange="loadSantri()">
+                                <option value="">Semua Jenjang</option>
+                            </select>
+                            <input type="month" class="form-control" id="filterPeriode" onchange="loadSantri()">
+                        </div>
+                        <div class="filter-row">
+                            <input type="text" class="form-control" id="searchNama" placeholder="Cari nama..." oninput="filterSantri()">
+                            <select class="form-control" id="filterStatus" onchange="filterSantri()">
+                                <option value="">Semua</option>
+                                <option value="dinilai">Sudah Dinilai</option>
+                                <option value="belum">Belum Dinilai</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Santri List -->
+                <div id="santriList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⭐</div>
+                        <p>Memuat data...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Penilaian -->
+    <div class="modal" id="penilaianModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Penilaian Akhlaq</h3>
+                <button class="modal-close" onclick="closePenilaianModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="santri-info" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
+                    <div class="santri-avatar" id="modalAvatar">?</div>
+                    <div>
+                        <div class="santri-name" id="modalNama">-</div>
+                        <div class="santri-meta" id="modalMeta">-</div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="penilaianJamaahId">
+                <input type="hidden" id="penilaianId">
+
+                <div class="penilaian-form">
+                    <div class="penilaian-row">
+                        <div class="penilaian-label">Kedisiplinan</div>
+                        <div class="rating-input" id="ratingKedisiplinan">
+                            <button type="button" class="rating-btn" data-value="1" onclick="setRating('kedisiplinan', 1)">1</button>
+                            <button type="button" class="rating-btn" data-value="2" onclick="setRating('kedisiplinan', 2)">2</button>
+                            <button type="button" class="rating-btn" data-value="3" onclick="setRating('kedisiplinan', 3)">3</button>
+                            <button type="button" class="rating-btn" data-value="4" onclick="setRating('kedisiplinan', 4)">4</button>
+                        </div>
+                    </div>
+                    <div class="penilaian-row">
+                        <div class="penilaian-label">Adab</div>
+                        <div class="rating-input" id="ratingAdab">
+                            <button type="button" class="rating-btn" data-value="1" onclick="setRating('adab', 1)">1</button>
+                            <button type="button" class="rating-btn" data-value="2" onclick="setRating('adab', 2)">2</button>
+                            <button type="button" class="rating-btn" data-value="3" onclick="setRating('adab', 3)">3</button>
+                            <button type="button" class="rating-btn" data-value="4" onclick="setRating('adab', 4)">4</button>
+                        </div>
+                    </div>
+                    <div class="penilaian-row">
+                        <div class="penilaian-label">Akhlaq Sesama</div>
+                        <div class="rating-input" id="ratingAkhlaq">
+                            <button type="button" class="rating-btn" data-value="1" onclick="setRating('akhlaq_sesama', 1)">1</button>
+                            <button type="button" class="rating-btn" data-value="2" onclick="setRating('akhlaq_sesama', 2)">2</button>
+                            <button type="button" class="rating-btn" data-value="3" onclick="setRating('akhlaq_sesama', 3)">3</button>
+                            <button type="button" class="rating-btn" data-value="4" onclick="setRating('akhlaq_sesama', 4)">4</button>
+                        </div>
+                    </div>
+                    <div class="penilaian-row">
+                        <div class="penilaian-label">Kemandirian</div>
+                        <div class="rating-input" id="ratingKemandirian">
+                            <button type="button" class="rating-btn" data-value="1" onclick="setRating('kemandirian', 1)">1</button>
+                            <button type="button" class="rating-btn" data-value="2" onclick="setRating('kemandirian', 2)">2</button>
+                            <button type="button" class="rating-btn" data-value="3" onclick="setRating('kemandirian', 3)">3</button>
+                            <button type="button" class="rating-btn" data-value="4" onclick="setRating('kemandirian', 4)">4</button>
+                        </div>
+                    </div>
+                    <div class="penilaian-row">
+                        <div class="penilaian-label">Kebersihan</div>
+                        <div class="rating-input" id="ratingKebersihan">
+                            <button type="button" class="rating-btn" data-value="1" onclick="setRating('kebersihan', 1)">1</button>
+                            <button type="button" class="rating-btn" data-value="2" onclick="setRating('kebersihan', 2)">2</button>
+                            <button type="button" class="rating-btn" data-value="3" onclick="setRating('kebersihan', 3)">3</button>
+                            <button type="button" class="rating-btn" data-value="4" onclick="setRating('kebersihan', 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="form-label">Catatan</label>
+                    <textarea class="form-control" id="penilaianCatatan" rows="2" placeholder="Catatan tambahan..."></textarea>
+                </div>
+
+                <div style="background: #f0fdf4; padding: 0.75rem; border-radius: 0.5rem; margin-top: 1rem; text-align: center;">
+                    <div style="font-size: 0.75rem; color: #6b7280;">Rata-rata</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #059669;" id="rataRataNilai">-</div>
+                    <div id="predikatPreview"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closePenilaianModal()">Batal</button>
+                <button class="btn btn-primary" onclick="savePenilaian()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/pwa-mobile.js"></script>
+    <script>
+        var allSantri = [];
+        var filteredSantri = [];
+        var allWilayah = [];
+        var allJenjang = [];
+        var penilaianData = {};
+        var currentRatings = { kedisiplinan: 0, adab: 0, akhlaq_sesama: 0, kemandirian: 0, kebersihan: 0 };
+
+        function $(id) { return document.getElementById(id); }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initAuth();
+
+            // Set default periode ke bulan ini
+            var now = new Date();
+            $('filterPeriode').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+            await loadMasterData();
+            await loadSantri();
+        });
+
+        async function loadMasterData() {
+            try {
+                allWilayah = await wilayahApi.getKelompok();
+                var filterWilayah = $('filterWilayah');
+                allWilayah.forEach(function(w) {
+                    filterWilayah.innerHTML += '<option value="' + w.id + '">' + w.nama + '</option>';
+                });
+
+                allJenjang = await masterApi.getJenjang();
+                var filterJenjang = $('filterJenjang');
+                allJenjang.forEach(function(j) {
+                    filterJenjang.innerHTML += '<option value="' + j.id + '">' + j.nama + '</option>';
+                });
+            } catch (error) {
+                console.error('Error load master:', error);
+            }
+        }
+
+        async function loadSantri() {
+            try {
+                var wilayahId = $('filterWilayah').value;
+                var jenjangId = $('filterJenjang').value;
+                var periode = $('filterPeriode').value;
+
+                // Get generus
+                var filters = { status: 'aktif' };
+                if (wilayahId) filters.wilayah_id = parseInt(wilayahId);
+                if (jenjangId) filters.jenjang_id = parseInt(jenjangId);
+
+                allSantri = await generusApi.getAll(filters);
+
+                // Get penilaian untuk periode ini
+                if (periode) {
+                    var [tahun, bulan] = periode.split('-');
+                    var { data } = await db.from('penilaian_akhlaq')
+                        .select('*')
+                        .eq('periode_bulan', parseInt(bulan))
+                        .eq('periode_tahun', parseInt(tahun));
+
+                    penilaianData = {};
+                    (data || []).forEach(function(p) {
+                        penilaianData[p.jamaah_id] = p;
+                    });
+                }
+
+                filterSantri();
+            } catch (error) {
+                console.error('Error load santri:', error);
+                showToast('Gagal memuat data', 'error');
+            }
+        }
+
+        function filterSantri() {
+            var search = $('searchNama').value.toLowerCase();
+            var status = $('filterStatus').value;
+
+            filteredSantri = allSantri.filter(function(s) {
+                if (search && !s.nama.toLowerCase().includes(search)) return false;
+
+                var hasPenilaian = !!penilaianData[s.id];
+                if (status === 'dinilai' && !hasPenilaian) return false;
+                if (status === 'belum' && hasPenilaian) return false;
+
+                return true;
+            });
+
+            renderSantri();
+            updateStats();
+        }
+
+        function renderSantri() {
+            var container = $('santriList');
+
+            if (filteredSantri.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⭐</div><p>Tidak ada data santri</p></div>';
+                return;
+            }
+
+            var html = '';
+            filteredSantri.forEach(function(s) {
+                var penilaian = penilaianData[s.id];
+                var jk = s.jenis_kelamin || '?';
+
+                html += '<div class="santri-card">';
+                html += '<div class="santri-header">';
+                html += '<div class="santri-info">';
+                html += '<div class="santri-avatar ' + jk + '">' + jk + '</div>';
+                html += '<div><div class="santri-name">' + s.nama + '</div>';
+                html += '<div class="santri-meta">' + (s.jenjang_nama || '-') + ' | ' + (s.wilayah_nama || '-') + '</div></div>';
+                html += '</div>';
+
+                if (penilaian) {
+                    var predikat = penilaian.predikat || '-';
+                    html += '<span class="predikat-badge predikat-' + predikat + '">' + predikat + '</span>';
+                } else {
+                    html += '<span class="badge badge-secondary">Belum</span>';
+                }
+                html += '</div>';
+
+                if (penilaian) {
+                    html += '<div class="nilai-grid">';
+                    html += renderNilaiItem('Disiplin', penilaian.kedisiplinan);
+                    html += renderNilaiItem('Adab', penilaian.adab);
+                    html += renderNilaiItem('Akhlaq', penilaian.akhlaq_sesama);
+                    html += renderNilaiItem('Mandiri', penilaian.kemandirian);
+                    html += renderNilaiItem('Bersih', penilaian.kebersihan);
+                    html += '</div>';
+                }
+
+                html += '<button class="btn btn-sm btn-primary w-100" onclick="showPenilaianModal(' + s.id + ')">';
+                html += penilaian ? '✏️ Edit Penilaian' : '⭐ Beri Penilaian';
+                html += '</button>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderNilaiItem(label, nilai) {
+            var colorClass = 'fair';
+            if (nilai >= 4) colorClass = 'excellent';
+            else if (nilai >= 3) colorClass = 'good';
+            else if (nilai >= 2) colorClass = 'fair';
+            else colorClass = 'poor';
+
+            return '<div class="nilai-item"><div class="nilai-item-label">' + label + '</div><div class="nilai-item-value ' + colorClass + '">' + (nilai || '-') + '</div></div>';
+        }
+
+        function updateStats() {
+            var total = allSantri.length;
+            var dinilai = 0;
+
+            allSantri.forEach(function(s) {
+                if (penilaianData[s.id]) dinilai++;
+            });
+
+            $('statTotal').textContent = total;
+            $('statDinilai').textContent = dinilai;
+            $('statBelum').textContent = total - dinilai;
+        }
+
+        function showPenilaianModal(jamaahId) {
+            var santri = allSantri.find(function(s) { return s.id === jamaahId; });
+            if (!santri) return;
+
+            $('penilaianJamaahId').value = jamaahId;
+            $('modalNama').textContent = santri.nama;
+            $('modalMeta').textContent = (santri.jenjang_nama || '-') + ' | ' + (santri.wilayah_nama || '-');
+            $('modalAvatar').textContent = santri.jenis_kelamin || '?';
+            $('modalAvatar').className = 'santri-avatar ' + (santri.jenis_kelamin || '');
+
+            // Reset ratings
+            currentRatings = { kedisiplinan: 0, adab: 0, akhlaq_sesama: 0, kemandirian: 0, kebersihan: 0 };
+
+            var existing = penilaianData[jamaahId];
+            if (existing) {
+                $('penilaianId').value = existing.id;
+                currentRatings.kedisiplinan = existing.kedisiplinan || 0;
+                currentRatings.adab = existing.adab || 0;
+                currentRatings.akhlaq_sesama = existing.akhlaq_sesama || 0;
+                currentRatings.kemandirian = existing.kemandirian || 0;
+                currentRatings.kebersihan = existing.kebersihan || 0;
+                $('penilaianCatatan').value = existing.catatan || '';
+            } else {
+                $('penilaianId').value = '';
+                $('penilaianCatatan').value = '';
+            }
+
+            // Update UI
+            updateRatingUI('kedisiplinan', currentRatings.kedisiplinan);
+            updateRatingUI('adab', currentRatings.adab);
+            updateRatingUI('akhlaq_sesama', currentRatings.akhlaq_sesama);
+            updateRatingUI('kemandirian', currentRatings.kemandirian);
+            updateRatingUI('kebersihan', currentRatings.kebersihan);
+            updateRataRata();
+
+            $('penilaianModal').classList.add('show');
+        }
+
+        function closePenilaianModal() {
+            $('penilaianModal').classList.remove('show');
+        }
+
+        function setRating(field, value) {
+            currentRatings[field] = value;
+            updateRatingUI(field, value);
+            updateRataRata();
+        }
+
+        function updateRatingUI(field, value) {
+            var containerId = 'rating' + field.charAt(0).toUpperCase() + field.slice(1).replace('_', '');
+            if (field === 'akhlaq_sesama') containerId = 'ratingAkhlaq';
+
+            var container = $(containerId);
+            if (!container) return;
+
+            var buttons = container.querySelectorAll('.rating-btn');
+            buttons.forEach(function(btn) {
+                var btnValue = parseInt(btn.getAttribute('data-value'));
+                btn.classList.remove('selected', 'selected-1', 'selected-2', 'selected-3', 'selected-4');
+                if (btnValue === value) {
+                    btn.classList.add('selected', 'selected-' + value);
+                }
+            });
+        }
+
+        function updateRataRata() {
+            var values = Object.values(currentRatings).filter(function(v) { return v > 0; });
+            if (values.length === 0) {
+                $('rataRataNilai').textContent = '-';
+                $('predikatPreview').innerHTML = '';
+                return;
+            }
+
+            var sum = values.reduce(function(a, b) { return a + b; }, 0);
+            var avg = sum / values.length;
+            $('rataRataNilai').textContent = avg.toFixed(2);
+
+            var predikat = 'D';
+            if (avg >= 3.5) predikat = 'A';
+            else if (avg >= 2.5) predikat = 'B';
+            else if (avg >= 1.5) predikat = 'C';
+
+            $('predikatPreview').innerHTML = '<span class="predikat-badge predikat-' + predikat + '">Predikat: ' + predikat + '</span>';
+        }
+
+        async function savePenilaian() {
+            var jamaahId = $('penilaianJamaahId').value;
+            var penilaianId = $('penilaianId').value;
+            var catatan = $('penilaianCatatan').value.trim();
+            var periode = $('filterPeriode').value;
+
+            if (!periode) {
+                showToast('Pilih periode terlebih dahulu', 'error');
+                return;
+            }
+
+            // Validasi semua sudah diisi
+            var allFilled = Object.values(currentRatings).every(function(v) { return v > 0; });
+            if (!allFilled) {
+                showToast('Semua aspek harus dinilai', 'error');
+                return;
+            }
+
+            var [tahun, bulan] = periode.split('-');
+
+            // Hitung rata-rata dan predikat
+            var values = Object.values(currentRatings);
+            var avg = values.reduce(function(a, b) { return a + b; }, 0) / values.length;
+
+            var predikat = 'D';
+            if (avg >= 3.5) predikat = 'A';
+            else if (avg >= 2.5) predikat = 'B';
+            else if (avg >= 1.5) predikat = 'C';
+
+            try {
+                var data = {
+                    jamaah_id: parseInt(jamaahId),
+                    periode_bulan: parseInt(bulan),
+                    periode_tahun: parseInt(tahun),
+                    kedisiplinan: currentRatings.kedisiplinan,
+                    adab: currentRatings.adab,
+                    akhlaq_sesama: currentRatings.akhlaq_sesama,
+                    kemandirian: currentRatings.kemandirian,
+                    kebersihan: currentRatings.kebersihan,
+                    predikat: predikat,
+                    catatan: catatan || null,
+                    penilai_id: currentUserData?.id || null
+                };
+
+                if (penilaianId) {
+                    // Update
+                    var { error } = await db.from('penilaian_akhlaq').update(data).eq('id', parseInt(penilaianId));
+                    if (error) throw error;
+                } else {
+                    // Insert
+                    var { error } = await db.from('penilaian_akhlaq').insert(data);
+                    if (error) throw error;
+                }
+
+                showToast('Penilaian berhasil disimpan', 'success');
+                closePenilaianModal();
+                await loadSantri();
+
+            } catch (error) {
+                console.error('Error save:', error);
+                showToast('Gagal menyimpan: ' + (error.message || error), 'error');
+            }
+        }
+    </script>
+</body>
+</html>

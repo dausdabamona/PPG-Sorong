@@ -1,0 +1,1292 @@
+/* ============================================================================
+   PWA MOBILE STYLES - PPG SORONG
+   Desain: Opsi B (Card + Stats + Bottom Nav) + Icon Grid Opsi A
+   ============================================================================ */
+
+/* ============================================================================
+   CSS VARIABLES
+   ============================================================================ */
+:root {
+    --pwa-primary: #059669;
+    --pwa-primary-dark: #047857;
+    --pwa-primary-light: #d1fae5;
+    --pwa-success: #10b981;
+    --pwa-warning: #f59e0b;
+    --pwa-danger: #ef4444;
+    --pwa-info: #3b82f6;
+    --pwa-purple: #8b5cf6;
+    --pwa-gray: #6b7280;
+    --pwa-light: #f3f4f6;
+    --pwa-white: #ffffff;
+    --pwa-dark: #1f2937;
+    --pwa-border: #e5e7eb;
+    --pwa-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --pwa-radius: 1rem;
+    --pwa-radius-sm: 0.75rem;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ============================================================================
+   MOBILE CONTAINER - Hide sidebar, show mobile UI
+   ============================================================================ */
+@media (max-width: 768px) {
+    /* Hide desktop elements */
+    .sidebar,
+    .sidebar-overlay,
+    .header,
+    .fab-menu,
+    .breadcrumb,
+    .page-header {
+        display: none !important;
+    }
+    
+    /* Reset main content */
+    .app-container {
+        display: block !important;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        min-height: 100vh;
+        background: var(--pwa-light);
+    }
+    
+    .page-content {
+        padding: 0 !important;
+        padding-bottom: calc(80px + var(--safe-bottom)) !important;
+    }
+    
+    /* Show mobile UI */
+    .pwa-mobile {
+        display: block !important;
+    }
+}
+
+/* Hide mobile UI on desktop */
+.pwa-mobile {
+    display: none;
+}
+
+/* Desktop only - hide on mobile */
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+/* ============================================================================
+   PWA HEADER - Stats Banner
+   ============================================================================ */
+.pwa-header {
+    background: linear-gradient(135deg, var(--pwa-primary) 0%, var(--pwa-primary-dark) 100%);
+    color: white;
+    padding: 1rem;
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+    border-radius: 0 0 1.5rem 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.pwa-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.pwa-greeting {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.pwa-greeting small {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    opacity: 0.9;
+    margin-top: 0.15rem;
+}
+
+.pwa-header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.pwa-header-btn {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.pwa-header-btn:active {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Stats Row */
+.pwa-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+.pwa-stat-box {
+    background: rgba(255,255,255,0.15);
+    padding: 0.75rem;
+    border-radius: var(--pwa-radius-sm);
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.pwa-stat-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.pwa-stat-label {
+    font-size: 0.65rem;
+    opacity: 0.9;
+    margin-top: 0.15rem;
+}
+
+/* ============================================================================
+   PWA MENU GRID - Icon Style seperti Opsi A
+   ============================================================================ */
+.pwa-section-title {
+    padding: 0.5rem 1rem;
+    font-size: 0.7rem;
+    color: var(--pwa-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pwa-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    padding: 0 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.pwa-menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem 0.25rem;
+    border-radius: var(--pwa-radius);
+    text-decoration: none;
+    color: var(--pwa-dark);
+    transition: all 0.2s;
+    background: transparent;
+}
+
+.pwa-menu-item:active {
+    background: var(--pwa-light);
+    transform: scale(0.95);
+}
+
+.pwa-menu-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--pwa-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    box-shadow: var(--pwa-shadow);
+}
+
+/* Icon Colors */
+.pwa-menu-icon.green { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+.pwa-menu-icon.blue { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+.pwa-menu-icon.yellow { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+.pwa-menu-icon.purple { background: linear-gradient(135deg, #e9d5ff, #d8b4fe); }
+.pwa-menu-icon.red { background: linear-gradient(135deg, #fee2e2, #fecaca); }
+.pwa-menu-icon.pink { background: linear-gradient(135deg, #fce7f3, #fbcfe8); }
+.pwa-menu-icon.cyan { background: linear-gradient(135deg, #cffafe, #a5f3fc); }
+.pwa-menu-icon.orange { background: linear-gradient(135deg, #ffedd5, #fed7aa); }
+.pwa-menu-icon.gray { background: linear-gradient(135deg, #e5e7eb, #d1d5db); }
+
+.pwa-menu-label {
+    font-size: 0.68rem;
+    text-align: center;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--pwa-dark);
+}
+
+/* ============================================================================
+   PWA QUICK ACTIONS - Card Style
+   ============================================================================ */
+.pwa-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    padding: 0 1rem;
+    margin-bottom: 1rem;
+}
+
+.pwa-quick-card {
+    background: var(--pwa-white);
+    border-radius: var(--pwa-radius);
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: var(--pwa-shadow);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+}
+
+.pwa-quick-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.pwa-quick-card.highlight {
+    background: linear-gradient(135deg, var(--pwa-primary), var(--pwa-success));
+    color: white;
+}
+
+.pwa-quick-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--pwa-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.pwa-quick-icon.primary { background: var(--pwa-primary-light); }
+.pwa-quick-icon.warning { background: #fef3c7; }
+.pwa-quick-icon.info { background: #dbeafe; }
+.pwa-quick-icon.purple { background: #f3e8ff; }
+.pwa-quick-card.highlight .pwa-quick-icon { background: rgba(255,255,255,0.2); }
+
+.pwa-quick-text h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+}
+
+.pwa-quick-text p {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin: 0;
+}
+
+/* ============================================================================
+   PWA ACTIVITY/RECENT SECTION
+   ============================================================================ */
+.pwa-section {
+    padding: 0 1rem;
+    margin-bottom: 1rem;
+}
+
+.pwa-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.pwa-section-header h3 {
+    font-size: 0.95rem;
+    color: var(--pwa-dark);
+    font-weight: 600;
+}
+
+.pwa-section-header a {
+    font-size: 0.75rem;
+    color: var(--pwa-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.pwa-card {
+    background: var(--pwa-white);
+    border-radius: var(--pwa-radius);
+    box-shadow: var(--pwa-shadow);
+    overflow: hidden;
+}
+
+.pwa-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--pwa-border);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s;
+}
+
+.pwa-list-item:last-child {
+    border-bottom: none;
+}
+
+.pwa-list-item:active {
+    background: var(--pwa-light);
+}
+
+.pwa-list-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--pwa-primary-light);
+    border-radius: var(--pwa-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.pwa-list-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.pwa-list-content h4 {
+    font-size: 0.85rem;
+    color: var(--pwa-dark);
+    margin-bottom: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pwa-list-content p {
+    font-size: 0.7rem;
+    color: var(--pwa-gray);
+    margin: 0;
+}
+
+.pwa-list-arrow {
+    color: var(--pwa-gray);
+    font-size: 1.25rem;
+}
+
+.pwa-list-badge {
+    background: var(--pwa-primary);
+    color: white;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 1rem;
+    font-weight: 600;
+}
+
+/* ============================================================================
+   PWA BOTTOM NAVIGATION
+   ============================================================================ */
+
+/* Member Grid View - Icon style seperti home screen HP */
+.member-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    padding: 0.75rem;
+}
+
+.member-grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 0.25rem;
+    border-radius: var(--pwa-radius-sm);
+    text-decoration: none;
+    color: var(--pwa-dark);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.member-grid-item:active {
+    background: var(--pwa-light);
+    transform: scale(0.95);
+}
+
+.member-grid-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.member-grid-avatar.male {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.member-grid-avatar.female {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+}
+
+.member-grid-name {
+    font-size: 0.65rem;
+    text-align: center;
+    font-weight: 500;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    color: var(--pwa-dark);
+}
+
+.member-grid-age {
+    font-size: 0.55rem;
+    color: var(--pwa-gray);
+    margin-top: 0.1rem;
+}
+
+/* View Toggle Button */
+.view-toggle {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--pwa-light);
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+}
+
+.view-toggle-btn {
+    padding: 0.35rem 0.6rem;
+    border: none;
+    background: transparent;
+    border-radius: 0.35rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.view-toggle-btn.active {
+    background: var(--pwa-white);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Jenjang section in grid view */
+.jenjang-section-grid {
+    margin-bottom: 0.5rem;
+}
+
+.jenjang-section-grid .jenjang-header {
+    padding: 0.5rem 0.75rem;
+    background: var(--pwa-primary-light);
+    margin: 0;
+    border-radius: 0;
+}
+
+.pwa-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--pwa-white);
+    border-top: 1px solid var(--pwa-border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.5rem 0.25rem;
+    padding-bottom: calc(0.5rem + var(--safe-bottom));
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+}
+
+.pwa-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    color: var(--pwa-gray);
+    text-decoration: none;
+    border-radius: var(--pwa-radius-sm);
+    transition: all 0.2s;
+    min-width: 60px;
+}
+
+.pwa-nav-item:active {
+    background: var(--pwa-light);
+}
+
+.pwa-nav-item.active {
+    color: var(--pwa-primary);
+}
+
+.pwa-nav-item .nav-icon {
+    font-size: 1.35rem;
+    margin-bottom: 0.2rem;
+    line-height: 1;
+}
+
+.pwa-nav-item .nav-label {
+    font-size: 0.6rem;
+    font-weight: 500;
+}
+
+/* ============================================================================
+   PWA PAGE SPECIFIC - Halaman Non-Dashboard
+   ============================================================================ */
+.pwa-page-header {
+    background: var(--pwa-white);
+    padding: 1rem;
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--pwa-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.pwa-back-btn {
+    width: 36px;
+    height: 36px;
+    background: var(--pwa-light);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: var(--pwa-dark);
+}
+
+.pwa-page-title {
+    flex: 1;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--pwa-dark);
+}
+
+.pwa-page-action {
+    width: 36px;
+    height: 36px;
+    background: var(--pwa-primary);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    cursor: pointer;
+    color: white;
+}
+
+/* ============================================================================
+   PWA SEARCH BAR
+   ============================================================================ */
+.pwa-search {
+    padding: 0 1rem;
+    margin-bottom: 1rem;
+}
+
+.pwa-search-box {
+    background: var(--pwa-white);
+    border: 1px solid var(--pwa-border);
+    border-radius: var(--pwa-radius);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.pwa-search-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 0.9rem;
+    color: var(--pwa-dark);
+    background: transparent;
+}
+
+.pwa-search-box input::placeholder {
+    color: var(--pwa-gray);
+}
+
+.pwa-search-icon {
+    color: var(--pwa-gray);
+    font-size: 1.1rem;
+}
+
+/* ============================================================================
+   PWA FILTER CHIPS
+   ============================================================================ */
+.pwa-filters {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0 1rem;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.pwa-filters::-webkit-scrollbar {
+    display: none;
+}
+
+.pwa-chip {
+    background: var(--pwa-white);
+    border: 1px solid var(--pwa-border);
+    border-radius: 2rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    color: var(--pwa-gray);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pwa-chip.active {
+    background: var(--pwa-primary);
+    border-color: var(--pwa-primary);
+    color: white;
+}
+
+/* ============================================================================
+   PWA EMPTY STATE
+   ============================================================================ */
+.pwa-empty {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.pwa-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.pwa-empty h3 {
+    font-size: 1rem;
+    color: var(--pwa-dark);
+    margin-bottom: 0.5rem;
+}
+
+.pwa-empty p {
+    font-size: 0.85rem;
+    color: var(--pwa-gray);
+}
+
+/* ============================================================================
+   PWA LOADING
+   ============================================================================ */
+.pwa-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+}
+
+.pwa-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--pwa-border);
+    border-top-color: var(--pwa-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.pwa-loading p {
+    margin-top: 1rem;
+    color: var(--pwa-gray);
+    font-size: 0.85rem;
+}
+
+/* ============================================================================
+   PWA FAB (Floating Action Button)
+   ============================================================================ */
+.pwa-fab {
+    position: fixed;
+    bottom: calc(80px + var(--safe-bottom));
+    right: 1rem;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--pwa-primary), var(--pwa-success));
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+    cursor: pointer;
+    z-index: 999;
+    transition: all 0.2s;
+}
+
+.pwa-fab:active {
+    transform: scale(0.95);
+}
+
+/* ============================================================================
+   PWA TOAST/NOTIFICATION
+   ============================================================================ */
+.pwa-toast {
+    position: fixed;
+    bottom: calc(100px + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--pwa-dark);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    z-index: 2000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    display: none;
+}
+
+.pwa-toast.show {
+    display: block;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* ============================================================================
+   UTILITIES
+   ============================================================================ */
+.pwa-hidden {
+    display: none !important;
+}
+
+.pwa-mb-0 { margin-bottom: 0 !important; }
+.pwa-mb-1 { margin-bottom: 0.5rem !important; }
+.pwa-mb-2 { margin-bottom: 1rem !important; }
+.pwa-mb-3 { margin-bottom: 1.5rem !important; }
+
+.pwa-text-center { text-align: center; }
+.pwa-text-primary { color: var(--pwa-primary); }
+.pwa-text-muted { color: var(--pwa-gray); }
+
+/* ============================================================================
+   UNIVERSAL MOBILE GRID TRANSFORMATION
+   Otomatis mengubah list menjadi grid di HP
+   ============================================================================ */
+@media (max-width: 768px) {
+    /* Hide desktop sidebar and header on all pages */
+    body .sidebar,
+    body .sidebar-overlay,
+    body .header,
+    body .fab-menu {
+        display: none !important;
+    }
+
+    body .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        background: var(--pwa-light);
+    }
+
+    body .page-content {
+        padding: 0 !important;
+        padding-bottom: calc(70px + var(--safe-bottom)) !important;
+    }
+
+    /* Card transforms */
+    body .card {
+        border-radius: var(--pwa-radius);
+        margin: 0.5rem;
+        box-shadow: var(--pwa-shadow);
+        border: none;
+    }
+
+    body .card-header {
+        padding: 0.75rem 1rem;
+        border-radius: var(--pwa-radius) var(--pwa-radius) 0 0;
+    }
+
+    body .card-body {
+        padding: 0.75rem;
+    }
+
+    /* Table transforms to cards */
+    body table.table {
+        display: block;
+        border: none;
+    }
+
+    body table.table thead {
+        display: none;
+    }
+
+    body table.table tbody {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    body table.table tbody tr {
+        display: flex;
+        flex-direction: column;
+        background: var(--pwa-white);
+        border-radius: var(--pwa-radius-sm);
+        padding: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        border: none;
+    }
+
+    body table.table tbody tr td {
+        display: block;
+        padding: 0.15rem 0;
+        border: none;
+        font-size: 0.8rem;
+    }
+
+    body table.table tbody tr td:first-child {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--pwa-dark);
+        margin-bottom: 0.25rem;
+    }
+
+    /* Member list transforms to grid */
+    body .member-list,
+    body .jamaah-list,
+    body .generus-list {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    body .member-item,
+    body .jamaah-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.75rem 0.5rem;
+        border-radius: var(--pwa-radius);
+        background: var(--pwa-white);
+        box-shadow: var(--pwa-shadow);
+        text-align: center;
+        border: none;
+        min-height: auto;
+    }
+
+    body .member-item .member-avatar,
+    body .jamaah-item .avatar {
+        width: 48px;
+        height: 48px;
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        margin-right: 0;
+    }
+
+    body .member-item .member-info,
+    body .jamaah-item .info {
+        text-align: center;
+    }
+
+    body .member-item .member-name,
+    body .jamaah-item .nama {
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-bottom: 0.15rem;
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    body .member-item .member-meta,
+    body .jamaah-item .meta {
+        font-size: 0.6rem;
+        color: var(--pwa-gray);
+    }
+
+    body .member-item .member-actions,
+    body .jamaah-item .actions {
+        display: none;
+    }
+
+    /* Pengajian list transforms */
+    body .pengajian-list,
+    body #pengajianContainer {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    body .pengajian-item {
+        display: flex;
+        flex-direction: column;
+        padding: 0.75rem;
+        border-radius: var(--pwa-radius);
+        background: var(--pwa-white);
+        box-shadow: var(--pwa-shadow);
+        border: none;
+    }
+
+    body .pengajian-item .pengajian-date {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    body .pengajian-item .pengajian-date .day {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--pwa-primary);
+    }
+
+    body .pengajian-item .pengajian-info {
+        flex: 1;
+    }
+
+    body .pengajian-item .pengajian-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    body .pengajian-item .pengajian-meta {
+        font-size: 0.65rem;
+        color: var(--pwa-gray);
+    }
+
+    body .pengajian-item .pengajian-actions {
+        display: flex;
+        gap: 0.25rem;
+        margin-top: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    body .pengajian-item .pengajian-actions .btn {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    /* Presensi table transform */
+    body #presensiTable tbody {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+
+    body #presensiTable tbody tr {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.5rem;
+        background: var(--pwa-white);
+        border-radius: var(--pwa-radius-sm);
+        text-align: center;
+    }
+
+    body #presensiTable tbody tr td {
+        padding: 0.1rem;
+    }
+
+    body #presensiTable tbody tr td:nth-child(1) { display: none; } /* No */
+    body #presensiTable tbody tr td:nth-child(3) { display: none; } /* JK */
+    body #presensiTable tbody tr td:nth-child(4) { display: none; } /* Jenjang */
+
+    /* Filter area compact */
+    body .filter-area,
+    body .filter-grid,
+    body .bulk-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    body .filter-area .form-group,
+    body .filter-grid > div {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    body .filter-area .form-control,
+    body .filter-grid .form-control {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+    }
+
+    /* Buttons compact */
+    body .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    body .btn-sm {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    /* Modal fullscreen on mobile */
+    body .modal-content {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        max-height: 100%;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    body .modal-header {
+        padding: 1rem;
+        padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+    }
+
+    body .modal-body {
+        padding: 1rem;
+        overflow-y: auto;
+        max-height: calc(100vh - 60px - env(safe-area-inset-top, 0px));
+    }
+
+    /* Stats grid */
+    body .stats-row,
+    body .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    body .stat-card {
+        padding: 0.75rem;
+        text-align: center;
+        border-radius: var(--pwa-radius-sm);
+    }
+
+    body .stat-card .stat-value {
+        font-size: 1.25rem;
+    }
+
+    body .stat-card .stat-label {
+        font-size: 0.65rem;
+    }
+
+    /* Tabs horizontal scroll */
+    body .tabs {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 0;
+        padding: 0 0.5rem;
+        background: var(--pwa-white);
+        border-bottom: 1px solid var(--pwa-border);
+    }
+
+    body .tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    body .tabs .tab {
+        flex-shrink: 0;
+        padding: 0.75rem 1rem;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+
+    /* Hafalan materi grid */
+    body #materiList {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    body .materi-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.75rem;
+        border-radius: var(--pwa-radius-sm);
+        background: var(--pwa-white);
+        box-shadow: var(--pwa-shadow);
+        text-align: center;
+        cursor: pointer;
+    }
+
+    body .materi-item .materi-no {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    body .materi-item .materi-info {
+        text-align: center;
+    }
+
+    body .materi-item .materi-name {
+        font-size: 0.75rem;
+    }
+
+    body .materi-item .materi-action {
+        display: none;
+    }
+
+    /* Generus list specific */
+    body .kelompok-group .kelompok-members {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    body .kelompok-group .kelompok-header {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
+    /* Jenjang sections grid */
+    body .jenjang-section {
+        margin-bottom: 0.5rem;
+    }
+
+    body .jenjang-section .jenjang-header {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.7rem;
+    }
+
+    body .jenjang-section .jenjang-content,
+    body .jenjang-section .member-list {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.35rem;
+        padding: 0.5rem;
+    }
+}
+
+/* ============================================================================
+   MOBILE BOTTOM NAVIGATION - Universal
+   ============================================================================ */
+.mobile-bottom-nav {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--pwa-white);
+        border-top: 1px solid var(--pwa-border);
+        justify-content: space-around;
+        align-items: center;
+        padding: 0.5rem 0;
+        padding-bottom: calc(0.5rem + var(--safe-bottom));
+        z-index: 1000;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+    }
+
+    .mobile-bottom-nav a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        color: var(--pwa-gray);
+        text-decoration: none;
+        font-size: 0.6rem;
+        min-width: 50px;
+    }
+
+    .mobile-bottom-nav a.active {
+        color: var(--pwa-primary);
+    }
+
+    .mobile-bottom-nav a .icon {
+        font-size: 1.25rem;
+        margin-bottom: 0.15rem;
+    }
+}
+
+/* ============================================================================
+   MOBILE PAGE HEADER - Universal
+   ============================================================================ */
+.mobile-page-header {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-page-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+        background: var(--pwa-white);
+        border-bottom: 1px solid var(--pwa-border);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .mobile-page-header .back-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--pwa-light);
+        border: none;
+        border-radius: 50%;
+        font-size: 1.1rem;
+        cursor: pointer;
+    }
+
+    .mobile-page-header .page-title {
+        flex: 1;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--pwa-dark);
+    }
+
+    .mobile-page-header .action-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--pwa-primary);
+        border: none;
+        border-radius: 50%;
+        font-size: 0.9rem;
+        color: white;
+        cursor: pointer;
+    }
+}

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Lima Unsur - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .wilayah-card { background: white; border-radius: 0.75rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+        .wilayah-header { padding: 1rem; background: linear-gradient(135deg, #059669, #10b981); color: white; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .wilayah-header.desa { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+        .wilayah-header.daerah { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+        .wilayah-title { font-weight: 600; font-size: 1rem; }
+        .wilayah-subtitle { font-size: 0.75rem; opacity: 0.9; margin-top: 0.25rem; }
+        .wilayah-content { padding: 1rem; }
+        .wilayah-content.collapsed { display: none; }
+        .unsur-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+        .unsur-card { background: #f8fafc; border-radius: 0.5rem; padding: 0.75rem; text-align: center; border: 2px solid transparent; transition: all 0.2s; }
+        .unsur-card:hover { border-color: #059669; }
+        .unsur-card.filled { background: #f0fdf4; border-color: #10b981; }
+        .unsur-card.empty { background: #fef3c7; border-color: #f59e0b; }
+        .unsur-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .unsur-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 600; color: #6b7280; margin-bottom: 0.25rem; }
+        .unsur-name { font-size: 0.85rem; font-weight: 600; color: #1f2937; }
+        .unsur-name.empty { color: #9ca3af; font-style: italic; }
+        .unsur-jabatan { font-size: 0.7rem; color: #6b7280; }
+        .filter-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .filter-row .form-control { flex: 1; min-width: 120px; }
+        .stats-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .stat-card { flex: 1; background: white; border-radius: 0.75rem; padding: 0.75rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 1.25rem; font-weight: 700; color: #059669; }
+        .stat-label { font-size: 0.7rem; color: #6b7280; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #6b7280; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .unsur-actions { margin-top: 0.5rem; }
+        .tahun-badge { background: rgba(255,255,255,0.3); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.7rem; }
+        .search-result-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #f1f5f9; }
+        .search-result-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="kelas.html" class="nav-item"><span class="nav-icon">🏫</span><span class="nav-text">Kelas Pengajian</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="penilaian-akhlaq.html" class="nav-item"><span class="nav-icon">⭐</span><span class="nav-text">Penilaian Akhlaq</span></a>
+                <div class="nav-section">ORGANISASI</div>
+                <a href="musyawarah.html" class="nav-item"><span class="nav-icon">🤝</span><span class="nav-text">Musyawarah</span></a>
+                <a href="kegiatan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Kegiatan</span></a>
+                <a href="lima-unsur.html" class="nav-item active"><span class="nav-icon">👥</span><span class="nav-text">Lima Unsur</span></a>
+                <a href="kakak-asuh.html" class="nav-item"><span class="nav-icon">🤗</span><span class="nav-text">Kakak Asuh</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="header" id="desktopHeader">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Lima Unsur</h1>
+                </div>
+            </header>
+
+            <div class="pwa-page-header" id="mobileHeader" style="display:none;">
+                <button class="pwa-back-btn" onclick="location.href='dashboard.html'">←</button>
+                <h1 class="pwa-page-title">👥 Lima Unsur</h1>
+                <div style="width:40px;"></div>
+            </div>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statWilayah">0</div>
+                        <div class="stat-label">Wilayah</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statTerisi">0</div>
+                        <div class="stat-label">Posisi Terisi</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statKosong">0</div>
+                        <div class="stat-label">Posisi Kosong</div>
+                    </div>
+                </div>
+
+                <!-- Filter -->
+                <div class="card mb-sm">
+                    <div class="card-body">
+                        <div class="filter-row">
+                            <select class="form-control" id="filterTingkat" onchange="loadData()">
+                                <option value="">Semua Tingkat</option>
+                                <option value="daerah">Daerah</option>
+                                <option value="desa">Desa</option>
+                                <option value="kelompok">Kelompok</option>
+                            </select>
+                            <select class="form-control" id="filterTahunAjaran" onchange="loadData()">
+                                <option value="">Tahun Ajaran</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="card mb-sm">
+                    <div class="card-body" style="font-size:0.8rem; color:#6b7280;">
+                        <strong>Lima Unsur PPG:</strong>
+                        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:0.5rem; margin-top:0.5rem; text-align:center;">
+                            <div>👳 Imam</div>
+                            <div>👤 Wakil</div>
+                            <div>📖 Mubaligh</div>
+                            <div>⚙️ Pengurus</div>
+                            <div>🎓 Pakar</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List -->
+                <div id="wilayahList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <p>Memuat data...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Edit Unsur -->
+    <div class="modal" id="unsurModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Edit Unsur</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="unsurId">
+                <input type="hidden" id="unsurWilayahId">
+                <input type="hidden" id="unsurJenis">
+
+                <div class="form-group">
+                    <label class="form-label">Posisi</label>
+                    <input type="text" class="form-control" id="unsurPosisi" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Cari Jamaah</label>
+                    <input type="text" class="form-control" id="searchJamaah" placeholder="Ketik nama..." oninput="searchJamaah()">
+                    <input type="hidden" id="selectedJamaahId">
+                    <div id="selectedJamaah" style="margin-top:0.5rem;"></div>
+                    <div id="jamaahSearchResult" style="max-height:200px; overflow-y:auto; margin-top:0.5rem;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Jabatan/Keterangan</label>
+                    <input type="text" class="form-control" id="unsurJabatan" placeholder="Contoh: Imam Kelompok">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tanggal Mulai</label>
+                    <input type="date" class="form-control" id="unsurTanggalMulai">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+                <button class="btn btn-danger" onclick="hapusUnsur()" id="btnHapus" style="display:none;">Hapus</button>
+                <button class="btn btn-primary" onclick="saveUnsur()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/pwa-mobile.js"></script>
+    <script>
+        var allWilayah = [];
+        var limaUnsurData = {};
+        var allTahunAjaran = [];
+        var currentTahunAjaranId = null;
+
+        var UNSUR_TYPES = [
+            { key: 'imam', label: 'Imam', icon: '👳' },
+            { key: 'wakil', label: 'Wakil Imam', icon: '👤' },
+            { key: 'mubaligh', label: 'Mubaligh', icon: '📖' },
+            { key: 'pengurus', label: 'Pengurus', icon: '⚙️' },
+            { key: 'pakar', label: 'Pakar/Pendidik', icon: '🎓' }
+        ];
+
+        function $(id) { return document.getElementById(id); }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initAuth();
+            await loadMasterData();
+            await loadData();
+        });
+
+        async function loadMasterData() {
+            try {
+                // Load tahun ajaran
+                allTahunAjaran = await masterApi.getTahunAjaran();
+                var filterTA = $('filterTahunAjaran');
+
+                allTahunAjaran.forEach(function(ta) {
+                    var selected = ta.is_aktif ? ' selected' : '';
+                    if (ta.is_aktif) currentTahunAjaranId = ta.id;
+                    filterTA.innerHTML += '<option value="' + ta.id + '"' + selected + '>' + ta.nama + '</option>';
+                });
+
+            } catch (error) {
+                console.error('Error load master:', error);
+            }
+        }
+
+        async function loadData() {
+            try {
+                var tingkat = $('filterTingkat').value;
+                var tahunAjaranId = $('filterTahunAjaran').value || currentTahunAjaranId;
+
+                // Load wilayah
+                var query = db.from('wilayah').select('*').eq('is_aktif', true).order('tingkat').order('nama');
+                if (tingkat) query = query.eq('tingkat', tingkat);
+
+                var { data: wilayahData, error } = await query;
+                if (error) throw error;
+
+                allWilayah = wilayahData || [];
+
+                // Load lima unsur
+                var unsurQuery = db.from('lima_unsur')
+                    .select('*, jamaah:jamaah_id(id, nama, jenis_kelamin)')
+                    .eq('is_aktif', true);
+
+                if (tahunAjaranId) unsurQuery = unsurQuery.eq('tahun_ajaran_id', parseInt(tahunAjaranId));
+
+                var { data: unsurData } = await unsurQuery;
+
+                limaUnsurData = {};
+                (unsurData || []).forEach(function(u) {
+                    if (!limaUnsurData[u.wilayah_id]) limaUnsurData[u.wilayah_id] = {};
+                    limaUnsurData[u.wilayah_id][u.jenis] = u;
+                });
+
+                renderWilayah();
+                updateStats();
+
+            } catch (error) {
+                console.error('Error load data:', error);
+                showToast('Gagal memuat data', 'error');
+            }
+        }
+
+        function renderWilayah() {
+            var container = $('wilayahList');
+
+            if (allWilayah.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👥</div><p>Tidak ada data wilayah</p></div>';
+                return;
+            }
+
+            // Group by tingkat
+            var grouped = { daerah: [], desa: [], kelompok: [] };
+            allWilayah.forEach(function(w) {
+                if (grouped[w.tingkat]) grouped[w.tingkat].push(w);
+            });
+
+            var html = '';
+
+            ['daerah', 'desa', 'kelompok'].forEach(function(tingkat) {
+                if (grouped[tingkat].length === 0) return;
+
+                grouped[tingkat].forEach(function(w) {
+                    var unsur = limaUnsurData[w.id] || {};
+
+                    html += '<div class="wilayah-card">';
+                    html += '<div class="wilayah-header ' + tingkat + '" onclick="toggleWilayah(' + w.id + ')">';
+                    html += '<div><div class="wilayah-title">' + w.nama + '</div>';
+                    html += '<div class="wilayah-subtitle">' + tingkat.charAt(0).toUpperCase() + tingkat.slice(1) + '</div></div>';
+                    html += '<span class="tahun-badge">' + countFilled(unsur) + '/5 terisi</span>';
+                    html += '</div>';
+
+                    html += '<div class="wilayah-content collapsed" id="content-' + w.id + '">';
+                    html += '<div class="unsur-grid">';
+
+                    UNSUR_TYPES.forEach(function(type) {
+                        var data = unsur[type.key];
+                        var filled = data && data.jamaah;
+                        var cardClass = filled ? 'filled' : 'empty';
+
+                        html += '<div class="unsur-card ' + cardClass + '" onclick="editUnsur(' + w.id + ', \'' + type.key + '\')">';
+                        html += '<div class="unsur-icon">' + type.icon + '</div>';
+                        html += '<div class="unsur-label">' + type.label + '</div>';
+                        if (filled) {
+                            html += '<div class="unsur-name">' + data.jamaah.nama + '</div>';
+                            if (data.jabatan) html += '<div class="unsur-jabatan">' + data.jabatan + '</div>';
+                        } else {
+                            html += '<div class="unsur-name empty">Belum diisi</div>';
+                        }
+                        html += '</div>';
+                    });
+
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+            });
+
+            container.innerHTML = html;
+        }
+
+        function countFilled(unsur) {
+            var count = 0;
+            UNSUR_TYPES.forEach(function(type) {
+                if (unsur[type.key] && unsur[type.key].jamaah) count++;
+            });
+            return count;
+        }
+
+        function toggleWilayah(wilayahId) {
+            var content = $('content-' + wilayahId);
+            if (content) content.classList.toggle('collapsed');
+        }
+
+        function updateStats() {
+            $('statWilayah').textContent = allWilayah.length;
+
+            var terisi = 0, kosong = 0;
+            allWilayah.forEach(function(w) {
+                var unsur = limaUnsurData[w.id] || {};
+                terisi += countFilled(unsur);
+                kosong += (5 - countFilled(unsur));
+            });
+
+            $('statTerisi').textContent = terisi;
+            $('statKosong').textContent = kosong;
+        }
+
+        function editUnsur(wilayahId, jenis) {
+            var unsur = limaUnsurData[wilayahId]?.[jenis];
+            var type = UNSUR_TYPES.find(function(t) { return t.key === jenis; });
+            var wilayah = allWilayah.find(function(w) { return w.id === wilayahId; });
+
+            $('modalTitle').textContent = type.icon + ' ' + type.label + ' - ' + wilayah.nama;
+            $('unsurId').value = unsur?.id || '';
+            $('unsurWilayahId').value = wilayahId;
+            $('unsurJenis').value = jenis;
+            $('unsurPosisi').value = type.label;
+
+            if (unsur && unsur.jamaah) {
+                $('selectedJamaahId').value = unsur.jamaah_id;
+                $('selectedJamaah').innerHTML = '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem;background:#dcfce7;border-radius:0.5rem;"><span style="font-weight:600;">' + unsur.jamaah.nama + '</span><button type="button" class="btn btn-xs btn-outline" onclick="clearJamaah()">×</button></div>';
+                $('unsurJabatan').value = unsur.jabatan || '';
+                $('unsurTanggalMulai').value = unsur.tanggal_mulai || '';
+                $('btnHapus').style.display = 'inline-block';
+            } else {
+                $('selectedJamaahId').value = '';
+                $('selectedJamaah').innerHTML = '';
+                $('unsurJabatan').value = '';
+                $('unsurTanggalMulai').value = new Date().toISOString().split('T')[0];
+                $('btnHapus').style.display = 'none';
+            }
+
+            $('searchJamaah').value = '';
+            $('jamaahSearchResult').innerHTML = '';
+
+            $('unsurModal').classList.add('show');
+        }
+
+        function closeModal() {
+            $('unsurModal').classList.remove('show');
+        }
+
+        var searchTimeout;
+        async function searchJamaah() {
+            var query = $('searchJamaah').value.trim();
+            var container = $('jamaahSearchResult');
+
+            if (query.length < 2) {
+                container.innerHTML = '';
+                return;
+            }
+
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async function() {
+                try {
+                    var results = await jamaahApi.search(query, 10);
+
+                    if (results.length === 0) {
+                        container.innerHTML = '<p class="text-muted text-center" style="font-size:0.8rem;">Tidak ditemukan</p>';
+                        return;
+                    }
+
+                    var html = '';
+                    results.forEach(function(r) {
+                        html += '<div class="search-result-item">';
+                        html += '<span style="font-size:0.85rem;">' + r.nama + '</span>';
+                        html += '<button class="btn btn-xs btn-primary" onclick="selectJamaah(' + r.id + ', \'' + r.nama.replace(/'/g, "\\'") + '\')">Pilih</button>';
+                        html += '</div>';
+                    });
+
+                    container.innerHTML = html;
+
+                } catch (error) {
+                    console.error('Error search:', error);
+                }
+            }, 300);
+        }
+
+        function selectJamaah(id, nama) {
+            $('selectedJamaahId').value = id;
+            $('searchJamaah').value = '';
+            $('jamaahSearchResult').innerHTML = '';
+            $('selectedJamaah').innerHTML = '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem;background:#dcfce7;border-radius:0.5rem;"><span style="font-weight:600;">' + nama + '</span><button type="button" class="btn btn-xs btn-outline" onclick="clearJamaah()">×</button></div>';
+        }
+
+        function clearJamaah() {
+            $('selectedJamaahId').value = '';
+            $('selectedJamaah').innerHTML = '';
+        }
+
+        async function saveUnsur() {
+            var id = $('unsurId').value;
+            var wilayahId = $('unsurWilayahId').value;
+            var jenis = $('unsurJenis').value;
+            var jamaahId = $('selectedJamaahId').value;
+            var jabatan = $('unsurJabatan').value.trim();
+            var tanggalMulai = $('unsurTanggalMulai').value;
+            var tahunAjaranId = $('filterTahunAjaran').value || currentTahunAjaranId;
+
+            if (!jamaahId) {
+                showToast('Pilih jamaah terlebih dahulu', 'error');
+                return;
+            }
+
+            try {
+                var data = {
+                    wilayah_id: parseInt(wilayahId),
+                    jenis: jenis,
+                    jamaah_id: parseInt(jamaahId),
+                    jabatan: jabatan || null,
+                    tanggal_mulai: tanggalMulai || new Date().toISOString().split('T')[0],
+                    tahun_ajaran_id: tahunAjaranId ? parseInt(tahunAjaranId) : null,
+                    is_aktif: true
+                };
+
+                if (id) {
+                    var { error } = await db.from('lima_unsur').update(data).eq('id', parseInt(id));
+                    if (error) throw error;
+                } else {
+                    var { error } = await db.from('lima_unsur').insert(data);
+                    if (error) throw error;
+                }
+
+                showToast('Data berhasil disimpan', 'success');
+                closeModal();
+                await loadData();
+
+            } catch (error) {
+                console.error('Error save:', error);
+                showToast('Gagal menyimpan: ' + (error.message || error), 'error');
+            }
+        }
+
+        async function hapusUnsur() {
+            var id = $('unsurId').value;
+            if (!id) return;
+
+            if (!confirm('Yakin ingin menghapus data ini?')) return;
+
+            try {
+                var { error } = await db.from('lima_unsur').delete().eq('id', parseInt(id));
+                if (error) throw error;
+
+                showToast('Data berhasil dihapus', 'success');
+                closeModal();
+                await loadData();
+
+            } catch (error) {
+                console.error('Error delete:', error);
+                showToast('Gagal menghapus', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Kelas Pengajian - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .kelas-card { background: white; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #059669; }
+        .kelas-card.inactive { opacity: 0.6; border-left-color: #9ca3af; }
+        .kelas-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+        .kelas-title { font-weight: 600; font-size: 1rem; color: #1f2937; }
+        .kelas-subtitle { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; }
+        .kelas-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+        .kelas-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.5rem; border-radius: 0.5rem; font-size: 0.7rem; font-weight: 500; }
+        .badge-muballigh { background: #dbeafe; color: #1e40af; }
+        .badge-pendamping { background: #fef3c7; color: #92400e; }
+        .badge-anggota { background: #dcfce7; color: #166534; }
+        .badge-tingkat { background: #f3e8ff; color: #7c3aed; }
+        .kelas-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; padding: 0.75rem; background: #f8fafc; border-radius: 0.5rem; margin-bottom: 0.75rem; }
+        .kelas-stat { text-align: center; }
+        .kelas-stat-value { font-size: 1.1rem; font-weight: 700; color: #059669; }
+        .kelas-stat-label { font-size: 0.65rem; color: #6b7280; }
+        .kelas-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .anggota-list { margin-top: 1rem; }
+        .anggota-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #f1f5f9; }
+        .anggota-item:last-child { border-bottom: none; }
+        .anggota-info { display: flex; align-items: center; gap: 0.5rem; }
+        .anggota-avatar { width: 32px; height: 32px; border-radius: 50%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+        .anggota-avatar.L { background: #dbeafe; color: #1e40af; }
+        .anggota-avatar.P { background: #fce7f3; color: #be185d; }
+        .anggota-name { font-size: 0.85rem; font-weight: 500; }
+        .anggota-jenjang { font-size: 0.7rem; color: #6b7280; }
+        .filter-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .filter-row .form-control { flex: 1; min-width: 120px; }
+        .stats-mini { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .stat-mini { flex: 1; background: white; border-radius: 0.75rem; padding: 0.75rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-mini-value { font-size: 1.25rem; font-weight: 700; color: #059669; }
+        .stat-mini-label { font-size: 0.7rem; color: #6b7280; }
+        .empty-state { text-align: center; padding: 2rem; color: #6b7280; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="kelas.html" class="nav-item active"><span class="nav-icon">🏫</span><span class="nav-text">Kelas Pengajian</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="penilaian-akhlaq.html" class="nav-item"><span class="nav-icon">⭐</span><span class="nav-text">Penilaian Akhlaq</span></a>
+                <div class="nav-section">ORGANISASI</div>
+                <a href="musyawarah.html" class="nav-item"><span class="nav-icon">🤝</span><span class="nav-text">Musyawarah</span></a>
+                <a href="kegiatan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Kegiatan</span></a>
+                <a href="lima-unsur.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Lima Unsur</span></a>
+                <a href="kakak-asuh.html" class="nav-item"><span class="nav-icon">🤗</span><span class="nav-text">Kakak Asuh</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="header" id="desktopHeader">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Kelas Pengajian</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="showAddKelasModal()">+ Tambah Kelas</button>
+                </div>
+            </header>
+
+            <div class="pwa-page-header" id="mobileHeader" style="display:none;">
+                <button class="pwa-back-btn" onclick="location.href='dashboard.html'">←</button>
+                <h1 class="pwa-page-title">🏫 Kelas Pengajian</h1>
+                <button class="pwa-page-action" onclick="showAddKelasModal()">➕</button>
+            </div>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-mini">
+                    <div class="stat-mini">
+                        <div class="stat-mini-value" id="statTotalKelas">0</div>
+                        <div class="stat-mini-label">Total Kelas</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-value" id="statTotalAnggota">0</div>
+                        <div class="stat-mini-label">Total Anggota</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-value" id="statAktif">0</div>
+                        <div class="stat-mini-label">Kelas Aktif</div>
+                    </div>
+                </div>
+
+                <!-- Filter -->
+                <div class="card mb-sm">
+                    <div class="card-body">
+                        <div class="filter-row">
+                            <select class="form-control" id="filterWilayah" onchange="loadKelas()">
+                                <option value="">Semua Wilayah</option>
+                            </select>
+                            <select class="form-control" id="filterTahunAjaran" onchange="loadKelas()">
+                                <option value="">Tahun Ajaran</option>
+                            </select>
+                            <select class="form-control" id="filterStatus" onchange="loadKelas()">
+                                <option value="aktif">Aktif</option>
+                                <option value="semua">Semua</option>
+                                <option value="nonaktif">Non-Aktif</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List Kelas -->
+                <div id="kelasList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🏫</div>
+                        <p>Memuat data kelas...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Tambah/Edit Kelas -->
+    <div class="modal" id="kelasModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="kelasModalTitle">Tambah Kelas</h3>
+                <button class="modal-close" onclick="closeKelasModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="kelasId">
+                <div class="form-group">
+                    <label class="form-label">Nama Kelas *</label>
+                    <input type="text" class="form-control" id="kelasNama" placeholder="Contoh: Kelas Pra-Remaja Putra">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Wilayah *</label>
+                    <select class="form-control" id="kelasWilayah">
+                        <option value="">Pilih Wilayah</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tahun Ajaran *</label>
+                    <select class="form-control" id="kelasTahunAjaran">
+                        <option value="">Pilih Tahun Ajaran</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Muballigh Utama</label>
+                    <select class="form-control" id="kelasMuballigh">
+                        <option value="">Pilih Muballigh</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Muballigh Pendamping</label>
+                    <select class="form-control" id="kelasPendamping">
+                        <option value="">Pilih Pendamping</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tingkat/Jenjang</label>
+                    <div id="kelasTingkatList" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Keterangan</label>
+                    <textarea class="form-control" id="kelasKeterangan" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeKelasModal()">Batal</button>
+                <button class="btn btn-primary" onclick="saveKelas()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Anggota Kelas -->
+    <div class="modal" id="anggotaModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Anggota Kelas: <span id="anggotaKelasNama"></span></h3>
+                <button class="modal-close" onclick="closeAnggotaModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <input type="text" class="form-control" id="searchAnggota" placeholder="Cari anggota..." style="max-width: 200px;" oninput="filterAnggota()">
+                    <button class="btn btn-primary btn-sm" onclick="showTambahAnggotaModal()">+ Tambah Anggota</button>
+                </div>
+                <div id="anggotaList">
+                    <p class="text-center text-muted">Memuat anggota...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeAnggotaModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Anggota -->
+    <div class="modal" id="tambahAnggotaModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Anggota</h3>
+                <button class="modal-close" onclick="closeTambahAnggotaModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Cari Generus</label>
+                    <input type="text" class="form-control" id="searchGenerus" placeholder="Ketik nama..." oninput="searchGenerusForKelas()">
+                </div>
+                <div id="generusSearchResult" style="max-height: 300px; overflow-y: auto;">
+                    <p class="text-muted text-center">Ketik minimal 2 huruf untuk mencari</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeTambahAnggotaModal()">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/pwa-mobile.js"></script>
+    <script>
+        var allKelas = [];
+        var allWilayah = [];
+        var allTahunAjaran = [];
+        var allJenjang = [];
+        var allMuballigh = [];
+        var currentKelasId = null;
+        var currentAnggota = [];
+
+        function $(id) { return document.getElementById(id); }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initAuth();
+            await loadMasterData();
+            await loadKelas();
+        });
+
+        async function loadMasterData() {
+            try {
+                // Load wilayah
+                allWilayah = await wilayahApi.getKelompok();
+                var filterWilayah = $('filterWilayah');
+                var kelasWilayah = $('kelasWilayah');
+
+                allWilayah.forEach(function(w) {
+                    filterWilayah.innerHTML += '<option value="' + w.id + '">' + w.nama + '</option>';
+                    kelasWilayah.innerHTML += '<option value="' + w.id + '">' + w.nama + '</option>';
+                });
+
+                // Load tahun ajaran
+                allTahunAjaran = await masterApi.getTahunAjaran();
+                var filterTA = $('filterTahunAjaran');
+                var kelasTA = $('kelasTahunAjaran');
+
+                allTahunAjaran.forEach(function(ta) {
+                    var selected = ta.is_aktif ? ' selected' : '';
+                    filterTA.innerHTML += '<option value="' + ta.id + '"' + selected + '>' + ta.nama + '</option>';
+                    kelasTA.innerHTML += '<option value="' + ta.id + '"' + selected + '>' + ta.nama + '</option>';
+                });
+
+                // Load jenjang
+                allJenjang = await masterApi.getJenjang();
+                var tingkatList = $('kelasTingkatList');
+                allJenjang.forEach(function(j) {
+                    tingkatList.innerHTML += '<label class="hari-check"><input type="checkbox" name="tingkat" value="' + j.id + '"> <span>' + j.nama + '</span></label>';
+                });
+
+                // Load muballigh (users dengan role muballigh)
+                var users = await userApi.getAllWithRoles();
+                allMuballigh = users.filter(function(u) {
+                    return u.role_nama && u.role_nama.toLowerCase().includes('muballigh');
+                });
+
+                var muballighSelect = $('kelasMuballigh');
+                var pendampingSelect = $('kelasPendamping');
+
+                allMuballigh.forEach(function(m) {
+                    muballighSelect.innerHTML += '<option value="' + m.user_id + '">' + m.nama + '</option>';
+                    pendampingSelect.innerHTML += '<option value="' + m.user_id + '">' + m.nama + '</option>';
+                });
+
+            } catch (error) {
+                console.error('Error loading master data:', error);
+                showToast('Gagal memuat master data', 'error');
+            }
+        }
+
+        async function loadKelas() {
+            try {
+                var wilayahId = $('filterWilayah').value;
+                var tahunAjaranId = $('filterTahunAjaran').value;
+                var status = $('filterStatus').value;
+
+                // Query kelas_pengajian
+                var query = db.from('kelas_pengajian')
+                    .select('*, wilayah:wilayah_id(nama), tahun_ajaran:tahun_ajaran_id(nama), muballigh:muballigh_id(nama), pendamping:pendamping_id(nama)');
+
+                if (wilayahId) query = query.eq('wilayah_id', parseInt(wilayahId));
+                if (tahunAjaranId) query = query.eq('tahun_ajaran_id', parseInt(tahunAjaranId));
+                if (status === 'aktif') query = query.eq('is_aktif', true);
+                if (status === 'nonaktif') query = query.eq('is_aktif', false);
+
+                query = query.order('nama');
+
+                var { data, error } = await query;
+                if (error) throw error;
+
+                allKelas = data || [];
+
+                // Get anggota count per kelas
+                for (var i = 0; i < allKelas.length; i++) {
+                    var { count } = await db.from('anggota_kelas')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('kelas_id', allKelas[i].id)
+                        .eq('status', 'aktif');
+                    allKelas[i].jumlah_anggota = count || 0;
+                }
+
+                renderKelas();
+                updateStats();
+
+            } catch (error) {
+                console.error('Error loading kelas:', error);
+                showToast('Gagal memuat data kelas', 'error');
+            }
+        }
+
+        function renderKelas() {
+            var container = $('kelasList');
+
+            if (allKelas.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏫</div><p>Belum ada kelas. Klik tombol + untuk menambah.</p></div>';
+                return;
+            }
+
+            var html = '';
+            allKelas.forEach(function(k) {
+                var inactiveClass = k.is_aktif ? '' : ' inactive';
+                html += '<div class="kelas-card' + inactiveClass + '">';
+                html += '<div class="kelas-header">';
+                html += '<div><div class="kelas-title">' + k.nama + '</div>';
+                html += '<div class="kelas-subtitle">' + (k.wilayah?.nama || '-') + ' | ' + (k.tahun_ajaran?.nama || '-') + '</div></div>';
+                html += '<span class="badge ' + (k.is_aktif ? 'badge-success' : 'badge-secondary') + '">' + (k.is_aktif ? 'Aktif' : 'Non-Aktif') + '</span>';
+                html += '</div>';
+
+                html += '<div class="kelas-meta">';
+                if (k.muballigh?.nama) html += '<span class="kelas-badge badge-muballigh">👨‍🏫 ' + k.muballigh.nama + '</span>';
+                if (k.pendamping?.nama) html += '<span class="kelas-badge badge-pendamping">👨‍💼 ' + k.pendamping.nama + '</span>';
+                html += '<span class="kelas-badge badge-anggota">👥 ' + k.jumlah_anggota + ' Anggota</span>';
+                html += '</div>';
+
+                html += '<div class="kelas-actions">';
+                html += '<button class="btn btn-sm btn-outline" onclick="showAnggota(' + k.id + ', \'' + k.nama.replace(/'/g, "\\'") + '\')">👥 Anggota</button>';
+                html += '<button class="btn btn-sm btn-outline" onclick="editKelas(' + k.id + ')">✏️ Edit</button>';
+                html += '<button class="btn btn-sm btn-outline" onclick="toggleKelasStatus(' + k.id + ', ' + k.is_aktif + ')">' + (k.is_aktif ? '🚫 Nonaktifkan' : '✅ Aktifkan') + '</button>';
+                html += '</div>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateStats() {
+            $('statTotalKelas').textContent = allKelas.length;
+            $('statAktif').textContent = allKelas.filter(function(k) { return k.is_aktif; }).length;
+
+            var totalAnggota = 0;
+            allKelas.forEach(function(k) { totalAnggota += k.jumlah_anggota || 0; });
+            $('statTotalAnggota').textContent = totalAnggota;
+        }
+
+        function showAddKelasModal() {
+            $('kelasModalTitle').textContent = 'Tambah Kelas';
+            $('kelasId').value = '';
+            $('kelasNama').value = '';
+            $('kelasWilayah').value = '';
+            $('kelasMuballigh').value = '';
+            $('kelasPendamping').value = '';
+            $('kelasKeterangan').value = '';
+
+            // Reset tingkat checkboxes
+            document.querySelectorAll('input[name="tingkat"]').forEach(function(cb) { cb.checked = false; });
+
+            $('kelasModal').classList.add('show');
+        }
+
+        async function editKelas(id) {
+            try {
+                var kelas = allKelas.find(function(k) { return k.id === id; });
+                if (!kelas) return;
+
+                $('kelasModalTitle').textContent = 'Edit Kelas';
+                $('kelasId').value = kelas.id;
+                $('kelasNama').value = kelas.nama;
+                $('kelasWilayah').value = kelas.wilayah_id || '';
+                $('kelasTahunAjaran').value = kelas.tahun_ajaran_id || '';
+                $('kelasMuballigh').value = kelas.muballigh_id || '';
+                $('kelasPendamping').value = kelas.pendamping_id || '';
+                $('kelasKeterangan').value = kelas.keterangan || '';
+
+                // Load tingkat for this kelas
+                var { data: tingkatData } = await db.from('kelas_tingkat')
+                    .select('jenjang_id')
+                    .eq('kelas_id', id);
+
+                var tingkatIds = (tingkatData || []).map(function(t) { return t.jenjang_id; });
+
+                document.querySelectorAll('input[name="tingkat"]').forEach(function(cb) {
+                    cb.checked = tingkatIds.includes(parseInt(cb.value));
+                });
+
+                $('kelasModal').classList.add('show');
+            } catch (error) {
+                console.error('Error edit kelas:', error);
+                showToast('Gagal memuat data kelas', 'error');
+            }
+        }
+
+        function closeKelasModal() {
+            $('kelasModal').classList.remove('show');
+        }
+
+        async function saveKelas() {
+            var id = $('kelasId').value;
+            var nama = $('kelasNama').value.trim();
+            var wilayahId = $('kelasWilayah').value;
+            var tahunAjaranId = $('kelasTahunAjaran').value;
+            var muballighId = $('kelasMuballigh').value;
+            var pendampingId = $('kelasPendamping').value;
+            var keterangan = $('kelasKeterangan').value.trim();
+
+            if (!nama) {
+                showToast('Nama kelas wajib diisi', 'error');
+                return;
+            }
+            if (!wilayahId) {
+                showToast('Wilayah wajib dipilih', 'error');
+                return;
+            }
+            if (!tahunAjaranId) {
+                showToast('Tahun ajaran wajib dipilih', 'error');
+                return;
+            }
+
+            var selectedTingkat = [];
+            document.querySelectorAll('input[name="tingkat"]:checked').forEach(function(cb) {
+                selectedTingkat.push(parseInt(cb.value));
+            });
+
+            try {
+                var kelasData = {
+                    nama: nama,
+                    wilayah_id: parseInt(wilayahId),
+                    tahun_ajaran_id: parseInt(tahunAjaranId),
+                    muballigh_id: muballighId ? parseInt(muballighId) : null,
+                    pendamping_id: pendampingId ? parseInt(pendampingId) : null,
+                    keterangan: keterangan || null,
+                    is_aktif: true
+                };
+
+                var kelasId;
+
+                if (id) {
+                    // Update
+                    var { error } = await db.from('kelas_pengajian').update(kelasData).eq('id', parseInt(id));
+                    if (error) throw error;
+                    kelasId = parseInt(id);
+                } else {
+                    // Insert
+                    var { data, error } = await db.from('kelas_pengajian').insert(kelasData).select('id').single();
+                    if (error) throw error;
+                    kelasId = data.id;
+                }
+
+                // Update kelas_tingkat
+                await db.from('kelas_tingkat').delete().eq('kelas_id', kelasId);
+
+                if (selectedTingkat.length > 0) {
+                    var tingkatData = selectedTingkat.map(function(jId) {
+                        return { kelas_id: kelasId, jenjang_id: jId };
+                    });
+                    await db.from('kelas_tingkat').insert(tingkatData);
+                }
+
+                showToast('Kelas berhasil disimpan', 'success');
+                closeKelasModal();
+                await loadKelas();
+
+            } catch (error) {
+                console.error('Error save kelas:', error);
+                showToast('Gagal menyimpan: ' + (error.message || error), 'error');
+            }
+        }
+
+        async function toggleKelasStatus(id, currentStatus) {
+            var action = currentStatus ? 'menonaktifkan' : 'mengaktifkan';
+            if (!confirm('Yakin ingin ' + action + ' kelas ini?')) return;
+
+            try {
+                var { error } = await db.from('kelas_pengajian')
+                    .update({ is_aktif: !currentStatus })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showToast('Status kelas berhasil diubah', 'success');
+                await loadKelas();
+            } catch (error) {
+                console.error('Error toggle status:', error);
+                showToast('Gagal mengubah status', 'error');
+            }
+        }
+
+        async function showAnggota(kelasId, kelasNama) {
+            currentKelasId = kelasId;
+            $('anggotaKelasNama').textContent = kelasNama;
+
+            try {
+                var { data, error } = await db.from('anggota_kelas')
+                    .select('*, jamaah:jamaah_id(id, nama, jenis_kelamin, jenjang:enrollment(jenjang:jenjang_id(nama)))')
+                    .eq('kelas_id', kelasId)
+                    .order('tanggal_bergabung', { ascending: false });
+
+                if (error) throw error;
+
+                currentAnggota = data || [];
+                renderAnggota();
+                $('anggotaModal').classList.add('show');
+
+            } catch (error) {
+                console.error('Error load anggota:', error);
+                showToast('Gagal memuat anggota', 'error');
+            }
+        }
+
+        function renderAnggota() {
+            var container = $('anggotaList');
+            var search = $('searchAnggota').value.toLowerCase();
+
+            var filtered = currentAnggota.filter(function(a) {
+                if (!search) return true;
+                return a.jamaah?.nama?.toLowerCase().includes(search);
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Belum ada anggota</p>';
+                return;
+            }
+
+            var html = '';
+            filtered.forEach(function(a) {
+                var jk = a.jamaah?.jenis_kelamin || '?';
+                var jenjang = a.jamaah?.jenjang?.[0]?.jenjang?.nama || '-';
+                var statusBadge = a.status === 'aktif' ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-secondary">' + a.status + '</span>';
+
+                html += '<div class="anggota-item">';
+                html += '<div class="anggota-info">';
+                html += '<div class="anggota-avatar ' + jk + '">' + jk + '</div>';
+                html += '<div><div class="anggota-name">' + (a.jamaah?.nama || '-') + '</div>';
+                html += '<div class="anggota-jenjang">' + jenjang + '</div></div>';
+                html += '</div>';
+                html += '<div style="display: flex; align-items: center; gap: 0.5rem;">';
+                html += statusBadge;
+                if (a.status === 'aktif') {
+                    html += '<button class="btn btn-xs btn-outline" onclick="keluarkanAnggota(' + a.id + ')">❌</button>';
+                }
+                html += '</div>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function filterAnggota() {
+            renderAnggota();
+        }
+
+        function closeAnggotaModal() {
+            $('anggotaModal').classList.remove('show');
+            currentKelasId = null;
+        }
+
+        function showTambahAnggotaModal() {
+            $('searchGenerus').value = '';
+            $('generusSearchResult').innerHTML = '<p class="text-muted text-center">Ketik minimal 2 huruf untuk mencari</p>';
+            $('tambahAnggotaModal').classList.add('show');
+        }
+
+        function closeTambahAnggotaModal() {
+            $('tambahAnggotaModal').classList.remove('show');
+        }
+
+        var searchTimeout;
+        async function searchGenerusForKelas() {
+            var query = $('searchGenerus').value.trim();
+            var container = $('generusSearchResult');
+
+            if (query.length < 2) {
+                container.innerHTML = '<p class="text-muted text-center">Ketik minimal 2 huruf untuk mencari</p>';
+                return;
+            }
+
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async function() {
+                try {
+                    var results = await jamaahApi.search(query, 20);
+
+                    // Filter yang sudah jadi anggota
+                    var existingIds = currentAnggota.map(function(a) { return a.jamaah_id; });
+                    results = results.filter(function(r) { return !existingIds.includes(r.id); });
+
+                    if (results.length === 0) {
+                        container.innerHTML = '<p class="text-muted text-center">Tidak ditemukan atau sudah menjadi anggota</p>';
+                        return;
+                    }
+
+                    var html = '';
+                    results.forEach(function(r) {
+                        html += '<div class="anggota-item">';
+                        html += '<div class="anggota-info">';
+                        html += '<div class="anggota-avatar ' + r.jenis_kelamin + '">' + r.jenis_kelamin + '</div>';
+                        html += '<div><div class="anggota-name">' + r.nama + '</div>';
+                        html += '<div class="anggota-jenjang">' + (r.jenjang_nama || '-') + ' | ' + (r.wilayah_nama || '-') + '</div></div>';
+                        html += '</div>';
+                        html += '<button class="btn btn-sm btn-primary" onclick="tambahAnggota(' + r.id + ')">+ Tambah</button>';
+                        html += '</div>';
+                    });
+
+                    container.innerHTML = html;
+
+                } catch (error) {
+                    console.error('Error search:', error);
+                    container.innerHTML = '<p class="text-muted text-center">Gagal mencari</p>';
+                }
+            }, 300);
+        }
+
+        async function tambahAnggota(jamaahId) {
+            try {
+                var { error } = await db.from('anggota_kelas').insert({
+                    kelas_id: currentKelasId,
+                    jamaah_id: jamaahId,
+                    status: 'aktif',
+                    tanggal_bergabung: new Date().toISOString().split('T')[0]
+                });
+
+                if (error) throw error;
+
+                showToast('Anggota berhasil ditambahkan', 'success');
+                closeTambahAnggotaModal();
+
+                // Reload anggota
+                var kelas = allKelas.find(function(k) { return k.id === currentKelasId; });
+                await showAnggota(currentKelasId, kelas?.nama || '');
+                await loadKelas();
+
+            } catch (error) {
+                console.error('Error tambah anggota:', error);
+                showToast('Gagal menambah anggota: ' + (error.message || error), 'error');
+            }
+        }
+
+        async function keluarkanAnggota(anggotaId) {
+            if (!confirm('Yakin ingin mengeluarkan anggota ini dari kelas?')) return;
+
+            try {
+                var { error } = await db.from('anggota_kelas')
+                    .update({ status: 'keluar', tanggal_keluar: new Date().toISOString().split('T')[0] })
+                    .eq('id', anggotaId);
+
+                if (error) throw error;
+
+                showToast('Anggota berhasil dikeluarkan', 'success');
+
+                var kelas = allKelas.find(function(k) { return k.id === currentKelasId; });
+                await showAnggota(currentKelasId, kelas?.nama || '');
+                await loadKelas();
+
+            } catch (error) {
+                console.error('Error keluarkan anggota:', error);
+                showToast('Gagal mengeluarkan anggota', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
