@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Tahun Ajaran - PPG Sorong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa-mobile.css">
+    <style>
+        .ta-card { background: white; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #059669; }
+        .ta-card.inactive { opacity: 0.6; border-left-color: #9ca3af; }
+        .ta-card.active { border-left-color: #059669; background: linear-gradient(135deg, #ecfdf5 0%, white 100%); }
+        .ta-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+        .ta-title { font-weight: 600; font-size: 1.1rem; color: #1f2937; }
+        .ta-kode { font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
+        .ta-meta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem; font-size: 0.85rem; color: #4b5563; }
+        .ta-meta-item { display: flex; align-items: center; gap: 0.25rem; }
+        .ta-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .stats-mini { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .stat-mini { flex: 1; background: white; border-radius: 0.75rem; padding: 0.75rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-mini-value { font-size: 1.25rem; font-weight: 700; color: #059669; }
+        .stat-mini-label { font-size: 0.7rem; color: #6b7280; }
+        .empty-state { text-align: center; padding: 2rem; color: #6b7280; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .badge-aktif { background: #dcfce7; color: #166534; padding: 0.25rem 0.5rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 500; }
+        .badge-nonaktif { background: #f3f4f6; color: #6b7280; padding: 0.25rem 0.5rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 500; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">PPG</div>
+                <div class="sidebar-brand">
+                    <div class="sidebar-title">PPG Sorong</div>
+                    <div class="sidebar-subtitle">Pembinaan Generasi Penerus</div>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MENU UTAMA</div>
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a>
+                <a href="generus.html" class="nav-item"><span class="nav-icon">👶</span><span class="nav-text">Data Generus</span></a>
+                <a href="kelas.html" class="nav-item"><span class="nav-icon">🏫</span><span class="nav-text">Kelas Pengajian</span></a>
+                <a href="pengajian.html" class="nav-item"><span class="nav-icon">📖</span><span class="nav-text">Pengajian</span></a>
+                <a href="presensi.html" class="nav-item"><span class="nav-icon">✅</span><span class="nav-text">Presensi</span></a>
+                <a href="penilaian-hafalan.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Penilaian Hafalan</span></a>
+                <a href="penilaian-akhlaq.html" class="nav-item"><span class="nav-icon">⭐</span><span class="nav-text">Penilaian Akhlaq</span></a>
+                <div class="nav-section">ORGANISASI</div>
+                <a href="musyawarah.html" class="nav-item"><span class="nav-icon">🤝</span><span class="nav-text">Musyawarah</span></a>
+                <a href="kegiatan.html" class="nav-item"><span class="nav-icon">📅</span><span class="nav-text">Kegiatan</span></a>
+                <a href="lima-unsur.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-text">Lima Unsur</span></a>
+                <a href="kakak-asuh.html" class="nav-item"><span class="nav-icon">🤗</span><span class="nav-text">Kakak Asuh</span></a>
+                <div class="nav-section">LAPORAN</div>
+                <a href="rapor.html" class="nav-item"><span class="nav-icon">📋</span><span class="nav-text">Rapor</span></a>
+                <a href="laporan-bulanan.html" class="nav-item"><span class="nav-icon">📈</span><span class="nav-text">Laporan Bulanan</span></a>
+                <div class="nav-section">PENGATURAN</div>
+                <a href="wilayah.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-text">Wilayah</span></a>
+                <a href="kurikulum.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-text">Kurikulum</span></a>
+                <a href="tahun-ajaran.html" class="nav-item active"><span class="nav-icon">📅</span><span class="nav-text">Tahun Ajaran</span></a>
+                <a href="enrollment.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-text">Enrollment Generus</span></a>
+                <a href="users.html" class="nav-item admin-only" style="display:none;"><span class="nav-icon">👤</span><span class="nav-text">Manajemen User</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">?</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-role" id="sidebarUserRole">-</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline w-100" onclick="logout()">🚪 Keluar</button>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="header" id="desktopHeader">
+                <div class="header-left">
+                    <button class="btn-menu" onclick="toggleSidebar()"><span class="menu-icon">☰</span></button>
+                    <h1 class="header-title">Tahun Ajaran</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="showAddModal()">+ Tambah Tahun Ajaran</button>
+                </div>
+            </header>
+
+            <div class="pwa-page-header" id="mobileHeader" style="display:none;">
+                <button class="pwa-back-btn" onclick="location.href='dashboard.html'">←</button>
+                <h1 class="pwa-page-title">📅 Tahun Ajaran</h1>
+                <button class="pwa-page-action" onclick="showAddModal()">➕</button>
+            </div>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-mini">
+                    <div class="stat-mini">
+                        <div class="stat-mini-value" id="statTotal">0</div>
+                        <div class="stat-mini-label">Total</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-value" id="statAktif">-</div>
+                        <div class="stat-mini-label">Aktif</div>
+                    </div>
+                </div>
+
+                <!-- List -->
+                <div id="dataList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📅</div>
+                        <p>Memuat data...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Tambah/Edit -->
+    <div class="modal" id="formModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Tambah Tahun Ajaran</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="dataId">
+                <div class="form-group">
+                    <label class="form-label">Kode *</label>
+                    <input type="text" class="form-control" id="dataKode" placeholder="Contoh: 2024/2025">
+                    <small class="text-muted">Format: YYYY/YYYY</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nama *</label>
+                    <input type="text" class="form-control" id="dataNama" placeholder="Contoh: Tahun Ajaran 2024/2025">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tanggal Mulai</label>
+                    <input type="date" class="form-control" id="dataTglMulai">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tanggal Selesai</label>
+                    <input type="date" class="form-control" id="dataTglSelesai">
+                </div>
+                <div class="form-group">
+                    <label class="form-check">
+                        <input type="checkbox" id="dataAktif">
+                        <span>Tahun Ajaran Aktif</span>
+                    </label>
+                    <small class="text-muted">Hanya bisa ada satu tahun ajaran aktif. Mengaktifkan ini akan menonaktifkan yang lain.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+                <button class="btn btn-primary" onclick="saveData()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/pwa-mobile.js"></script>
+    <script>
+        var allData = [];
+
+        function $(id) { return document.getElementById(id); }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initAuth();
+            await loadData();
+        });
+
+        async function loadData() {
+            try {
+                allData = await masterApi.getTahunAjaran();
+                renderData();
+                updateStats();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showToast('Gagal memuat data', 'error');
+            }
+        }
+
+        function renderData() {
+            var container = $('dataList');
+
+            if (allData.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><p>Belum ada tahun ajaran. Klik tombol + untuk menambah.</p></div>';
+                return;
+            }
+
+            var html = '';
+            allData.forEach(function(item) {
+                var activeClass = item.is_aktif ? ' active' : '';
+                var statusBadge = item.is_aktif ? '<span class="badge-aktif">✓ Aktif</span>' : '<span class="badge-nonaktif">Non-Aktif</span>';
+
+                html += '<div class="ta-card' + activeClass + '">';
+                html += '<div class="ta-header">';
+                html += '<div><div class="ta-title">' + item.nama + '</div>';
+                html += '<div class="ta-kode">Kode: ' + item.kode + '</div></div>';
+                html += statusBadge;
+                html += '</div>';
+
+                html += '<div class="ta-meta">';
+                if (item.tanggal_mulai) {
+                    html += '<div class="ta-meta-item">📅 Mulai: ' + formatDate(item.tanggal_mulai) + '</div>';
+                }
+                if (item.tanggal_selesai) {
+                    html += '<div class="ta-meta-item">📅 Selesai: ' + formatDate(item.tanggal_selesai) + '</div>';
+                }
+                html += '</div>';
+
+                html += '<div class="ta-actions">';
+                html += '<button class="btn btn-sm btn-outline" onclick="editData(' + item.id + ')">✏️ Edit</button>';
+                if (!item.is_aktif) {
+                    html += '<button class="btn btn-sm btn-primary" onclick="setAktif(' + item.id + ')">✅ Aktifkan</button>';
+                    html += '<button class="btn btn-sm btn-outline" onclick="deleteData(' + item.id + ')">🗑️ Hapus</button>';
+                }
+                html += '</div>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            var d = new Date(dateStr);
+            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function updateStats() {
+            $('statTotal').textContent = allData.length;
+            var aktif = allData.find(function(item) { return item.is_aktif; });
+            $('statAktif').textContent = aktif ? aktif.kode : '-';
+        }
+
+        function showAddModal() {
+            $('modalTitle').textContent = 'Tambah Tahun Ajaran';
+            $('dataId').value = '';
+            $('dataKode').value = '';
+            $('dataNama').value = '';
+            $('dataTglMulai').value = '';
+            $('dataTglSelesai').value = '';
+            $('dataAktif').checked = false;
+            $('formModal').classList.add('show');
+        }
+
+        function editData(id) {
+            var item = allData.find(function(d) { return d.id === id; });
+            if (!item) return;
+
+            $('modalTitle').textContent = 'Edit Tahun Ajaran';
+            $('dataId').value = item.id;
+            $('dataKode').value = item.kode || '';
+            $('dataNama').value = item.nama || '';
+            $('dataTglMulai').value = item.tanggal_mulai || '';
+            $('dataTglSelesai').value = item.tanggal_selesai || '';
+            $('dataAktif').checked = item.is_aktif || false;
+            $('formModal').classList.add('show');
+        }
+
+        function closeModal() {
+            $('formModal').classList.remove('show');
+        }
+
+        async function saveData() {
+            var id = $('dataId').value;
+            var kode = $('dataKode').value.trim();
+            var nama = $('dataNama').value.trim();
+            var tglMulai = $('dataTglMulai').value;
+            var tglSelesai = $('dataTglSelesai').value;
+            var isAktif = $('dataAktif').checked;
+
+            if (!kode) {
+                showToast('Kode wajib diisi', 'error');
+                return;
+            }
+            if (!nama) {
+                showToast('Nama wajib diisi', 'error');
+                return;
+            }
+
+            try {
+                // If setting as aktif, deactivate others first
+                if (isAktif) {
+                    await db.from('tahun_ajaran').update({ is_aktif: false }).eq('is_aktif', true);
+                }
+
+                var dataToSave = {
+                    kode: kode,
+                    nama: nama,
+                    tanggal_mulai: tglMulai || null,
+                    tanggal_selesai: tglSelesai || null,
+                    is_aktif: isAktif
+                };
+
+                if (id) {
+                    var { error } = await db.from('tahun_ajaran').update(dataToSave).eq('id', parseInt(id));
+                    if (error) throw error;
+                } else {
+                    var { error } = await db.from('tahun_ajaran').insert(dataToSave);
+                    if (error) throw error;
+                }
+
+                showToast('Data berhasil disimpan', 'success');
+                closeModal();
+                await loadData();
+
+            } catch (error) {
+                console.error('Error save:', error);
+                showToast('Gagal menyimpan: ' + (error.message || error), 'error');
+            }
+        }
+
+        async function setAktif(id) {
+            if (!confirm('Yakin ingin mengaktifkan tahun ajaran ini? Tahun ajaran lain akan dinonaktifkan.')) return;
+
+            try {
+                // Deactivate all first
+                await db.from('tahun_ajaran').update({ is_aktif: false }).eq('is_aktif', true);
+
+                // Activate this one
+                var { error } = await db.from('tahun_ajaran').update({ is_aktif: true }).eq('id', id);
+                if (error) throw error;
+
+                showToast('Tahun ajaran berhasil diaktifkan', 'success');
+                await loadData();
+
+            } catch (error) {
+                console.error('Error set aktif:', error);
+                showToast('Gagal mengaktifkan', 'error');
+            }
+        }
+
+        async function deleteData(id) {
+            if (!confirm('Yakin ingin menghapus tahun ajaran ini?')) return;
+
+            try {
+                var { error } = await db.from('tahun_ajaran').delete().eq('id', id);
+                if (error) throw error;
+
+                showToast('Data berhasil dihapus', 'success');
+                await loadData();
+
+            } catch (error) {
+                console.error('Error delete:', error);
+                showToast('Gagal menghapus: ' + (error.message || error), 'error');
+            }
+        }
+    </script>
+</body>
+</html>
