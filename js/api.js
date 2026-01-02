@@ -450,24 +450,25 @@ const generusApi = {
 
     /**
      * Get generus dari view (alternatif)
-     * Uses regular table query with joins (fallback from view)
+     * Uses regular table query without foreign key relationships
      * @param {Object} filters
      * @returns {Promise<Array>}
      */
     getFromView: async function(filters = {}) {
         try {
-            // Use regular table query with joins instead of view
-            // Join enrollment to get active generus with their kelompok and jenjang
+            // Step 1: Get all jenjang for lookup
+            var { data: allJenjang } = await db.from('jenjang').select('id, nama, kode');
+            var jenjangMap = {};
+            (allJenjang || []).forEach(function(j) { jenjangMap[j.id] = j; });
+
+            // Step 2: Get all wilayah for lookup
+            var { data: allWilayah } = await db.from('wilayah').select('id, nama, tingkat, parent_id');
+            var wilayahMap = {};
+            (allWilayah || []).forEach(function(w) { wilayahMap[w.id] = w; });
+
+            // Step 3: Get enrollments with jamaah data only (avoid jenjang FK issue)
             let query = db.from('enrollment')
-                .select(`
-                    jamaah_id,
-                    jenjang_id,
-                    wilayah_id,
-                    status,
-                    jamaah:jamaah_id(id, nama, nama_panggilan, jenis_kelamin, tanggal_lahir, phone, alamat, ayah_id, ibu_id, status_pernikahan),
-                    jenjang:jenjang_id(id, nama, kode),
-                    wilayah:wilayah_id(id, nama, tingkat, parent_id)
-                `)
+                .select('id, jamaah_id, jenjang_id, wilayah_id, status')
                 .eq('status', 'aktif');
 
             // Filter by wilayah if provided
@@ -481,15 +482,34 @@ const generusApi = {
             const { data: enrollments, error } = await query;
             if (error) throw error;
 
-            // Transform data to match expected format from view
-            let result = (enrollments || [])
-                .filter(e => e.jamaah && e.jamaah.status_pernikahan !== 'menikah')
+            if (!enrollments || enrollments.length === 0) {
+                return [];
+            }
+
+            // Step 4: Get jamaah data for all enrolled jamaah_ids
+            var jamaahIds = enrollments.map(function(e) { return e.jamaah_id; }).filter(Boolean);
+            var { data: jamaahList } = await db.from('jamaah')
+                .select('id, nama, nama_panggilan, jenis_kelamin, tanggal_lahir, phone, alamat, ayah_id, ibu_id, status_pernikahan, status_aktif')
+                .in('id', jamaahIds);
+
+            var jamaahMap = {};
+            (jamaahList || []).forEach(function(j) { jamaahMap[j.id] = j; });
+
+            // Step 5: Transform and combine data
+            let result = enrollments
                 .map(function(e) {
-                    var jamaah = e.jamaah || {};
-                    var jenjang = e.jenjang || {};
-                    var wilayah = e.wilayah || {};
+                    var jamaah = jamaahMap[e.jamaah_id] || {};
+                    var jenjang = jenjangMap[e.jenjang_id] || {};
+                    var wilayah = wilayahMap[e.wilayah_id] || {};
+
+                    // Skip if jamaah is married or not found
+                    if (!jamaah.id || jamaah.status_pernikahan === 'menikah') {
+                        return null;
+                    }
+
                     return {
                         id: jamaah.id,
+                        jamaah_id: jamaah.id,
                         nama: jamaah.nama,
                         nama_panggilan: jamaah.nama_panggilan,
                         jenis_kelamin: jamaah.jenis_kelamin,
@@ -498,19 +518,17 @@ const generusApi = {
                         alamat: jamaah.alamat,
                         ayah_id: jamaah.ayah_id,
                         ibu_id: jamaah.ibu_id,
-                        ayah_nama: null, // Would need additional query
-                        ibu_nama: null,  // Would need additional query
-                        jenjang_id: jenjang.id,
-                        jenjang_nama: jenjang.nama,
-                        jenjang_kode: jenjang.kode,
-                        kelompok_id: wilayah.id,
-                        kelompok_nama: wilayah.nama,
-                        enrollment_id: e.jamaah_id ? e.jamaah_id : null
+                        ayah_nama: null,
+                        ibu_nama: null,
+                        jenjang_id: jenjang.id || e.jenjang_id,
+                        jenjang_nama: jenjang.nama || '-',
+                        jenjang_kode: jenjang.kode || '',
+                        kelompok_id: wilayah.id || e.wilayah_id,
+                        kelompok_nama: wilayah.nama || '-',
+                        enrollment_id: e.id
                     };
-                });
-
-            // Filter by desa_id or daerah_id requires checking parent hierarchy
-            // For now, filter by kelompok_id only works directly
+                })
+                .filter(function(g) { return g !== null; });
 
             // Client-side search
             if (filters.search) {
