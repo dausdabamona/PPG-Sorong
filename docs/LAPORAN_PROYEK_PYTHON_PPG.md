@@ -15,6 +15,8 @@
 8. [Implementasi Detail](#8-implementasi-detail)
 9. [Fitur per Modul](#9-fitur-per-modul)
 10. [Timeline Pengembangan](#10-timeline-pengembangan)
+11. [Rekap Materi Kurikulum](#11-rekap-materi-kurikulum)
+12. [Skema Database Kurikulum](#12-skema-database-kurikulum)
 
 ---
 
@@ -1994,8 +1996,417 @@ Proyek konversi PPG Sorong dari web app ke sistem offline (Python Desktop + Mobi
 
 ---
 
+## 11. REKAP MATERI KURIKULUM
+
+### 11.1 Struktur Kurikulum PPG
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        STRUKTUR KURIKULUM PPG                           │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐     │
+│  │   PILAR 1       │    │   PILAR 2       │    │   PILAR 3       │     │
+│  │  ALIM-FAQIH     │    │    AKHLAQ       │    │  KEMANDIRIAN    │     │
+│  │  (Keilmuan)     │    │  (Karakter)     │    │ (Kemandirian)   │     │
+│  └────────┬────────┘    └────────┬────────┘    └────────┬────────┘     │
+│           │                      │                      │               │
+│           ▼                      ▼                      ▼               │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                         BIDANG MATERI                           │   │
+│  ├─────────────────────────────────────────────────────────────────┤   │
+│  │  Alim    │   Faqih   │   Akhlaq    │  Kemandirian │  Keaktifan  │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                  │                                      │
+│                                  ▼                                      │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                      KATEGORI MATERI                            │   │
+│  ├─────────────────────────────────────────────────────────────────┤   │
+│  │  Hafalan Surat │ Hafalan Doa │ Hafalan Dalil │ Praktek Ibadah  │   │
+│  │  Tajwid        │ Keilmuan    │ Adab/Tatakrama│ ASAD Beladiri   │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                  │                                      │
+│                                  ▼                                      │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                       MATERI ITEM                               │   │
+│  ├─────────────────────────────────────────────────────────────────┤   │
+│  │  Surat Al-Fatihah │ Doa Makan │ Dalil Sholat │ Wudhu │ dll.    │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 11.2 Pilar Tri-Sukses
+
+Kurikulum PPG didasarkan pada 3 Pilar Tri-Sukses:
+
+| No | Pilar | Kode | Deskripsi | Icon |
+|----|-------|------|-----------|------|
+| 1 | Alim-Faqih | `alim_faqih` | Penguasaan ilmu dan pemahaman agama Islam | 📘 |
+| 2 | Akhlaq | `akhlaq` | Pembentukan karakter dan perilaku mulia | 🤝 |
+| 3 | Kemandirian | `kemandirian` | Pengembangan kemandirian dan keterampilan hidup | 💪 |
+
+### 11.3 Jenjang Pendidikan
+
+Generus dibagi berdasarkan usia dan tingkat kemampuan:
+
+| No | Jenjang | Rentang Usia | Keterangan |
+|----|---------|--------------|------------|
+| 1 | PAUD | < 5 tahun | Pendidikan Anak Usia Dini |
+| 2 | Caberawit Iqro 1-2 | 5 - 6 tahun | Tingkat dasar Iqro |
+| 3 | Caberawit Iqro 3-4 | 6 - 7 tahun | Tingkat menengah Iqro |
+| 4 | Caberawit Quran | 7 - 8 tahun | Sudah bisa baca Al-Quran |
+| 5 | Pra Remaja | 8 - 12 tahun | Persiapan remaja |
+| 6 | Remaja | 12 - 17 tahun | Masa remaja |
+| 7 | Pra Nikah | 17+ tahun | Persiapan menikah |
+
+### 11.4 Bidang Materi
+
+| No | Bidang | Pilar | Deskripsi |
+|----|--------|-------|-----------|
+| 1 | Alim | Alim-Faqih | Hafalan dan keilmuan dasar (surat, doa, dalil, tajwid) |
+| 2 | Faqih | Alim-Faqih | Pemahaman dan praktek ibadah |
+| 3 | Akhlaq | Akhlaq | Adab, tatakrama, dan 6 Thobiat Luhur |
+| 4 | Kemandirian | Kemandirian | Keterampilan hidup dan ASAD Beladiri |
+| 5 | Keaktifan | - | Kehadiran dan partisipasi pengajian |
+
+### 11.5 Teknik Penilaian
+
+| No | Teknik | Kode | Deskripsi | Contoh |
+|----|--------|------|-----------|--------|
+| 1 | Hafalan | `hafalan` | Penilaian persentase 0-100% | Hafalan Surat (85%) |
+| 2 | Level | `level` | Penilaian bertingkat (A, B, C, D) | Kualitas Bacaan |
+| 3 | Checklist | `checklist` | Penyelesaian materi (Ya/Tidak) | Praktek Wudhu |
+| 4 | Status | `status` | Status pencapaian | Belum/Proses/Selesai |
+
+### 11.6 Kategori Hafalan (Materi Bertahap)
+
+Materi hafalan adalah materi yang dinilai secara bertahap dan berkesinambungan (persentase 0-100%):
+
+| ID | Kode | Nama Kategori | Icon | Pilar |
+|----|------|---------------|------|-------|
+| 60 | ALM-HFL-01 | Hafalan Surat | 📖 | Alim-Faqih |
+| 61 | ALM-HFL-02 | Hafalan Doa | 🤲 | Alim-Faqih |
+| 63 | ALM-HFL-04 | Hafalan Dalil | 📜 | Alim-Faqih |
+
+### 11.7 Rekap Target Materi per Jenjang
+
+#### A. PAUD (Usia Dini)
+
+| Bidang | Kategori | Target | Satuan | Keterangan |
+|--------|----------|--------|--------|------------|
+| Alim | Iqro/Tilawaty | 35 | halaman | Iqro Jilid 1 |
+| Alim | Hafalan Surat | 6 | surat | Al-Fatihah & An-Nas s/d Al-Kafirun |
+| Alim | Hafalan Doa GBMTPG | 6 | doa | Asmaul Husna & Doa harian |
+| Alim | Hafalan Doa Generus Sorong | 12 | doa | Doa Generus Sorong dasar |
+| Alim | Keilmuan GBMTPG | 4 | materi | Dasar aqidah |
+| Faqih | Kefahaman Agama GBMTPG | 10 | materi | Kefahaman dasar |
+| Faqih | Praktek Ibadah GBMTPG | 6 | materi | Praktek ibadah dasar |
+| Faqih | Praktek Wudhu Sholat | 1 | nilai | Praktek wudhu sholat |
+| Faqih | 4 Tali Keimanan | 100 | nilai | Pengenalan 4 Tali Keimanan |
+| Akhlaq | 6 Thobiat Luhur | 100 | nilai | Pengenalan 6 Thobiat |
+| Akhlaq | Adab/Tatakrama | 35 | materi | Tatakrama dasar |
+| Kemandirian | Kemandirian GBMTPG | 8 | materi | Kemandirian dasar |
+| Kemandirian | ASAD Beladiri | 1 | jurus | Jurus 1 |
+| Keaktifan | Keaktifan Bulanan | 20 | kali | Target 20x/bulan |
+
+#### B. Caberawit Iqro 1-2
+
+| Bidang | Kategori | Target | Satuan | Keterangan |
+|--------|----------|--------|--------|------------|
+| Alim | Iqro/Tilawaty | 131 | halaman | Iqro Jilid 1-4 |
+| Alim | Hafalan Surat | 12 | surat | 12 surat pendek |
+| Alim | Hafalan Doa GBMTPG | 11 | doa | Doa harian lengkap |
+| Alim | Hafalan Doa Generus Sorong | 24 | doa | Doa Generus Sorong lanjutan |
+| Alim | Keilmuan GBMTPG | 7 | materi | Aqidah dasar |
+| Faqih | Kefahaman Agama GBMTPG | 15 | materi | Kefahaman agama dasar |
+| Faqih | Praktek Ibadah GBMTPG | 9 | materi | Praktek ibadah dasar |
+| Faqih | 4 Tali Keimanan | 100 | nilai | Pemahaman 4 Tali Keimanan |
+| Akhlaq | 6 Thobiat Luhur | 100 | nilai | Pemahaman 6 Thobiat |
+| Akhlaq | Adab/Tatakrama | 55 | materi | Tatakrama lanjutan |
+| Kemandirian | Kemandirian GBMTPG | 16 | materi | Kemandirian lanjutan |
+| Kemandirian | ASAD Beladiri | 2 | jurus | Jurus 1-2 |
+
+#### C. Caberawit Iqro 3-4
+
+| Bidang | Kategori | Target | Satuan | Keterangan |
+|--------|----------|--------|--------|------------|
+| Alim | Iqro/Tilawaty | 195 | halaman | Iqro Jilid 1-6 |
+| Alim | Hafalan Surat | 18 | surat | 18 surat pendek |
+| Alim | Hafalan Doa GBMTPG | 8 | doa | Doa harian |
+| Alim | Hafalan Doa Generus Sorong | 30 | doa | Doa Generus lengkap |
+| Alim | Keilmuan GBMTPG | 15 | materi | Aqidah menengah |
+| Faqih | Kefahaman Agama GBMTPG | 20 | materi | Kefahaman agama menengah |
+| Faqih | Praktek Ibadah GBMTPG | 14 | materi | Praktek ibadah menengah |
+| Faqih | 4 Tali Keimanan | 100 | nilai | Pendalaman 4 Tali Keimanan |
+| Akhlaq | 6 Thobiat Luhur | 100 | nilai | Pendalaman 6 Thobiat |
+| Akhlaq | Adab/Tatakrama | 108 | materi | Tatakrama lengkap |
+| Kemandirian | Kemandirian GBMTPG | 17 | materi | Kemandirian menengah |
+| Kemandirian | ASAD Beladiri | 4 | jurus | Jurus 1-4 |
+
+#### D. Caberawit Quran
+
+| Bidang | Kategori | Target | Satuan | Keterangan |
+|--------|----------|--------|--------|------------|
+| Alim | Makna Quran | 20 | halaman | Juz 30 |
+| Alim | Makna Hadits | 9 | kitab | 9 Kitab Hadits |
+| Alim | Hafalan Surat | 30 | surat | Juz Amma |
+| Alim | Hafalan Doa GBMTPG | 8 | doa | Doa harian |
+| Alim | Hafalan Doa Generus Sorong | 36 | doa | Doa Generus lengkap |
+| Alim | Hafalan Dalil GBMTPG | 9 | dalil | Dalil dasar |
+| Alim | Hafalan Dalil Generus Sorong | 34 | dalil | Dalil lengkap |
+| Alim | Keilmuan GBMTPG | 15 | materi | Aqidah lengkap |
+| Alim | Tajwid | 30 | materi | Tajwid lengkap |
+| Alim | Kualitas Bacaan | 1 | nilai | Kualitas bacaan Quran |
+| Alim | Praktek Pegon | 1 | nilai | Tulisan pegon |
+| Faqih | Kefahaman Agama GBMTPG | 25 | materi | Kefahaman agama lanjut |
+| Faqih | Praktek Ibadah GBMTPG | 16 | materi | Praktek ibadah lanjut |
+| Faqih | 4 Tali Keimanan | 100 | nilai | Penguasaan 4 Tali Keimanan |
+| Akhlaq | 6 Thobiat Luhur | 100 | nilai | Penguasaan 6 Thobiat |
+| Akhlaq | Adab/Tatakrama | 110 | materi | Tatakrama lengkap |
+| Kemandirian | Kemandirian GBMTPG | 21 | materi | Kemandirian lanjut |
+| Kemandirian | ASAD Beladiri | 7 | jurus | Jurus 1-7 |
+
+#### E. Pra Remaja
+
+| Bidang | Kategori | Target | Satuan | Keterangan |
+|--------|----------|--------|--------|------------|
+| Alim | Makna Quran | 10 | juz | Juz 21-30 |
+| Alim | Makna Hadits | 21 | kitab | 21 Kitab Hadits |
+| Alim | Hafalan Surat | 45 | surat | 45 surat |
+| Alim | Hafalan Doa Generus Sorong | 39 | doa | Doa Generus lengkap |
+| Alim | Hafalan Dalil Generus Sorong | 34 | dalil | Dalil lengkap |
+| Alim | Keilmuan GBMTPG | 15 | materi | Keilmuan lengkap |
+| Alim | Tajwid | 30 | materi | Tajwid lengkap |
+| Alim | Tadarus Al-Quran | 30 | juz | Khatam Quran |
+| Faqih | Kefahaman Agama GBMTPG | 35 | materi | Kefahaman agama lengkap |
+| Faqih | Praktek Ibadah GBMTPG | 20 | materi | Praktek ibadah lengkap |
+| Faqih | Nasehat Bernomor BPI | 95 | nasehat | 95 Nasehat BPI |
+| Faqih | 4 Tali Keimanan | 100 | nilai | Penguasaan 4 Tali Keimanan |
+| Akhlaq | 6 Thobiat Luhur | 100 | nilai | Penguasaan 6 Thobiat |
+| Akhlaq | Adab/Tatakrama | 120 | materi | Tatakrama lengkap |
+| Kemandirian | Kemandirian GBMTPG | 25 | materi | Kemandirian lengkap |
+| Kemandirian | ASAD Beladiri | 7 | jurus | Jurus 1-7 |
+
+#### F. Remaja
+
+| Bidang | Kategori | Target | Satuan | Keterangan |
+|--------|----------|--------|--------|------------|
+| Alim | Makna Quran | 20 | juz | Juz 11-30 |
+| Alim | Makna Hadits | 27 | kitab | 27 Kitab Hadits |
+| Alim | Hafalan Surat | 45 | surat | 45 surat |
+| Alim | Hafalan Doa Generus Sorong | 39 | doa | Doa Generus lengkap |
+| Alim | Hafalan Dalil Generus Sorong | 34 | dalil | Dalil lengkap |
+| Alim | Keilmuan GBMTPG | 15 | materi | Keilmuan lengkap |
+| Alim | Tajwid | 30 | materi | Tajwid lengkap |
+| Alim | Tadarus Al-Quran | 30 | juz | Khatam Quran |
+| Faqih | Kefahaman Agama GBMTPG | 35 | materi | Kefahaman agama lengkap |
+| Faqih | Praktek Ibadah GBMTPG | 20 | materi | Praktek ibadah lengkap |
+| Faqih | Praktek Perawatan Jenazah | 1 | nilai | Perawatan jenazah |
+| Faqih | Nasehat Bernomor BPI | 95 | nasehat | 95 Nasehat BPI |
+| Faqih | 4 Tali Keimanan | 100 | nilai | Penguasaan 4 Tali Keimanan |
+| Akhlaq | 6 Thobiat Luhur | 100 | nilai | Penguasaan 6 Thobiat |
+| Akhlaq | Adab/Tatakrama | 120 | materi | Tatakrama lengkap |
+| Kemandirian | Kemandirian GBMTPG | 25 | materi | Kemandirian lengkap |
+| Kemandirian | ASAD Beladiri | 7 | jurus | Jurus 1-7 |
+
+#### G. Pra Nikah
+
+| Bidang | Kategori | Target | Satuan | Keterangan |
+|--------|----------|--------|--------|------------|
+| Alim | Makna Quran | 30 | juz | Juz 1-30 lengkap |
+| Alim | Makna Hadits | 30 | kitab | 30 Kitab Hadits |
+| Alim | Hafalan Surat | 45 | surat | 45 surat |
+| Alim | Hafalan Doa Generus Sorong | 39 | doa | Doa Generus lengkap |
+| Alim | Hafalan Dalil Generus Sorong | 34 | dalil | Dalil lengkap |
+| Alim | Keilmuan GBMTPG | 15 | materi | Keilmuan lengkap |
+| Alim | Tajwid | 30 | materi | Tajwid lengkap |
+| Alim | Tadarus Al-Quran | 30 | juz | Khatam Quran |
+| Faqih | Kefahaman Agama GBMTPG | 35 | materi | Kefahaman agama lengkap |
+| Faqih | Praktek Ibadah GBMTPG | 20 | materi | Praktek ibadah lengkap |
+| Faqih | Praktek Perawatan Jenazah | 1 | nilai | Perawatan jenazah |
+| Faqih | Nasehat Bernomor BPI | 95 | nasehat | 95 Nasehat BPI |
+| Faqih | 4 Tali Keimanan | 100 | nilai | Penguasaan 4 Tali Keimanan |
+| Akhlaq | 6 Thobiat Luhur | 100 | nilai | Penguasaan 6 Thobiat |
+| Akhlaq | Adab/Tatakrama | 120 | materi | Tatakrama lengkap |
+| Kemandirian | Kemandirian GBMTPG | 25 | materi | Kemandirian lengkap |
+| Kemandirian | ASAD Beladiri | 7 | jurus | Jurus 1-7 |
+
+### 11.8 Penilaian Akhlaq Bulanan
+
+Setiap bulan, generus dinilai berdasarkan 5 aspek akhlaq dengan skala 1-4:
+
+| No | Aspek | Deskripsi | Skala |
+|----|-------|-----------|-------|
+| 1 | Kedisiplinan | Ketepatan waktu, mengikuti aturan | 1-4 |
+| 2 | Adab | Sopan santun, tata krama | 1-4 |
+| 3 | Akhlaq Sesama | Hubungan dengan teman sebaya | 1-4 |
+| 4 | Kemandirian | Kemampuan mandiri, tidak bergantung | 1-4 |
+| 5 | Kebersihan | Kebersihan diri dan lingkungan | 1-4 |
+
+**Predikat Penilaian Akhlaq:**
+
+| Predikat | Rentang Rata-rata | Keterangan |
+|----------|-------------------|------------|
+| A | >= 3.5 | Sangat Baik |
+| B | >= 2.5 | Baik |
+| C | >= 1.5 | Cukup |
+| D | < 1.5 | Perlu Bimbingan |
+
+**Rumus Nilai:**
+```
+Rata-rata = (Kedisiplinan + Adab + Akhlaq_Sesama + Kemandirian + Kebersihan) / 5
+```
+
+### 11.9 Konsep 4 Tali Keimanan & 6 Thobiat Luhur
+
+#### 4 Tali Keimanan:
+1. Iman kepada Allah
+2. Iman kepada Malaikat
+3. Iman kepada Kitab
+4. Iman kepada Rasul
+
+#### 6 Thobiat Luhur:
+1. Kejujuran (Shiddiq)
+2. Amanah (Trustworthy)
+3. Tabligh (Menyampaikan)
+4. Fathonah (Cerdas)
+5. Sabar (Patience)
+6. Syukur (Gratitude)
+
+### 11.10 Sumber Materi
+
+| Kode | Sumber | Keterangan |
+|------|--------|------------|
+| GBMTPG | Gerakan Bimbingan Murid TPA/TQ | Standar nasional |
+| Panduan | Panduan Lokal Sorong | Pengembangan lokal |
+
+---
+
+## 12. SKEMA DATABASE KURIKULUM
+
+### 12.1 Tabel Kurikulum
+
+```sql
+-- Tabel Bidang Materi
+CREATE TABLE bidang (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kode TEXT UNIQUE,
+    nama TEXT NOT NULL,
+    deskripsi TEXT,
+    urutan INTEGER DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabel Kategori Materi
+CREATE TABLE kategori_materi (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bidang_id INTEGER REFERENCES bidang(id),
+    kode TEXT UNIQUE,
+    nama TEXT NOT NULL,
+    pilar_trisukses TEXT CHECK(pilar_trisukses IN ('alim_faqih', 'akhlaq', 'kemandirian')),
+    teknik_penilaian TEXT CHECK(teknik_penilaian IN ('hafalan', 'level', 'checklist', 'status')),
+    urutan INTEGER DEFAULT 1,
+    is_aktif BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabel Materi Item
+CREATE TABLE materi_item (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kategori_id INTEGER REFERENCES kategori_materi(id),
+    kode TEXT,
+    nama TEXT NOT NULL,
+    nomor INTEGER,
+    tipe TEXT,
+    detail JSON,
+    is_hafalan BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabel Target per Jenjang
+CREATE TABLE target_jenjang (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    jenjang_id INTEGER REFERENCES jenjang(id),
+    kategori_id INTEGER REFERENCES kategori_materi(id),
+    target_jumlah INTEGER,
+    satuan TEXT,
+    keterangan TEXT,
+    jenis TEXT CHECK(jenis IN ('Obj', 'Subj')),
+    rumus TEXT,
+    max_nilai INTEGER DEFAULT 100,
+    sumber TEXT,
+    UNIQUE(jenjang_id, kategori_id)
+);
+
+-- Tabel Progress Jamaah
+CREATE TABLE progress_jamaah (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    jamaah_id INTEGER REFERENCES generus(id),
+    materi_item_id INTEGER REFERENCES materi_item(id),
+    tahun_ajaran_id INTEGER REFERENCES tahun_ajaran(id),
+    status TEXT DEFAULT 'belum',
+    nilai INTEGER,
+    tanggal DATE,
+    penilai_id INTEGER REFERENCES users(id),
+    catatan TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(jamaah_id, materi_item_id, tahun_ajaran_id)
+);
+
+-- Tabel Penilaian Akhlaq
+CREATE TABLE penilaian_akhlaq (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    jamaah_id INTEGER REFERENCES generus(id),
+    periode_bulan INTEGER NOT NULL,
+    periode_tahun INTEGER NOT NULL,
+    kedisiplinan INTEGER CHECK(kedisiplinan BETWEEN 1 AND 4),
+    adab INTEGER CHECK(adab BETWEEN 1 AND 4),
+    akhlaq_sesama INTEGER CHECK(akhlaq_sesama BETWEEN 1 AND 4),
+    kemandirian INTEGER CHECK(kemandirian BETWEEN 1 AND 4),
+    kebersihan INTEGER CHECK(kebersihan BETWEEN 1 AND 4),
+    predikat TEXT CHECK(predikat IN ('A', 'B', 'C', 'D')),
+    catatan TEXT,
+    penilai_id INTEGER REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(jamaah_id, periode_bulan, periode_tahun)
+);
+```
+
+### 12.2 Contoh Data Materi
+
+```python
+# Data Hafalan Surat (sample)
+HAFALAN_SURAT = [
+    {'nomor': 1, 'nama': 'Al-Fatihah', 'tipe': 'wajib', 'detail': {'jumlah_ayat': 7, 'tempat_turun': 'Makkah'}},
+    {'nomor': 114, 'nama': 'An-Nas', 'tipe': 'wajib', 'detail': {'jumlah_ayat': 6, 'tempat_turun': 'Madinah'}},
+    {'nomor': 113, 'nama': 'Al-Falaq', 'tipe': 'wajib', 'detail': {'jumlah_ayat': 5, 'tempat_turun': 'Madinah'}},
+    {'nomor': 112, 'nama': 'Al-Ikhlas', 'tipe': 'wajib', 'detail': {'jumlah_ayat': 4, 'tempat_turun': 'Makkah'}},
+    # ... dst sampai 45 surat
+]
+
+# Data Hafalan Doa (sample)
+HAFALAN_DOA = [
+    {'nomor': 1, 'nama': 'Doa Sebelum Makan', 'kategori': 'harian'},
+    {'nomor': 2, 'nama': 'Doa Sesudah Makan', 'kategori': 'harian'},
+    {'nomor': 3, 'nama': 'Doa Masuk Masjid', 'kategori': 'ibadah'},
+    {'nomor': 4, 'nama': 'Doa Keluar Masjid', 'kategori': 'ibadah'},
+    # ... dst
+]
+
+# Data Hafalan Dalil (sample)
+HAFALAN_DALIL = [
+    {'nomor': 1, 'nama': 'Dalil Sholat', 'kategori': 'ibadah'},
+    {'nomor': 2, 'nama': 'Dalil Puasa', 'kategori': 'ibadah'},
+    {'nomor': 3, 'nama': 'Dalil Zakat', 'kategori': 'muamalah'},
+    # ... dst
+]
+```
+
+---
+
 *Dokumen ini dibuat sebagai panduan lengkap untuk pengembangan ulang sistem PPG Sorong menggunakan Python.*
 
-**Versi:** 1.0
+**Versi:** 1.1 (dengan tambahan Rekap Materi Kurikulum)
 **Tanggal:** Januari 2026
 **Penulis:** Claude AI Assistant
