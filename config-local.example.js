@@ -5,6 +5,6 @@
 // ============================================================================
 
 window.ENV = {
-    SUPABASE_URL: 'https://xkbauqrykzxgpoflujji.supabase.co',
-    SUPABASE_ANON_KEY: 'your_actual_key_here'
+    SUPABASE_URL: 'https://your-project.supabase.co',
+    SUPABASE_ANON_KEY: 'your_actual_supabase_anon_key_here'
 };
