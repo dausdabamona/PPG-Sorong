@@ -182,7 +182,22 @@
         </main>
     </div>
 
+    <!-- Load environment config (ignored by git) -->
+    <script>
+        // Try to load local config if exists
+        (function() {
+            var script = document.createElement('script');
+            script.src = 'config-local.js';
+            script.onerror = function() {
+                console.log('No local config found, using defaults');
+            };
+            document.head.appendChild(script);
+        })();
+    </script>
+
+    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/env-loader.js"></script>
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>

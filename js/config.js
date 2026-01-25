@@ -2,8 +2,15 @@
 // KONFIGURASI SUPABASE - PPG SORONG
 // ============================================================================
 
-const SUPABASE_URL = 'https://xkbauqrykzxgpoflujji.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrYmF1cXJ5a3p4Z3BvZmx1amppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5MzQxMjcsImV4cCI6MjA4MDUxMDEyN30.QI3Xx2v04-sxjRGwqyjQri9D6FALAMdqgNTmPGWP4uc';
+// Load dari environment variables atau window config
+const SUPABASE_URL = window.ENV?.SUPABASE_URL || 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
+
+// Validasi konfigurasi
+if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+    console.error('⚠️ SUPABASE CONFIGURATION MISSING!');
+    console.error('Please check your environment configuration.');
+}
 
 // Inisialisasi Supabase Client
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
