@@ -1,0 +1,30 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Local configuration (contains credentials)
+config-local.js
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Build files
+dist/
+build/
